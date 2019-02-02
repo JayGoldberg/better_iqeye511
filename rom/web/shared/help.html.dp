@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<html><head><title>$V(SP) $V(SN): Help</title>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<style type="text/css">
+td {font-family: Arial, Helvetica, sans-serif;}
+b {font-family: Arial, Helvetica, sans-serif;}
+</style>
+</head>
+<body bgcolor="#FFFFFF" text="#808080" link="#800000">
+<table width="100%">
+  <tr><td height=5 width="21">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></td></tr>
+$IF($V(MANUAL),
+  <tr><td align=center colspan=2> 
+    <div align="left">
+      <font size="+3"><b>
+      &nbsp; $SC Camera Configuration Web Pages<b></font></div></td></tr>
+,
+  <tr><td align=center bgcolor=$V(COLOR) colspan=2> 
+    <div align="left">
+      <font color=$V(HEADLINKCOLOR) size="+1">
+      &nbsp; $V(SP): Help Center</font></div></td></tr>
+)
+</table>
+$INC(contentshelp.dp)
+$INC(trickshelp.dp)
+$INC(imagehelp.dp)
+$INC(windowhelp.dp)
+<!-- INC(focushelp.dp) -->
+$INC(serverhelp.dp)
+$INC(accesshelp.dp)
+<!-- INC(modemhelp.dp) -->
+$IF($V(IQEYE3),$INC(pccardhelp.dp),)
+<!-- VAV has vavhelp, not triggerhelp and iqlibhelp -->
+$IF($V(VAV),$INC(vavhelp.dp),$INC(triggerhelp.dp)$INC(iqlibhelp.dp))
+$INC(iohelp.dp)
+$INC(multiviewhelp.dp)
+$INC(record_dlghelp.dp)
+<table width="100%">
+  <tr><td align=center height=2 bgcolor=$V(COLOR)>
+      <img src="1pixclear.gif" width=400 height=3 border=0 alt=""></td></tr>
+</table>
+</body>
+</html>
+
+
+
+
+

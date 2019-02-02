@@ -1,0 +1,357 @@
+
+
+
+if (isPTZ) self.location = "ptzvid.html";
+var DPTZ = true;		
+
+
+
+
+
+
+
+
+var MAX_LEFT = $O(1.2.18.2,B); 
+var MAX_TOP = $O(1.2.18.1,B);  
+var MAX_RAWWIDTH = $O(1.2.18.3,B);  
+var MAX_RAWHEIGHT = $O(1.2.18.4,B); 
+
+
+var orient = "$O(1.2.4,B)";
+if (orient.match("90") || orient.match("270") ||
+    orient.match("BLTR") || orient.match("TLBR")) {
+    var tmpvar;
+    tmpvar = MAX_RAWWIDTH;
+    MAX_RAWWIDTH = MAX_RAWHEIGHT;
+    MAX_RAWHEIGHT = tmpvar;
+    tmpvar = MAX_TOP;
+    MAX_TOP = MAX_LEFT;
+    MAX_LEFT = tmpvar;
+}
+
+var mods = new Object();        
+
+
+
+
+mods.wx = $O(1.2.6.7,B);        
+mods.wy = $O(1.2.6.8,B);        
+mods.ww = $O(1.2.6.9,B);        
+mods.wh = $O(1.2.6.10,B);       
+
+
+var wrw = $O(1.2.6.2,B);        
+var wrh = $O(1.2.6.3,B);        
+var cropLeft = $O(1.2.6.4,B);   
+var cropTop =  $O(1.2.6.1,B);   
+
+
+if (wrw > MAX_LEFT) wrw = MAX_LEFT;
+if (wrh > MAX_TOP)  wrh = MAX_TOP;
+
+
+var highQuality = 0;
+var ds = $O(1.2.2,B);           
+var displayDS = '$O(17.5.1)';   
+if (isIQeye7 && (displayDS == 1)) {
+    
+    highQuality = 1;
+    if (wrh < 1200) {displayDS = 2;}
+    else {displayDS = 4;}
+}
+if (!displayDS) displayDS = ds;
+mods.ds = displayDS;            
+
+
+var dsArray = new Array(1,1.5,2,3,4,5,6,7,8,10,12,14,16); 
+var dsIndex; 
+
+
+if (isIQeye6) dsArray = new Array(1,2,4);
+if (isIQeye7) dsArray = new Array(1,2,4,8);
+
+
+
+var snap = "spush";		
+var image = new Object();
+image.width=wrw;                
+image.height=wrh;               
+var imAttr ="";                 
+var ovstring = "";
+var focusMode = 1;              
+var urimods="";                 
+                                
+
+var magForHighQuality = 4;      
+var DEBUG = false;
+
+
+function activate() {
+    
+    setEcam2("OidCB17.4","ON");
+    return false;
+}
+
+
+function round(val, tolerance) {
+    var rv = val;
+    if (Math.abs(rv - Math.round(rv)) < tolerance) {
+        rv = Math.round(rv);
+    }
+    return rv;
+}
+
+
+
+
+
+function getArgs() {
+    var args = new Object();
+    var query = location.search.substring(1);
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+    for (var i=0; i<pairs.length; i++) {
+        var pos = pairs[i].indexOf('=');
+        if (pos==-1) continue;
+        var argname = pairs[i].substring(0,pos);
+        var value = pairs[i].substring(pos+1);
+        args[argname] = unescape(value);
+    }
+    
+    if (args.needsApplet != null) needsApplet = (args.needsApplet==true);
+    if (args.DEBUG != null) DEBUG = true;
+    if (args.logging != null) {
+	logging = parseInt (args.logging);
+	if (logging != 0) logging = '<param name="Logging" value="1">\n';
+    }
+    if (args.ww != null) mods.ww = round(parseFloat(args.ww), 0.0001);
+    if (args.wh != null) mods.wh = round(parseFloat(args.wh), 0.0001);
+    if (args.wx != null) mods.wx = parseInt(args.wx);
+    if (args.wy != null) mods.wy = parseInt(args.wy);
+    if (args.map != null) urimods += "?map=" + args.map;
+    if (args.mode != null) focusMode = parseInt(args.mode);
+    if (args.snap != null) snap = args.snap;
+    if (isNaN(focusMode)) focusMode=1; 
+    if (args.fps) FPS=true;
+
+    
+    
+    if (args.ds) mods.ds = args.ds;
+    image.width =  Math.floor(wrw/mods.ds);
+    image.height = Math.floor(wrh/mods.ds);
+    if (args.width  != null) image.width  = parseInt(args.width);
+    if (args.height != null) image.height = parseInt(args.height);
+
+    setDS();
+    if (!isIQeye6 && args.ov) ovstring = "?ov=" + parseInt(args.ov);
+    imAttr = ' width="' + image.width
+        + '" height="' + image.height + '" border=0 ';
+}
+
+
+function magnification() {
+    
+    if (isIQeye6) return image.height/(wrh/mods.ds);
+    return image.height*mods.ds/mods.wh/ds;
+}
+
+
+
+function setOvstring() {
+    var magfactor =  magnification();
+
+    if (isIQeye6) ovstring = "";
+    else {
+	
+	if (magfactor < 0.9 || magfactor > 1.1) ovstring = "?ov=0";
+	else ovstring =  ""; 
+    }
+    if (magfactor > magForHighQuality)
+        ovstring += "?jg=92"; 
+}
+
+
+function setDSIndex() {
+    for (var i=0;i<dsArray.length; i++) {
+        if (mods.ds >= dsArray[i]) dsIndex = i;
+    }
+    return dsIndex;
+}
+
+
+function lowerDS() {
+    if (dsIndex==null) setDSIndex();
+    if (dsIndex==0) return false;
+    mods.ds = dsArray[--dsIndex];
+    return true;
+}
+
+
+function raiseDS() {
+    if (dsIndex==null) setDSIndex();
+    if (dsIndex==(dsArray.length-1)) return false;
+    mods.ds = dsArray[++dsIndex];
+    return true;
+}
+
+
+
+function setDS() {
+    var oldMag = magnification();
+    var newMag = oldMag;
+    if (newMag>1.0){            
+        while (Math.abs(newMag-1.0) <= Math.abs(oldMag-1.0)) {
+            if (! lowerDS()) break;
+            oldMag = newMag;
+            newMag = magnification();
+        }
+        
+        if (Math.abs(newMag-1.0) > Math.abs(oldMag-1.0)) {
+            raiseDS();
+            oldMag = newMag;
+            newMag = magnification();
+        }
+    }
+    if (newMag<1.0) {
+        while (Math.abs(newMag-1.0) <= Math.abs(oldMag-1.0)) {
+            if (! raiseDS()) break;
+            oldMag = newMag;
+            newMag = magnification();
+        }
+        if (Math.abs(newMag-1.0) > Math.abs(oldMag-1.0)) {
+            lowerDS();
+            oldMag = newMag;
+            newMag = magnification();
+        }
+    }
+    if (! isIQeye6) { 
+        while (mods.ww*ds/mods.ds > wrw
+               || mods.wh*ds/mods.ds > wrh) {
+            
+            if (! raiseDS()) break;
+            
+            
+        }
+    }
+    setOvstring();
+}
+
+
+
+function adjustSizes(tolerance) {
+    var tmpH = Math.round(mods.wh/ds); 
+    var tmpW = Math.round(mods.ww/ds); 
+    if (image.height > tmpH) { 
+        var mult = Math.round(image.height/tmpH);
+        if ((Math.abs(image.height - mult*tmpH) < tolerance) ||
+            (Math.abs(image.width - mult*tmpW) < tolerance)) {
+            image.height = mult*tmpH;
+            image.width = mult*tmpW;
+        }
+    } else {  
+        var mult = Math.round(tmpH/image.height);
+        if ((Math.abs(image.height - tmpH/mult) < tolerance) ||
+            (Math.abs(image.width - tmpW/mult) < tolerance)) {
+            image.height = Math.round(tmpH/mult);
+            image.width = Math.round(tmpW/mult);
+        }
+    }
+}
+
+function sizeUp(factor) {
+    var eps = 2;                
+    if (image.height*factor>wrh+eps || image.width*factor>wrw+eps) {
+        handleError("maxsize");
+    }
+    else if (isIQeye6 &&
+             (image.height*factor>mods.wh+eps ||
+              image.width*factor>mods.ww+eps))
+        handleError("maxsize");
+    else {
+        image.height = Math.ceil(image.height*factor);
+        image.width  = Math.ceil(image.width*factor);
+        if (image.height>wrh) image.height = wrh;
+        if (image.width >wrw) image.width = wrw;
+        adjustSizes(5);
+        loadNewPage();
+    }
+    return false;
+}
+
+function sizeDown(factor) {
+    if (mods.ds >= 16) handleError("minsize");
+    else {
+        image.height = Math.round(image.height/factor);
+        image.width  = Math.round(image.width/factor);
+        adjustSizes(5);
+        loadNewPage();
+    }
+    return false;
+}
+
+function sizeMax() {
+    image.height = wrh;
+    image.width = wrw;
+    loadNewPage();
+    return false;
+}
+
+function imageArgs() {
+    if (isIQeye7) {
+	if (highQuality) {
+	    return "?ds=1";
+	}
+	else {
+	    return "?ds=" + mods.ds;
+	}
+    }
+    if (isIQeye6) {
+        if (DPTZ) {
+            
+            
+
+            ds = mods.ds; 
+	    
+            return "?wx=" + mods.wx + "?wy=" + mods.wy
+                + "?ww=" + mods.ww + "?wh=" + mods.wh
+                + "?ds=" + mods.ds
+                + ovstring + urimods;
+        } else {
+            return urimods;
+        }
+    }
+    else
+        return "?ww=" + mods.ww + "?wh=" + mods.wh
+            + "?wx=" + mods.wx + "?wy=" + mods.wy
+            + ((mods.ds == ds) ? "":("?ds=" + mods.ds))
+            + ovstring + urimods;
+}
+
+function stillImageString() {
+    return "now.jpg?snap=pre" + imageArgs();
+}
+
+function imageString() {
+    return "now.jpg?snap=" + snap + imageArgs();
+}
+
+function myURL() {
+    var rv = location.pathname + imageArgs()
+        + "?width=" + image.width + "?height=" + image.height;
+    if (focusMode>1) rv += "?mode=" + focusMode;
+    return rv;
+}
+
+
+function getVarsFromApplet() {
+}
+
+
+
+function loadNewPage() {
+    getVarsFromApplet(); 
+    setDS();
+    self.location = myURL();
+    return false;
+}
+

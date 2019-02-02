@@ -1,0 +1,86 @@
+<form>
+<table width="100%">
+  <tr> 
+    <td height=5 width="21">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></td>
+  </tr>
+  <tr> 
+    <td colspan=3> 
+$IF($V(MANUAL),,
+       Welcome to the $V(SP) help center.
+      <p> For help on a specific setup web page$,
+        select an item from the drop down menus below.
+)
+        For help on an individual item on a setup web page 
+        click the help icon ( <font size="-6">?</font> )
+        next to that item. 
+      <p> 
+    </td>
+  </tr>
+  <tr> 
+    <td width="21"></td>
+    <td align=center> 
+$IF($V(MANUAL),<div id=form style="visibility:hidden">,)
+      <form action="">
+        <table width="70%" bgcolor="#D3D3D3" cellpadding=7>
+          <tr align=center> 
+            <td>
+	      <a href="#contents"></a>
+  	      <select name="setupCats"
+	       onChange="window.location.hash=options[selectedIndex].value; return false">
+	        <option value="contents">contents...
+                <option value="image-gen">image settings
+                <option value="window-tools">window settings
+                <option value="setup-server">network settings
+                <option value="access-security">security settings
+<!-- incl trigger, recorder for non-VAV -->
+$IF($V(VAV),, 
+                <option value="trig-gen">trigger settings
+                <option value="IQview">recorder settings
+)
+$IF($CMP($O(2.21),3c),<option value="io">input/output settings,)
+$IF($V(MANUAL)$V(IQEYE3),<option value="setup-pccard">pccard settings,)
+<!--            <option value="setup-modem">modem settings -->
+ 	        <option value="quadview">multiview settings
+
+$IF($V(PTZ), 
+                <option value="setup-ptz">PTZ
+                <option value="ptz-preset">PTZ presets
+                <option value="ptz-scan">PTZ scan
+,)
+<!-- include focushelp if not iqeye6 -->
+$IF($V(IQEYE6),,<option value="setup-focus">focus aid) 
+              </select>
+            </td>
+            <td>
+              <select name="triggerCats" 
+               onChange="window.location.hash=options[selectedIndex].value; return false">
+		<option value="contents">tables..
+<!-- incl trigger and ftp table for non-VAV -->
+$IF($V(VAV),,
+                <option value="LastFail1">trigger results
+                <option value="LastFail2">ftp results
+)
+		<option value="dynamic-print">dynamic variables
+$IF($V(MANUAL)$V(HASCARDS),<option value="pccard-region">wireless regions,)
+              </select>
+            </td>
+          </tr>
+        </table>
+      </form>
+$IF($V(MANUAL),</DIV>,)
+    </td>
+    <td width="2"></td></tr>
+  <tr> 
+    <td height="5" width="21">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></td></tr>
+  <tr> 
+    <td align=center height=2 bgcolor=$V(COLOR) colspan=2>
+      <img src="1pixclear.gif" width=400 height=3 border=0 alt=""></td></tr>
+</table>
+</form>
+
+
+
+
+

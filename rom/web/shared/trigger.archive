@@ -1,0 +1,1 @@
+trigger archive "/pccard2/.trigger" 90 trig*.jpg

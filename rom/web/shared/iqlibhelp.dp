@@ -1,0 +1,372 @@
+<table>
+  <tr><td height=5 width="21"><a name="IQview">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td></tr>
+  <tr><td colspan=3><b><font size="+3">IQrecorder</font></b></td></tr>
+  <tr><td height=5 width="21"></td></tr>
+  <tr>
+    <td width="21"></td>
+    <td> 
+      <p>IQrecorder enables you to setup your camera to record images on
+$IF($V(HASCARDS),a PC card or,)
+        an external FTP server, and to view the recorded images as an image 
+        stream. Images stored can be "normal" (regularly stored at a fixed record 
+        rate), or "event" (stored when triggered by motion and/or an external 
+        input). 
+
+$IF($V(MANUAL),
+        For an IQeye3$, 
+        normal images can have different sizes from the event images. 
+,
+  $IF($V(IQEYE6),,
+        Normal images can have different sizes from the event images. 
+  )
+)
+        You can view the recorded images by following the 
+$IF($V(MANUAL),
+       "PLAYBACK",
+        <a href="playback.html" target="_blank">"PLAYBACK"</a> 
+)
+        link at the top right of any of the administration web pages. Playback 
+        requires the Sun Java Plug-in version 1.4.1 or later. During playback, 
+        you can step forward and backward through all images, or through event 
+        images only. 
+
+
+      <p><font size="+2"><a name="IQV-archive"></a>
+        <b>network recorder settings</b></font> 
+
+$IF($V(HASCARDS),
+      <p><a href="IQV-recordTo"></a><b>record to</b> 
+       Specify if you wish to record to your camera's internal hard drive
+       or removable pc-card storage (if attached) 
+       or to an external FTP server.
+,)
+$IF($V(MANUAL),
+      <p>
+       On-camera storage of IQrecorder images applies only to cameras
+       with pc-card support.
+,)
+
+      <p><b>recorder IP</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the IP address (like 128.73.220.67) of the 
+        remote FTP server to which your camera will transfer the recorded images. 
+        You may use a DNS name (like ftp.mycompany.com) if you have configured 
+        a <a name="Nameserver2">nameserver</a> (see the 
+$IF($V(MANUAL),
+         Network Settings Page,
+         <a href="serverset.html" target="_blank">Network Settings Page</a>
+)). 
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),ftp hostname,<a href="#Hostname">ftp hostname</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+
+<!--
+      <p><b>path</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Set the directory on the remote FTP server to which your 
+        camera will transfer the recorded images. Your camera will automatically 
+        create subdirectories of this directory. Many cameras can share the same 
+        recorder path directory on the FTP server. This should be a directory 
+        and not a filename. So, for Unix file systems, a trailing '/' may be required. 
+        You may use 
+$IF($V(MANUAL),dynamic variables,
+        <a href="#dynamic-print">dynamic variables</a>
+)
+        in this field. 
+        The path can be obtained from the person responsible for managing the 
+        FTP server. <br>
+        <b>Do not use the '\' character, use the '/' character instead.</b> 
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),file path,<a href="#Filepath">file path</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+-->
+      <p><b>username</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Define the username that the camera will use when logging 
+        into the FTP server. You may enter "anonymous" if your FTP server will 
+        allow anonymous write-access. The username can be obtained from the person 
+        responsible for managing the FTP server.
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),username,<a href="#Username">username</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+
+      <p><b>password</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the password that the camera will use when logging 
+        into the FTP server. Valid password characters are the alphanumeric characters 
+        (a-z, A-Z, 0-9). The password<br>
+        can be obtained from the person responsible for managing the FTP server. 
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),password,<a href="#Password">password</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+
+
+     <a name="IQV-NAT"></a>
+      <p><font size="+2">
+        <b>remote NAT access</b></font> 
+
+      <p>NAT (network address translation) is a method for connecting
+        multiple computers and devices to the internet using one IP address,
+        that of the router to your subnet.
+        Each communication on the internet specifies sending and receiving 
+        ip addresses and ports. 
+        The devices on your subnet may be using "reserved" ip addresses
+        which are not in use on the external internet.  
+        Communications between these devices and the external internet
+        must be "re-addressed" as coming from/to ports on your router.
+        Your router keeps a table of these forwarding addresses so
+        that communications from the internet go to the correct devices.
+
+      <p><a name="IQV-remoteIP"></a><b>public IP address</b>
+         If you are using a different IP address, for example the IP address 
+         of your router, to view IQrecorder images from a remote location, 
+         enter that IP address here.
+      <p><a name="IQV-remotePort"></a><b>FTP port</b>
+         If you are using a different IP address, for example the IP address 
+         of your router, and port fowarding to view IQrecorder images
+         from a remote location, enter the port number here
+         You may leave this blank to use the default FTP port of 21.
+
+     <a name="IQV-notify"></a>
+      <p><font size="+2"><b>e-mail notification</b></font> 
+
+      <p>Use this section to specify whether you want IQrecorder
+         warning and error conditions to trigger the 
+         sending of e-mails.
+
+      <p><a name="IQV-recordFail"></a><b>notification</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Specify whether e-mail will be sent 
+         when IQrecorder tries to
+         record an image and fails.  This could occur, for example,
+         if your camera or your FTP server becomes disconnected from the
+         network.  It might also occur if your FTP server runs out of
+         space and is not set up to overwrite older images.
+<!--
+      <p><a name="IQV-storageLimitNotify"></a><b>on near max storage</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Specify whether e-mail will be sent
+         when IQrecorder nears or reaches
+         the maximum storage allowed it on the FTP server.
+-->
+      <p><a name="IQV-mailserver"></a><b>mailserver IP:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the IP address of the SMTP (Simple Mail 
+        Transfer Protocol) server on the camera's network. 
+        The mail server must be an SMTP server. 
+        You may use a name instead of an IP address if you have configured a 
+$IF($V(MANUAL),nameserver,<a name="Nameserver2">nameserver</a>) 
+        (see the 
+$IF($V(MANUAL),
+         Trigger Settings Page.,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>.
+)).
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),mailserver,<a href="#Mailserver">mailserver</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+
+      <p><a name="IQV-recipients"><b>recipient(s):</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        If "near max storage" has value "suspend/notify", and
+	the camera is nearing its storage limit on the recorder,
+        warning e-mails will be sent to the user or users specified here. 
+	Separate multiple addresses by spaces.  For example,<br>
+        "user1@yourcompany.com&nbsp;user2@yourcompany.com"
+        
+        <p>This sets the same parameter as the 
+          <a href="#Recipients"recipient(s)></a> setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+). 
+      <p><a name="IQV-emailtest"><b>send e-mail test:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Click on this link to send a test e-mail to the e-mail recipients
+        specified in the "recipients" setting below this one.
+
+
+      <p><font size="+2"><a name="IQV-timelapse"></a>
+         <b>normal record settings</b></font> 
+      <p><b>record rate</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the number of seconds between recorded images.
+        Examples:
+        <ul>
+        <li>1.0 = record every second</li>
+	<li>10.0 = record every 10 seconds</li>
+        <li>0.5 = record twice a second</li>
+        </ul>
+        Use 'max' for the maximum rate 
+        at which the camera can record images on the FTP server. Use '0' 
+        to turn off normal (also called periodic or time lapse) images. 
+      <p>This sets the same parameters as the 
+$IF($V(MANUAL), interval,
+       <a href="#EventInterval">interval</a> 
+)
+       settings on the
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+)
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5),-->,)
+      <p><b>record resolution</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Choose the size/resolution (width by height) 
+        in pixels of the recorded normal images. The maximum size given in this 
+        setting may be affected by the 
+ <a name="CropWin">crop window</a> setting on the 
+$IF($V(MANUAL),
+         Window Settings Page,
+         <a href="cropset.html" target="_blank">Window Settings Page</a>
+). 
+$IF($V(IQEYE5),<!--,)
+$IF($V(IQEYE6),-->,)
+
+      $IF($V(MANUAL),<p>This item does not apply to the IQeye6.,)
+
+      <p><font size="+2"><a name="IQV-event"></a>
+        <b>event trigger settings</b></font> 
+
+      <p><b>motion events</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify if detected motion will cause an event to 
+        be recorded. Go to the 
+$IF($V(MANUAL),
+         Motion Settings Page,
+         <a href="motionset.html" target="_blank">Motion Settings Page</a>
+). 
+        to set up motion detection windows within 
+        the camera image and to set parameters for those windows. 
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),motion,<a href=#motionTrigger>motion</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page.,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>.
+)
+
+$IF($CMP($O(2.21),3c),,<!--)
+      <p><b>external input events</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify if the input from an attached device 
+        will cause event images to be recorded either when the device relay opens 
+        or when it closes. 
+      <p>This sets the same parameter as the 
+$IF($V(MANUAL),external input,<a href="#ExtInput">external input</a>)
+         setting on the
+$IF($V(MANUAL),
+         Trigger Settings Page.,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>.
+)
+
+$IF($CMP($O(2.21),3c),,-->)
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5),-->,)
+      <p><b>record resolution</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Choose the size/resolution (width by height) 
+        in pixels of the recorded event images. The maximum size given in this 
+        setting may be affected by the 
+<a name="CropWin">crop window</a> setting on the 
+$IF($V(MANUAL),
+         Window Settings Page,
+         <a href="cropset.html" target="_blank">Window Settings Page</a>
+). 
+$IF($V(IQEYE5),<!--,)
+$IF($V(IQEYE6),-->,)
+
+      <p><b>min # of event images:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the minimum number of images to 
+        record per motion or external input trigger. There could be more images 
+        recorded per event if several triggers (motion or external relay) occur 
+        in quick succession. In that case, your camera will store many images 
+        as one long event. 
+      <p><b># of pre-event images:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify how many of the minimum stored 
+        images are pre-event images, taken by your camera before the event trigger 
+        occurs. The remainder of the event images will be post-event images, taken 
+        after the event trigger occurs. 
+
+
+      <p><font size="+2"><a name="IQV-eventrecord"></a>
+        <b>event record settings</b></font> 
+
+      <p><b>record rate</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the rate at which your camera will record 
+        event images when it receives an event trigger (a motion or external input 
+        trigger). Choose 'max' for the maximum rate at which the camera can record 
+        images on the FTP server. 
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5),-->,)
+      <p><b>record resolution</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Choose the size/resolution (width by height) 
+        in pixels of the recorded event images. The maximum size given in this 
+        setting may be affected by the 
+$IF($V(MANUAL),maximum size,<a href="#MaxImage">maximum size</a>)
+        setting on the 
+$IF($V(MANUAL),
+         Image Settings Page,
+         <a href="imageset.html" target="_blank">Image Settings Page</a>
+) 
+        and the <a name="CropWin">crop window</a> setting on the 
+$IF($V(MANUAL),
+         Window Settings Page,
+         <a href="cropset.html" target="_blank">Window Settings Page</a>
+). 
+$IF($V(IQEYE5),<!--,)
+$IF($V(IQEYE6),-->,)
+
+      <p><a name="IQV-storageLimit"></a>
+        <font size="+2"><b>storage limit</b></font> 
+      <p><b>max storage:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The maximum storage used by this camera on the FTP 
+        server. Note that storage is measured in billions of bytes, not in true 
+        gigabytes (1,073,741,824 bytes). Enter the value "unlimited" if you do 
+        not want the camera to manage its FTP server disk space for you.
+      <p> When storage used passes 80% of the max storage value, a warning e-mail 
+        will be sent to the e-mail recipients specified on this page. When storage 
+        reaches the max storage value, either image storage will be suspended, 
+        or old images will be deleted (as specified in the "near max storage" 
+        pulldown). 
+
+      <p><b>near max storage:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify whether the camera will overwrite old 
+        files when it exceeds its storage limit; or whether it will suspend recording 
+        and e-mail warnings as it nears that limit. 
+
+    </td></tr>  	       
+</table>

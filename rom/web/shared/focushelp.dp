@@ -1,0 +1,42 @@
+<table>
+  <tr> 
+    <td height=5 width="21"><a name="setup-focus">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></a></td>
+  </tr>
+  <tr> 
+    <td colspan=3><b><font size="+3">focus aid</font></b>
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b>,)</td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+  <tr> 
+    <td width="21"></td>
+    <td><b><a name="Focus"></a></b>
+
+      <p>Use the image on the
+$IF($V(MANUAL),
+         Focus Settings Page,
+        <a href="focusset.html" target="_blank">Focus Settings Page</a>
+)
+      to bring your camera into focus.  This image is
+      from the center of your camera's field of view.
+      Slowly rotate your camera's lens or focus wheel until you bring
+      the image into focus or maximize the focus value shown.</p>
+
+      <p>Note that the focus value is affected by light levels and is 
+      strongly affected by camera motion and by the scene shown
+      by the camera.  Please try to keep your camera steady while
+      focusing.  It is normal for the focus value to fluctuate
+      even when you are not adjusting focus.</p> 
+
+      <p>The focus bar will extend and
+      contract with focus value.  Its range (i.e. which focus values
+      are represented by its left and right endpoints)
+      will extend to encompass any values encountered, and 
+      slowly over time, will contract so you can better see from a distance
+      the effects of fine focus adjustments.</p>
+
+    </td>
+    <td width=2></td></tr>
+</table>

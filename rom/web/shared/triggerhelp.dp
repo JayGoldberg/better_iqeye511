@@ -1,0 +1,377 @@
+<table>
+  <tr> 
+    <td height=5 width="21"><a name="trig-gen">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td></tr>
+  <tr> 
+    <td colspan=3><b><font size="+3">trigger settings</font></b></td></tr>
+  <tr> 
+    <td width=21></td>
+    <td>Your camera can capture image sequences in response to trigger events.
+      Possible trigger events include the lapse of periodic intervals, 
+      signals from external relay devices (certain models), and motion within the image.
+      Captured images can be transferred by FTP and/or e-mail.
+
+      <p><b>actions:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the method by which your camera will transfer images 
+        in response to a trigger event. 
+        Your camera can 
+$IF($V(MANUAL),e-mail,<a href="#trig-email">e-mail</a>) 
+        individual images, and/or
+$IF($V(MANUAL),FTP,<a href="#trig-ftp">FTP</a>) 
+        image sequences 
+
+      <p><b><a name="motionTrigger"></a>motion:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        whether detected motion will cause trigger events.
+        If so, you should also go to the 
+$IF($V(MANUAL),
+        Motion Settings Page,
+        <a href="motionset.html" target="_blank">motion settings page</a>
+)
+        to configure motion detection windows within your camera image 
+        This item does not apply to all cameras.  
+
+$IF($CMP($O(2.21),3c),,<!--)
+
+      <p><b><a name="ExtInput"></a>external input:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        whether the input from an attached device will cause a trigger event,
+        and if so, whether the trigger occurs when the device relay opens 
+        or when it closes. 
+
+$IF($CMP($O(2.21),3c),,-->)
+
+      <p><b>time lapse period:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the time in seconds (or HH:MM:SS) between regular periodic trigger events.
+        Enter 0 for no time lapse trigger events.
+
+$IF($V(VAV),<!--,)
+      <p><b><a name="ImageSize"></a>image size:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Select the factor to downsample
+        (shrink) the image. For example, selecting 1/4 will
+        reduce the image to a fourth its original width and height.
+        Smaller images are processed and transmitted more quickly.
+$IF($V(VAV),-->,)
+
+      <p><b><a name="Idletime"></a>forced idletime:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the minimum time between trigger events. 
+        Your camera will not trigger another event until 
+        the specified amount of time elapses after the last post-trigger image.
+
+      <p><b><a name="EventImages"></a>number of pre-</b> and
+        <b>post-trigger images:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the number of images your
+        camera will save from each trigger event.
+
+      <p><i><b>NOTE:</b> Your camera can store only a limited number of 
+        trigger event images.</i> 
+        This number varies depending upon the size of your images. 
+        Cropping or downsampling will allow storage of more images.
+        Pre-trigger count plus post-trigger count should not exceed 
+<!-- iqeye1/2; 8 trigger images per event  -->
+        8. You should test
+        that you get the desired number of trigger images with
+        the &quot;test trigger&quot; button.
+
+      <p><b><a name="EventInterval"></a>interval:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the time (an integer, in seconds) 
+        between successive pre- and post-trigger images.
+
+      <p><a name="trig-email"></a> 
+        <img src="1pixclear.gif" width=1 height=5 border=0 alt="">
+
+      <p><font size="+2"><b>e-mail</b></font> 
+
+      <p><i><b>NOTE:</b> The domain name and mailserver settings must
+be properly configured on the 
+$IF($V(MANUAL), network settings page, <a href="serverset.html"
+target="_blank">Network Settings page</a>) for e-mail to operate properly. </i>
+
+      <p><b><a name="From"></a>from:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the e-mail address
+        from which e-mails will be sent. Recipients will see this address
+        in the &quot;from&quot; field of the e-mails from your camera.
+	You may use 
+$IF($V(MANUAL), dynamic variables,
+        <a href="#dynamic-print">dynamic variables</a>
+)
+        in this field.
+
+      <p><b><a name="Subject"></a>subject:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the contents of the 
+        &quot;subject&quot; field of e-mails from your camera.
+	You may use 
+$IF($V(MANUAL), dynamic variables,
+        <a href="#dynamic-print">dynamic variables</a>
+)
+        in this field.
+
+
+      <p><b><a name="Recipients"></a>recipient(s):</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the email address(es) of
+        users who will receive e-mails from your camera after
+        trigger events.  Separate multiple e-mail addresses by
+     spaces or commas.  For example,<br>
+        "user1@yourcompany.com&nbsp;user2@yourcompany.com"
+
+  <tr><td height=5 width=21>&nbsp;</td></tr>
+  <tr> 
+    <td width=21></td>
+    <td> 
+      <p><a name="trig-ftp"></a> 
+      <p><b><font face="Arial, Helvetica, sans-serif" size="+2">FTP</font></b> 
+      <p><font face="Arial, Helvetica, sans-serif">
+        <b><a name="Hostname"></a>hostname:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the name or IP address of the FTP server 
+        to which your camera will transfer trigger images. 
+        Enter a hostname of no more than 31 characters. 
+        </font> 
+
+      <p><font face="Arial, Helvetica, sans-serif"><i>NOTE:
+        For your camera to use a text (as opposed to ip) hostname, 
+        you must specify a nameserver</i></font>
+
+      <p><font face="Arial, Helvetica, sans-serif"><b><a
+        name="Username"></a>username:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the username that your
+        camera will use to log into the FTP server. </font>
+
+      <p><font face="Arial, Helvetica, sans-serif"><b><a
+        name="Password"></a>password:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the password that
+        your camera will use to log into the FTP server. </font>
+
+      <p><font face="Arial, Helvetica, sans-serif">
+        <b>file name:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the filenames of the saved trigger images. 
+	You may use 
+$IF($V(MANUAL), dynamic variables,
+        <a href="#dynamic-print">dynamic variables</a>
+)
+        in this field.
+        </font>
+      <p><font face="Arial, Helvetica, sans-serif"> Note: Images
+        will be transferred in JPEG format. </font>
+
+      <p><font face="Arial, Helvetica, sans-serif">
+        <b><a name="Filepath"></a>file path:</b>  
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+       the directory on the 
+        FTP server where your camera will save trigger images.
+        If this field is left blank, images will be saved in the first
+        directory encountered after login.  
+        Enter a directory name, not a file name.  
+        So, for Unix file systems, a trailing '/' may be required.
+	You may use 
+$IF($V(MANUAL), dynamic variables,
+        <a href="#dynamic-print">dynamic variables</a>
+)
+        in this field.
+        </font>
+
+      <p><b><a name="trig-status"></a>e-mail status:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        either &quot;success&quot; or the reason 
+        for failure of the last e-mail attempt.
+        Test your settings by clicking on 
+        <i style="color : red">test trigger</i>.  You will
+        see one of the following results in the status field.
+
+      <p>&nbsp; 
+      <table border=1 bordercolor="#D3D3D3" 
+       cellspacing=1 cellpadding=10 width="80%" align="center">
+        <tr align=center> 
+          <td bgcolor="#D3D3D3"><b>Last Failure Result Value</b></td>
+          <td bgcolor="#D3D3D3"><b>Details</b></td></tr>
+        <tr> 
+          <td>Success</td>
+          <td>E-mail sent successfully.</td></tr>
+        <tr> 
+          <td>No Mailhost</td>
+          <td>No mailserver is specified in the  
+            
+$IF($V(MANUAL), mailserver entry field.,
+             <a href="serverset.html"
+target="_blank">Network Settings page</a>.
+)         </td></tr>
+        <tr> 
+          <td>File Open</td>
+          <td>Your camera was unable to open the local file. 
+              Verify that the file exists and is not corrupted.</td></tr>
+        <tr> 
+          <td>Connect</td>
+          <td>Your camera could not connect to the specified mailserver.</td>
+        </tr>
+        <tr> 
+          <td>Negotiation</td>
+          <td>Your camera could not negotiate SMTP with the specified 
+            mailserver. 
+            Verify that the specified server is an SMTP server.</td></tr>
+        <tr> 
+          <td>Send</td>
+          <td>Your camera could not send the local file.</td></tr>
+      </table>
+
+      <p><font face="Arial, Helvetica, sans-serif"><b>FTP status:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        either
+        &quot;success&quot; or the reason for failure of the FTP attempt
+        from the last trigger event. 
+        Test your settings by clicking on 
+        <i style="color : red">test trigger</i>.  You will
+        see one of the following results in the status field:</font>
+
+      <p>
+      <div align="center"> 
+        <table border=1 bordercolor="#D3D3D3"
+         cellspacing=1 cellpadding=10 width="80%">
+          <tr align=center> 
+            <td bgcolor="#D3D3D3"><b>Last Failure Result Value</b></td>
+            <td bgcolor="#D3D3D3"><b>Details</b></td></tr>
+          <tr> 
+            <td>Success</td>
+            <td>File transfer successful.</td></tr>
+          <tr> 
+            <td>Testing</td>
+            <td>Attempting file transfer.</td></tr>
+          <tr> 
+            <td>Login</td>
+            <td>Login failed. Username and/or password is incorrect.</td></tr>
+          <tr> 
+            <td>CWD</td>
+            <td>Failed to change to ftp path directory.</td></tr>
+          <tr> 
+            <td>Send</td>
+            <td>File transfer failed. This is usually due to a network
+              error or a disk-full condition.</td></tr>
+          <tr> 
+            <td>MKD</td>
+            <td>Failed to create the directory specified in the FTP
+              filepath setting.  This may be due to lack of
+              permission, a disk-full condition, or an invalid
+              character in the filepath.</td></tr>
+          <tr> 
+            <td>Memory</td>
+            <td>Your camera ran out of memory. Check memory statistics by
+              telnetting to your camera and entering "show server" at
+              the prompt.</td></tr>
+          <tr> 
+            <td>Connect</td>
+            <td>Failed to connect to FTP server. Try pinging the
+              server to see if your camera can gain access. Also check
+              the hostname to make sure the name or IP address is
+              valid.</td></tr>
+          <tr> 
+            <td>Name resolution</td>
+            <td>Your camera could not match the FTP hostname to an IP
+              address.  Check for correct nameserver and domain name
+              settings on the 
+$IF($V(MANUAL),Network Settings page.,
+              <a href="serverset.html" target="_blank">
+              Network Settings page</a>.
+)
+              Also try pinging the FTP server hostname.</td></tr>
+          <tr> 
+            <td>Socket create</td>
+            <td>Your camera could not create a network socket.</td></tr>
+          <tr> 
+            <td>Open</td>
+            <td>Failed to open the local trigger file. Telnet to your
+              camera, type "disk cd /ram" at the prompt, then press
+              return. Type "disk ls -l", then press return.  
+              Note the names and modification times of any
+              image files in this directory. 
+              Enter "test trigger input", then "disk ls -l" again. 
+              Check if these files have updated by comparing their
+              current and past modification times.</td></tr>
+          <tr> 
+            <td>Configuration</td>
+            <td>The FTP settings on your camera are
+              misconfigured. Check for missing entries.</td></tr>
+          <tr> 
+            <td>None</td>
+            <td>No FTP attempt has yet been made.</td></tr>
+          <tr> 
+            <td>Command</td>
+            <td>The FTP host did not understand a command sent by your
+            camera.</td></tr>
+        </table>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td width=21></td>
+    <td>
+      <p>&nbsp;</p>
+      <p><b><a name="dynamic-print"></a>dynamic variables</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        may be used within entries to certain text fields.
+        These variables will be replaced with
+        the appropriate values, as in the table below.</p>
+      <p><div align="center">
+        <table border=1 bordercolor="#D3D3D3" 
+         cellspacing=1 cellpadding=10 width="80%">
+          <tr align=center> 
+            <td bgcolor="#D3D3D3"><b>Dynamic Variable</b></td>
+            <td bgcolor="#D3D3D3"><b>Value</b></td></tr>
+          <tr> 
+            <td>$$SH</td>
+            <td>Your camera's hardware address.</td></tr>
+          <tr> 
+            <td>$$SI</td>
+            <td>Your camera's IP address.</td></tr>
+          <tr> 
+            <td>$$SN</td>
+            <td>Your camera's name, as specified on the
+$IF($V(MANUAL),Network Settings page.,
+              <a href="serverset.html" target="_blank">
+              Network Settings page</a>.
+)
+              </td></tr>
+          <tr> 
+            <td>$$ST</td>
+            <td>The current time (in the format: $ST).</td></tr>
+          <tr> 
+            <td>$$SD</td>
+            <td>The current date (in the format: $SD).</td></tr>
+          <tr> 
+            <td>$$SC</td>
+            <td>Company name (i.e. $SC).</td></tr>
+          <tr> 
+            <td>$$SP</td>
+            <td>Product name (i.e. $V(SP)).</td></tr>
+          <tr> 
+            <td>$$SV</td>
+            <td>The version of operating software on your camera.</td></tr>
+          <tr> 
+            <td>$$SM</td>
+            <td>The domain name, as specified on the 
+$IF($V(MANUAL),Network Settings page.,
+              <a href="serverset.html" target="_blank">
+              Network Settings page</a>.
+)
+              </td></tr>
+          <tr> 
+            <td>$$FN</td>
+            <td>The name of the file that your camera is accessing.</td>
+          </tr>
+        </table>
+      </div>
+    </td>
+    <td>&nbsp;</td>
+    <td width=2></td>
+  </tr>
+</table>

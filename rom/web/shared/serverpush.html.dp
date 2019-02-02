@@ -1,0 +1,8 @@
+<HTML><HEAD><TITLE>$SC $SP $SN ServerPush</TITLE></HEAD>
+<BODY BGCOLOR="#FFFFFF">
+
+<IMG SRC="now.jpg?$IF($Hm,$Hm&,)snap=spush" ALT="$SN serverpush image">
+
+$IF($Hm,<BR>[$$Hm set to '?$Hm'],)
+
+</BODY></HTML>

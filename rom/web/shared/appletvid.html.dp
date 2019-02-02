@@ -1,0 +1,731 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Live Images Digital Pan Tilt Zoom
+</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+$DEF(DPTZ,true)
+$DEF(STREAMING, )
+$INC(streaming.dp)
+$IF($V(IQEYE6),$IF($V(STREAMING),$DEF(DPTZ, ),$DEF(DPTZ, )),)
+<!-- $IF($V(DPTZ),Digital Pan Tilt Zoom,) -->
+</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta name="author" content="Brian Lau, IQinVision">
+
+
+<link rel="stylesheet" href="style.css">
+
+<style type="text/css">
+
+html, body {margin: 0; padding: 0;
+  color: #333; background: #EEE;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; font-style: bold;}
+
+#topmenuvid {background: #EEE;  position:relative; z-index:1; height: 66px; margin: 0; padding: 4px; 
+   white-space: nowrap;}
+
+#mousecontrols {position: absolute; top: 96px; left: 117px; visibility: hidden;}
+
+h2 {color: #333; text-align: left;
+  font: 16px Arial, Verdana, sans-serif; font-weight: bold; line-height: 18px;
+  padding: 0; margin: 0;}
+
+#main {color: #333; background: white;
+  margin: 0; padding: 0; margin-left: 12px; width: 100%;
+  position: absolute; z-index: 0;
+  top: 76px;  left: 0;}
+
+#buttonh {margin: 0; padding: 0; white-space: nowrap;}
+#buttonh li {list-style: none; float: left;  
+  margin-left: 2px; padding-left: 8px; padding-bottom: 0px;
+  color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonh a {display: block; float: left; padding: 0px 45px 3px 0;
+  text-decoration: none; font-weight: bold; 
+  color: white;
+  width:  .1em;}
+html>body #buttonh a {width: auto;}    
+
+#buttonh a {float: none;}            
+
+li.menu  {background: #399 url(menulogo.gif) 77% 0 no-repeat;}
+a.menu  {background: #399 url(menulogo.gif) 100% 0 no-repeat;}
+a.menu:hover {color: #FC6;}
+ 
+li.zoomin  {background: #399 url(zoom.gif) 0 0 no-repeat;}
+a.zoomin  {background: #399 url(zoom.gif) 100% 0 no-repeat;}
+a.zoomin:hover {background: #399 url(zoom.gif) 100% 33% no-repeat;}
+
+li.zoomout  {background: #399 url(zoom.gif) 0 0 no-repeat;}
+a.zoomout  {background: #399 url(zoom.gif) 100% 66% no-repeat;}
+a.zoomout:hover {background: #399 url(zoom.gif) 100% 100% no-repeat;}
+
+li.sizep  {background: #399 url(size.gif) 0 0 no-repeat;}
+a.sizep  {background: #399 url(size.gif) 100% 0 no-repeat;}
+a.sizep:hover {background: #399 url(size.gif) 100% 33% no-repeat;}
+
+li.sizem  {background: #399 url(size.gif) 0 0 no-repeat;}
+a.sizem {background: #399 url(size.gif) 100% 66% no-repeat;}
+a.sizem:hover {background: #399 url(size.gif) 100% 100% no-repeat;}
+
+#buttonm {margin: 0; padding: 0; white-space: nowrap;}
+#buttonm li {list-style: none; float: left;  
+  margin-left: 2px; padding-left: 8px; padding-bottom: 0px;
+  color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonm a {display: block; float: left; padding: 0px 8px 3px 0;
+  text-decoration: none; font-weight: bold; 
+  color: white;
+  width:  .1em;}
+html>body #buttonm a {width: auto;}    
+
+#buttonm a {float: none;}            
+#buttonm a:hover {color: #FC6;}
+
+li.menu  {background: #399 url(buttonm.gif) 0 0 no-repeat;}
+a.menu  {background: #399 url(buttonm.gif) 100% 0 no-repeat;}
+
+
+table.content {color: #333; background: white; 
+  margin: 0; clear: left; font-size: 12px;
+  border: 0;}
+
+
+table.menu {float: left; margin: 0; padding:0; clear: none;}
+
+table.dptz a {padding: 0px 8px 1px 6px; margin-left: 0px;
+  text-decoration: none;  font-weight: 600; font-size: 16px; line-height: 18px;
+  color: white;
+  width:  .1em;}
+html>body a.dptz {width: auto;}    
+
+a.dptz {float: none;}            
+
+a.left {background: white url(rose.gif) 100% 0 no-repeat;}
+a.left:hover {background: #399 url(rose.gif) 100% 50% no-repeat;}
+
+a.up {background: white url(rose.gif) 0 0 no-repeat;}
+a.up:hover {background: #399 url(rose.gif) 0 50% no-repeat;}
+
+a.down {background: white url(rose.gif) 66% 0 no-repeat;}
+a.down:hover {background: #399 url(rose.gif) 66% 50% no-repeat;}
+
+a.right {background: white url(rose.gif) 33% 0 no-repeat;}
+a.right:hover {background: #399 url(rose.gif) 33% 50% no-repeat;}
+
+td {padding: 0; margin: 0; white-space: nowrap;}
+
+td.dptz {background: #EEE url(rose.gif) 0 100% no-repeat; padding: 1px 0 0 2px;}
+
+td.contenttd {background: white; padding: 0px; margin: 0; text-align: center; clear: none;}
+
+b {font-size: 12px; font-weight: bolder;}
+
+select {font-size: 12px; height: 18px; border: 0; margin: 0px 0px 0px 3px;}
+
+td.help a {padding: 0px 3px 0px 2px; margin-left: 5px;
+  text-decoration: none; font-weight: 600; font-size: 10px; line-height: 12px;
+  background: #EEE url(helpt.gif) 100% 0 no-repeat;
+  color: white;
+  width:  .1em;}
+html>body #help a {width: auto;}    
+
+td.subtitle a {float: none;}            
+td.subtitle a:hover {color: #FC6;}
+
+
+</style>
+<script  src="lib.js" ></script> 
+<script  src="gui.js" ></script>
+<script  src="vid.js" ></script>
+<script>
+
+
+var logging; 
+var DPTZ = $IF($V(DPTZ),true,false);
+
+
+
+
+
+var minx = Math.floor(-MAX_LEFT/2) + cropLeft;
+var maxy = Math.floor(MAX_TOP/2) - cropTop;
+var maxx = minx + wrw;
+var miny = maxy - wrh;
+
+var FPS=false;			
+var hotenabled = true;
+var zoomFactor = 2; 
+
+
+
+function recenterWithinImage() {
+    var errorCond = false
+    var radx = x_radius();
+    var rady = y_radius();
+    if (mods.wx < minx + radx) {
+	mods.wx = minx + radx;
+	errorCond = true;
+    }
+    if (mods.wx > maxx - radx) {
+	mods.wx = maxx - radx;
+	errorCond = true;
+    }
+    if (mods.wy < miny + rady) {
+	mods.wy = miny + rady;
+	errorCond = true;
+    }
+    if (mods.wy > maxy - rady) {
+	mods.wy = maxy - rady;
+	errorCond = true;
+    }
+    return errorCond;
+}
+
+var recorderRunning = ("$O(1.13.11,R)"=="ENABLED") ? true:false;
+
+
+function warnSettingsChange() {
+    if (isIQeye6 && recorderRunning) {
+
+	
+	mods.ds = ds; 
+
+	
+	ovstring = "";
+
+	
+	
+	setTimeout("window.status = " +
+	    "'You are recording so your display resolution is fixed';",1000);
+	setTimeout("window.status = " +
+	    "'You are recording so your display resolution is fixed';",2000);
+	setTimeout("window.status=''", 5000);
+    }
+}
+
+function theApplet() {
+    return document.applets["spapplet"];
+
+
+}
+
+
+function changeImage() {
+    warnSettingsChange();
+    var is = imageString();
+    if (needsApplet) {
+	if (theApplet()) {
+	    if (isNav6) theApplet().restartNav6(is);
+	    else theApplet().restart(is);
+	}
+    } else document.mainImage.src = is;
+}
+
+
+var errorImages = new Array(); 
+errorImages[0] = new Image(300,24);
+errorImages[0].src = "edge.gif"; 
+errorImages[1] = new Image(300,24);
+errorImages[1].src = "maximum.gif"; 
+errorImages[1] = new Image(300,24);
+errorImages[1].src = "endrange.gif"; 
+
+function showErrorGif(filename) {
+    if (!document.errorgif) return;
+    document.errorgif.src = filename;
+    setTimeout('document.errorgif.src="1pixclear.gif"',1000);
+}
+
+
+function handleError(errorText) {
+    if (errorText=="center") showErrorGif("edge.gif");
+    else if (errorText=="maxsize") showErrorGif("maximum.gif");
+    else if (errorText=="minsize") showErrorGif("endrange.gif");
+    else if (errorText=="maxzoom") showErrorGif("endrange.gif");
+    else if (errorText=="minzoom") showErrorGif("endrange.gif");
+    else if (errorText=="maxdownsample") showErrorGif("endrange.gif");
+    else if (errorText=="maxFOV") showErrorGif("endrange.gif");
+    else if (errorText=="topboundary") showErrorGif("edge.gif");
+    else if (errorText=="bottomboundary") showErrorGif("edge.gif");
+    else if (errorText=="leftboundary") showErrorGif("edge.gif");
+    else if (errorText=="rightboundary") showErrorGif("edge.gif");
+}
+
+
+
+function pollAppletForErrors() {
+    var ap = theApplet();
+    if (ap) {
+	if (ap.isActive()) {
+	    var sperror = ap.getError();
+	    if (sperror) handleError(sperror);
+	}
+	setTimeout("pollAppletForErrors();", 250);
+    }
+}
+
+
+
+
+function startPollingApplet() {
+    var ap = theApplet();
+    if (ap) {
+	if (ap.isActive()) { 
+	    setTimeout("pollAppletForErrors();", 500);
+	}
+    }
+    else {
+	window.status="display not loaded yet";
+	setTimeout("window.status='';", 1000);
+	setTimeout("startPollingApplet();", 4000);
+    }
+}
+
+function writeImageHref() {
+    warnSettingsChange();
+    if (!needsApplet) {
+	document.write
+	    ('<a href="" onClick="return refocus(event);"\n'
+	     + ' onMouseOver="window.status=\'click to center on a point\';'
+	     + ' return true;"\n'
+	     + ' onMouseOut="window.status=\'\'">'
+	     + '<img src="' + stillImageString() 
+	     + '" name="mainImage"' + imAttr + '></a>');
+	
+        
+	
+
+	
+	setTimeout("document.mainImage.src = imageString();", 500);
+    } else { 
+	var classFile = (DPTZ) ? "DPTZ.class":"ShowServerPush.class";
+	var outString
+	    = '<applet code="' + classFile + '" name="spapplet" '
+	    + imAttr + ">\n"
+	    + '<param name="url" value="' + imageString() + '">\n'
+	    + '<param name="MAX_RAWHEIGHT" value=' + MAX_RAWHEIGHT + '>\n'
+	    + '<param name="MAX_RAWWIDTH" value=' + MAX_RAWWIDTH + '>\n'
+	    + '<param name="ds" value=' + ds + '>\n'
+	    + '<param name="minx" value=' + minx + '>\n'
+	    + '<param name="miny" value=' + miny + '>\n'
+	    + '<param name="maxx" value=' + maxx + '>\n'
+	    + '<param name="maxy" value=' + maxy + '>\n'
+	    + '<param name="focus" value=' + focusMode + '>\n'
+	    + '<param name="zoomFactor" value=' + zoomFactor + '>\n';
+
+	if (DEBUG) outString += '<param name="DEBUG" value="true">\n';
+	if (urimods) outString += '<param name="urimods" value="'
+                        + urimods + '">\n';
+	if (isNav6) outString += '<param name="polling" value="true">\n';
+	if (FPS) outString += '<param name="fps" value="true">\n';
+	outString += '</applet>\n';
+
+	document.write(outString);
+    }
+}
+
+
+function x_radius() {
+    var tmp = Math.floor(ds * mods.ww/2);
+    return (tmp < wrw/2) ? tmp: Math.floor(wrw/2);
+}
+
+
+function y_radius() {
+    var tmp = Math.floor(ds * mods.wh/2);
+    return (tmp < wrh/2) ? tmp: Math.floor(wrw/2);
+}
+
+
+function getVarsFromApplet() {
+    if (!needsApplet) return;
+    if (! theApplet()) return;
+    if (!DPTZ) return; 
+
+    
+    mods.wx = theApplet().getwx();
+    mods.wy = theApplet().getwy();
+    mods.wh = theApplet().getwh();
+    mods.ww = theApplet().getww();
+    mods.ds = theApplet().getds(); 
+    setDSIndex();
+    setOvstring();
+}
+
+
+function putVarsToApplet() {
+    if (!needsApplet) return;
+    if (!theApplet()) return;
+    theApplet().putwx(mods.wx);
+    theApplet().putwy(mods.wy);
+}
+
+function launchHelpPage() {
+    document.alinkColor=$V(COLOR);
+    window.open("dptzhelp.html","dptzhelp","height=550,width=600,scrollbars");
+    return false;
+}
+
+
+
+function reduceFOV(factor) {
+
+    
+    if (mods.wh < 16*factor || mods.ww < 16*factor) return false;
+
+    
+    mods.wh = round(mods.wh/factor, 0.0001); 
+    mods.ww = round(mods.ww/factor, 0.0001); 
+    setDS();
+    return true;
+}
+
+
+function refocus(evt) {
+    if (needsApplet) return false; 
+
+    if (isIE) evt  = window.event;
+
+    clickx1 = getClickX(evt) - getObjectLeft("mainImage");
+    clicky1 = getClickY(evt) - getObjectTop("mainImage");
+
+    
+
+    var magfactor =  image.height/mods.wh/ds;
+    mods.wx += Math.floor((clickx1 - image.width/2)/magfactor);
+    mods.wy -= Math.floor((clicky1 - image.height/2)/magfactor);
+
+    if (focusMode==2) { 
+	if (!reduceFOV(zoomFactor)) handleError("maxzoom");
+    } 
+
+    
+    if (recenterWithinImage()) handleError("center");
+    changeImage();
+    return false;
+}
+
+function zoomIn(factor) {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    if (reduceFOV(factor)) changeImage();
+    else handleError("maxzoom");
+    return false;
+}
+
+function zoomOut(factor) {
+    var eps = 2;		
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    if (mods.wh*ds*factor <= wrh+eps 
+	&& mods.ww*ds*factor <= wrw+eps) {
+	mods.wh = round(mods.wh*factor, 0.0001); 
+	mods.ww = round(mods.ww*factor, 0.0001); 
+    } else {
+	handleError("maxFOV");
+	return false;
+    }
+    recenterWithinImage();	
+    setDS();
+    changeImage();
+    return false;
+}
+
+
+function zoomOutMax(factor) {
+    
+    
+    
+    
+    
+    if (isMac) document.alinkColor="#FFFFFF";
+	
+    getVarsFromApplet();
+
+    var eps = 2;		
+    if (mods.wh*ds*factor <= wrh+eps 
+	&& mods.ww*ds*factor <= wrw+eps) {
+	mods.wh *= factor;
+	mods.ww *= factor;
+    } else {
+	handleError("maxFOV");
+	return false;
+    }
+
+    while (mods.wh*ds*factor <= wrh+eps 
+	   && mods.ww*ds*factor <= wrw+eps) {
+	mods.wh *= factor;
+	mods.ww *= factor;
+    }
+    recenterWithinImage();	
+    setDS();
+    changeImage();
+    return false;
+}
+
+function moveUp() {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    var tmp = mods.wy;
+    var rady = y_radius();
+    mods.wy += rady;
+    if (mods.wy > maxy - rady) mods.wy = maxy - rady;
+    if (mods.wy > tmp) {
+	putVarsToApplet();
+	changeImage();
+    }
+    else handleError("topboundary");
+    return false;
+}
+
+function moveDown() {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    var tmp = mods.wy;
+    var rady = y_radius();
+    mods.wy -= rady;
+    if (mods.wy < miny + rady) mods.wy = miny + rady;
+    if (mods.wy < tmp) {
+	putVarsToApplet();
+	changeImage();
+    }
+    else handleError("bottomboundary");
+    return false;
+}
+
+function moveLeft() {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    var tmp = mods.wx;
+    var radx = x_radius();
+    mods.wx -= radx;
+    if (mods.wx < minx + radx) mods.wx = minx + radx;
+    if (mods.wx < tmp) {
+	putVarsToApplet();
+	changeImage();
+    }
+    else handleError("leftboundary");
+    return false;
+}
+
+function moveRight() {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+    var tmp = mods.wx;
+    var radx = x_radius();
+    mods.wx += radx;
+    if (mods.wx > maxx - radx) mods.wx = maxx - radx
+    if (mods.wx > tmp) {
+	putVarsToApplet();
+	changeImage();
+    }
+    else handleError("rightboundary");
+    return false;
+}
+
+
+function stopImages() {
+    document.alinkColor=$V(COLOR);
+    getVarsFromApplet();
+
+    mods.ww = round(parseFloat(mods.ww), 0.0001);
+    mods.wh = round(parseFloat(mods.wh), 0.0001);
+
+    self.location = "still.html" + imageArgs() 
+	+ "?width=" + image.width + "?height=" +image.height
+	+ "?mode=" + focusMode
+	+ "?from=appletvid.html";
+    return false;
+}
+
+function changeFocusMode(field) {
+    
+    var newmode = field.options[field.selectedIndex].value;
+    if (newmode !=1 && newmode !=2) return; 
+    focusMode = newmode-0;
+    if (needsApplet && theApplet()) theApplet().setFocusMode(focusMode);
+}
+
+getArgs();			
+
+if (isIE) enableJavaAlert();
+
+</script>
+</head>
+
+<body BGCOLOR="#FFFFFF" TEXT="#999999" 
+ LINK=$V(COLOR) VLINK=$V(COLOR) ALINK="#FFFFFF"
+ onBeforeUnload="stopApplet()"> 
+<form name="myform" action="">
+
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+  <script>
+  writeViewingHeader("live"); </script> 
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=566></td>
+  <td colspan=2 valign="top" align="left">
+
+<table cellspacing=0 cellpadding=0 class="content">
+
+<tr valign="left"> 
+
+ <td><table class="dptz" style="float: left">
+$IF($V(DPTZ),
+<tr>
+  <td rowspan=3 align="right">
+    <a class="left" href="" onClick="return moveLeft();"
+         onMouseOver="window.status='move left'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></td>
+  <td align="center">
+    <a class="up" href="" onClick="return moveUp();"
+         onMouseOver="window.status='move up'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></td>
+  <td rowspan=3 align="left">
+    <a class="right" href="" onClick="return moveRight();"
+         onMouseOver="window.status='move right'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></td>
+</tr>
+<tr>
+  <td class="dptz" width=24 align="center">&nbsp;</td>
+</tr>      
+<tr>
+<td align="left">
+  <a class="down" href="" onClick="return moveDown();"
+         onMouseOver="window.status='move down'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></td>
+</tr>
+,)
+</table>     
+ 
+<table class="menu" style="margin-top: 11px">
+<tr>
+$IF($V(DPTZ),
+  <td style="padding-bottom: 2px; padding-left: 20px">
+    <ul id="buttonh"><li class="zoomin"><a href="" class="zoomin"
+      onClick="return zoomIn(zoomFactor);"
+         onMouseOver="window.status='zoom in'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></li><ul></td>
+  <td rowspan=2 style="padding-right: 20px">
+    <ul id="buttonm"><li class="menu"><a href="" class="menu"
+      onClick="return zoomOutMax(zoomFactor);"
+         onMouseOver="window.status='zoom all the way out'; return true;" 
+         onMouseOut="window.status=''">NO ZOOM</a></li><ul></td>
+,)
+
+  <td style="padding-bottom: 2px"  name="sizeUpGif" id="sizeUpGif">
+    <ul id="buttonh"><li class="sizep">
+      <a href="" class="sizep"
+       onClick="return sizeUp(zoomFactor);"
+       onMouseOver="window.status='increase image size'; return true;" 
+       onMouseOut="window.status=''">&nbsp;</a></li><ul></td>
+       
+       
+
+  <td rowspan=2 style="padding-right:20px" name="sizeMaxGif" id="sizeMaxGif">
+    <ul id="buttonm"><li class="menu">
+      <a href="" class="menu"
+      onClick="return sizeMax();"
+      onMouseOver="window.status='show at maximum size'; return true;" 
+      onMouseOut="window.status=''">MAX SIZE</a></li><ul></td>
+
+
+  <td id=stopstart name=stopstart rowspan=2>
+    <ul id="buttonm"><li class="menu">
+      <a href="" class="menu" onClick="return stopImages();"
+         onMouseOver="window.status='still image page'; return true;" 
+         onMouseOut="window.status=''">STOP</a></li><ul></td>
+
+<!--
+  <td rowspan=2>
+    <ul id="buttonm"><li class="menu">
+      <a href="" class="menu"
+      onClick='return saveAs();'
+      onMouseOver='window.status="save image to a file"; return true;' 
+      onMouseOut='window.status="";'>SAVE</a></li><ul></td>
+-->
+
+<!-- NOT IMPLEMENTABLE at this moment -->
+<!--
+  <td rowspan=2>
+    <ul id="buttonm"><li class="menu">
+      <a href="nozoom" class="menu">PRINT</a></li><ul></td>
+-->
+
+$IF($O(17.1.1.1.1)$O(17.1.1.1.2)$O(17.1.1.1.3)$O(17.1.1.1.4),
+  <td rowspan=2>
+    <ul id="buttonm"><li class="menu">
+      <a href="multiview.html" class="menu"
+      onMouseOver='window.status="view several cameras at once"; return true;'
+      onMouseOut='window.status=""'>MULTIVIEW</a></li><ul></td>
+,)
+
+$IF($O(17.3.1),
+  <td rowspan=2>
+    <ul id="buttonm"><li class="menu">
+    <a href="" class="menu" onClick="return activate()">
+      $IF($O(17.3.2),$O(17.3.2),relay)</li><ul></td>
+,)
+
+  <td rowspan=2 class="help" style="padding-right: 6px"><a href="" onClick='return launchHelpPage();'
+      onMouseOver="window.status='open help for this page'; return true;" 
+      onMouseOut="window.status=''">?</a></td>
+  <td rowspan=2>&nbsp; </td>
+</tr>
+<tr>
+$IF($V(DPTZ),
+  <td valign="top" style="padding-top: 2px; padding-left: 20px">
+    <ul id="buttonh"><li class="zoomout"><a href="" class="zoomout"
+      onClick="return zoomOut(zoomFactor);"
+         onMouseOver="window.status='zoom out'; return true;" 
+         onMouseOut="window.status=''">&nbsp;</a></li><ul></td>
+,)
+  <td valign="top" style="padding-top:2px" name="sizeDownGif" id="sizeDownGif">
+    <ul id="buttonh"><li class="sizem"><a href="" class="sizem"
+      onClick="return sizeDown(zoomFactor);"
+      onMouseOver="window.status='decrease image size'; return true;" 
+      onMouseOut="window.status=''">&nbsp;</a></li><ul></td>
+</tr>
+</table>
+  </td></tr>
+	  
+</table>
+
+
+<table border=0 width="100%" cellpadding=1>
+  <tr valign="top"><td> 
+    <noscript><font color="#FF0000">
+      <b>You must enable Javascript<br>to see an image.</b></font>
+    </noscript>
+    <script> 
+      writeImageHref();
+    </script></td>
+  </tr>
+</table>
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+
+
+</form>
+
+
+<script>
+    if (focusMode==2) document.myform.clickAction.selectedIndex=1;
+
+</script>
+</body>
+</html>

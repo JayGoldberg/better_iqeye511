@@ -1,0 +1,281 @@
+<table>
+  <tr> 
+    <td height=5 width="21"><a name="window-tools">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></a></td>
+  </tr>
+  <tr> 
+    <td colspan=3><b><font size="+3">window tools</font></b></td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+
+$IF($V(VAV),<!--,)
+
+
+
+  <tr> 
+    <td width=21></td>
+    <td> 
+      <p><b><a name="crop"></a>cropping:</b>
+Use the
+$IF($V(MANUAL),
+      Crop Page,
+      <a href="cropset.html" target="_blank">Crop Page</a>
+)
+      to personalize the size of your camera's image. 
+
+     <div style="margin-left: 1cm">
+
+      <p>Cropping involves discarding all but a
+        selected a region of interest in your camera's image, 
+        creating a smaller image, possibly increasing your frame rate.</p>
+
+      <p>Press the <b>apply</b> button to set 
+        your camera to use the crop settings currently shown on the
+page.
+
+      <p>Press the <b>default</b> button to remove cropping
+        from your image.
+
+      <p>Press the <b>cancel</b> button to restore this
+        page's crop settings to the state they were in when 
+        you entered the page.
+      
+      <p><b>cropping with your mouse:</b>
+$IF($V(MANUAL),$(all cameras$),)
+      (see 
+$IF($V(MANUAL),,<a href="#SetWin">)
+setting a window with your mouse
+$IF($V(MANUAL),,</a>), below.)
+        </p>
+
+      <p><b>Note</b> that if you are archiving images with 
+$IF($V(MANUAL),
+        IQrecorder$,,
+        <a href="#IQview">IQrecorder</a>$,
+)
+        setting a new crop may change the crop of future archived images. 
+
+     </div>
+    </td>
+    <td width=2></td></tr>
+
+$IF($V(VAV),-->,)
+
+  <tr></tr>
+  <tr> 
+    <td width=21></td>
+    <td>
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5),-->,)
+      <p><b><a name="GainWin"></a>exposure:</b>
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+      Use the 
+$IF($V(MANUAL),
+      Exposure Settings Page,
+      <a href="exposure.html" target="_blank">Exposure Settings Page</a>
+)
+    to set the part of the image used for automatic exposure 
+    (gain) calculations.
+
+     <div style="margin-left: 1cm">
+
+        <p> You can select a
+        rectangular region of interest for which 
+        brightness and color balance will be best.</p>
+
+        <p>This is useful if parts of your image are excessively bright 
+        or dark, for example, if your image contains large amounts of
+        sky or sunlit windows.
+        Setting an exposure window may darken or brighten 
+        other areas of your image.</p>
+
+        <p>For best color balance, use an exposure window containing at
+	least 20,000 pixels (e.g. 200 by 100), and attempt to include
+        some gray or white areas.</p>
+
+$IF($V(IQEYE7),
+        <p>One include window and multiple exclude windows can be set.
+	   Brightness is adjusted by looking at the image within the
+	   include window but not including the exclude windows.
+,
+        <p>
+        This page shows the 
+        current exposure window by drawing it in blue.</p>
+)
+        <p>In addition to setting the exposure window, you may wish to
+	set the <a href="#GainStyle">gain style</a> algorithm 
+        from the
+$IF($V(MANUAL),
+      Image Settings Page,
+      <a href="imageset.html" target="_blank">Image Settings Page</a>
+).</p>
+
+     </div>
+
+      <p><b><a name="MaskWin"></a>privacy:</b>
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+
+    Use the
+$IF($V(MANUAL),
+      Privacy Settings Page,
+      <a href="privacy.html" target="_blank">Privacy Settings Page</a>
+)
+to cover parts of your camera's image with privacy masks.
+
+     <div style="margin-left: 1cm">
+
+      <p>You can configure up to 8 rectangular privacy windows in the image
+      to be masked from view.  Initially the pulldown menu
+      includes all currently-configured privacy windows plus, 
+      at the end of the pulldown,
+      an entry for one un-configured privacy window.  After that 
+      window is configured, another un-configured privacy window
+      selection will be added to the pulldown menu.</p>
+
+      <p>To delete the current privacy window, click on the "default" button.
+      The current privacy window will be deleted and all subsequent 
+      privacy windows will
+      be renumbered downward by one.  For example, if window 2 is deleted,
+      window 3 will become window 2, window 4 will become window 3, etc.
+      The number of selections in the "selected" pulldown will also
+      decrease.  You can click on the "clear privacy windows" link to delete
+      all privacy windows.</p>
+
+      <p><a name="SetWin"></a>
+
+      <b>setting a window with your mouse:
+$IF($V(MANUAL),$(IQeye3$)<p>,)</b>
+       If there are multiple windows displayed, 
+       the selected window has its corners marked with
+       solid squares
+       You may click (without releasing) on a corner or side
+       of the selected window to move that corner or side. 
+       Drag to the desired location, then release the mouse button.  
+       Clicking in the center of a selected window will allow you 
+       to move the position of
+       that window without altering its size.
+       You may click (without releasing) outside the selected window 
+       to start a new window (you can also start a new window
+       this way if there is no selected window).  Click
+       on the point on the image where you want the top-left of
+       the crop window to appear.  Drag to where you want the
+       bottom-right of the window, then release the mouse button.
+        </p>
+    </td>
+     </div>
+    <td width=2></td></tr>
+$IF($V(IQEYE5),<!--,)
+$IF($V(IQEYE6),-->,)
+
+
+    <td width=2></td></tr>
+  <tr> 
+    <td width=21></td>
+    <td> 
+      <p><b><a name="setup-motion"></a>motion detection:</b>
+
+Use the
+$IF($V(MANUAL),
+      Motion Settings Page,
+      <a href="motionset.html" target="_blank">Motion Settings Page</a>
+)
+      to configure motion detection on the camera. 
+
+     <div style="margin-left: 1cm">
+
+<p>The motion detection settings allow you to configure up to 8
+rectangular windows of the image to be used for motion detection.
+
+<p>After using this page to set up the parameters for these areas, go
+to the 
+$IF($V(MANUAL),
+         Trigger Settings Page,
+         <a href="triggerset.html" target="_blank">Trigger Settings Page</a>
+) 
+to choose what
+action your camera will take when motion is detected.
+
+<p>The motion detection algorithm running on your camera will trigger
+when "significant" change has occurred to "enough" pixels in a chosen
+part of your camera's image.  The default action is to use all pixels
+in the image for motion detection.  You may change this by configuring
+one or more windows.
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5),-->,)
+<p>$IF($V(MANUAL),With an IQeye3$, if, If)
+the image is streaming, a window will flash
+green when motion is detected in that window.
+$IF($V(IQEYE5),<!--,)
+$IF($V(IQEYE6),-->,)
+
+<p><b>setting a motion window:</b> 
+To
+choose the boundaries of a window, use the "selected window" pull-down
+menu to choose which window you are setting.  
+The selected window has its corners marked with
+solid squares.
+You may type parameters
+directly into the text boxes for position and size or you may use your
+mouse to specify a window.  
+If no window is marked, 
+click on the point on the image where you want the
+top-left of the window to appear.  Then drag to where you want the
+bottom-right of the rectangle.  Then release the mouse button.  
+If a window is marked, you may click on a corner or side of a window
+to move that corner or side.  Drag it to the new desired location,
+then release the mouse button.  Clicking in the center of a window
+will allow you to move the position of that window without altering
+its size. You may start a new window by clicking outside the
+existing window.  The click will specify where the top-left of the window
+appears.  Drag to the bottom-right and release the mouse button.
+
+<p><a name="motionMode"> <b>mode:</b></a>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+For each window, choose whether its interior is to be included or
+excluded from consideration by the motion detection algorithm.  The
+algorithm will use every pixel that is in an included window but not
+in any exclude windows.  Exclude windows are drawn in red.  Include
+windows are drawn in blue.</p>
+
+<p>For each included box, you must set two threshold values.  
+
+<ul>
+
+<li><a name="motionThreshold"> <b>sensitivity:</b></a>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+specifies how
+much a pixel value must change in order that such change be considered
+"significant."  Sensitivity values range between 0 and 255. The
+default value, "auto", for your $V(SP) sensitivity will be sufficient for
+most applications.  
+
+<br><br> 'Auto' is high enough to filter out most noise and
+slight lighting changes, and low enough to detect most motion.  If 'auto'
+doesn't give appropriate detection for your
+application, try lower values to increase sensitivity 
+to pixel value changes, and higher ones to decrease it.
+A sensitivity of 255 triggers only with a change between absolute
+black and absolute white.  Sensitivity values under 10 often trigger
+from imager noise even when no motion is visible to the eye.  
+
+<li><a name="motionSize"><b>size</b></a>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+ specifies how many pixels in
+a box must change (by the sensitivity) in order that "enough" change has
+occured to trigger motion detection.  Size is given as a percentage of
+the number of pixels in a box so it has values between 0 and 100.
+</ul>
+</div>
+</td></tr>
+
+
+</table>
+
+
+

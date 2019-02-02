@@ -1,0 +1,27 @@
+
+<table>
+  <tr><td height=5 width="21"><a name="multiview">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></a></td></tr>
+  <tr><td colspan=3><b><font size="+3">multiview</font></b></td></tr>
+  <tr><td height=5 width="21"></td></tr>
+  <tr>
+    <td width="21"></td>
+    <td> 
+      <p>Multiview enables you to setup your camera to deliver a web page
+         showing streaming images from up to 9 cameras, simultaneously.
+      <p>For each of the nine display areas of that page, you must
+         specify the following three values for the camera
+         whose images will show in that display area.
+      <p><font size="+2"><a name="multi-ip"></a><b>IP address</b></font>
+         Specify the IP address of the camera.  You may use a DNS text name
+         if you have a nameserver on your system.
+      <p><font size="+2"><a name="multi-port"></a><b>port</b></font> 
+         Specify the internet port of this display area's camera.
+         You may leave this field blank if you are using the
+         default internet port of 80.
+     <p><font size="+2"><a name="multi-label"></a><b>label</b></font> 
+        Specify the label shown under the image in this display area.
+        This need not be the name of the camera.  
+        You may use up to 31 characters.
+    </td></tr>  	       
+</table>

@@ -1,0 +1,333 @@
+$DEF(MICRON, )
+$IF($CMP($O(1.2.20.1),MT9D001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9M001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9T001),,$DEF(MICRON,true))
+<table>
+  <tr> 
+    <td height=5 width="21"><a name="image-gen">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td>
+  </tr>
+  <tr> 
+    <td colspan="3"><a name="ImageSet"></a>
+      <b><font size="+3">image settings</font></b></td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+  <tr> 
+    <td width=21></td>
+    <td> The pull down menus and text input fields on the 
+$IF($V(MANUAL),
+      Image Settings Page,
+      <a href="imageset.html" target="_blank">Image Settings Page</a>
+)
+      enable you to adjust several important settings affecting
+      your camera image.
+      To adjust a setting, select the
+      desired value from the pull-down menu or type it
+      into the text field.  The setting will
+      change once you select the value or press &lt;Tab&gt;.
+
+
+
+      <p><b><a name="Quality"></a>quality:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Higher quality results in higher quality images, 
+        larger file sizes, and slower transmission times.
+        Lower quality yields poorer image quality,
+        smaller file sizes, and faster transmission times. 
+        Your ideal quality setting will depend on the minimum 
+        image quality and maximum transmission time that you find 
+        acceptable. </p>
+      <p>In a network with plenty of available bandwidth, changing
+        quality does not affect frame rate.
+
+
+  $IF($V(MANUAL)$V(MAXFPS),,<!--)
+      <p><b><a name="MaxFrameRate"></a>max frame rate:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        
+        Enter a maximum frame rate in frames per second.
+        This is the maximum number of images per second which
+        the camera will send to any one viewer.
+        </p>
+
+        <p>
+        Note that you can also set a 
+        <a href="#MaxBandwidth">bandwidth limit</a>,
+        limiting the total network traffic from
+        the camera.
+        </p>
+  $IF($V(MANUAL)$V(MAXFPS),,-->)
+
+$IF($V(IQEYE7),,<!--)
+     <p><b><a name="LiveDS"></a>live page:</b>
+     Optimizes the live streaming page for image quality or speed.  If 
+     optimized for quality, the camera will deliver the highest
+     resolution possible.  If optimized for speed, the camera will
+     deliver a lower resolution but a higher framerate over slower
+     links.
+$IF($V(IQEYE7),,-->)
+
+
+$IF($V(IQEYE6),<!--,)
+$IF($V(IQEYE5), -->,)
+      <p><b><a name="Sharpness"></a>sharpness:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Increasing the sharpness value will enhance the 
+        edges and small features in your camera's images.  
+        If your image's edges appear too smooth or blurred, 
+        increase sharpness.  If your image
+        seems rippled or noisy, decrease sharpness.
+        Increasing sharpness works against increasing compression 
+        by increasing file sizes.
+        </p>
+
+$IF($V(IQEYE5),<!-- ,)
+      <p>Valid values for sharpness are 0.0 to 10.0.  
+        </p>
+$IF($V(IQEYE5), -->,)
+
+$IF($V(IQEYE5),<!-- ,)
+$IF($V(IQEYE6),-->,)
+
+      <p><b><a name="Saturation"></a>saturation:</b> 
+$IF($V(MANUAL),<b>(all cameras except IQeye3M)</b></p><p>,)
+        Saturation describes the difference of a color from the gray
+        of the same lightness.  Increasing saturation will deepen the
+        colors of your images, making reds redder and blues bluer. 
+        Decreasing saturation will bring your image closer to a grayscale
+        (i.e. monochrome, black-and-white) image.  </p>
+
+        <p>Valid values for saturation are 0.00 to $IF($V(IQEYE6),1.99,3.9)
+   
+        <p>When saturation is set to 0, your camera will go
+        into monochrome mode.  In this case,
+        your camera will discard all color information,
+        creating grayscale images.  
+        Monochrome images compress better and
+        transfer faster than comparable quality color images.</p>
+
+        <p>
+        In dark scenes, there is often little or no useful color
+        information, so image quality will improve with monochrome
+        images.</p>  
+
+$IF($V(MANUAL),,<p>This item does not apply to monochrome cameras.</p>)
+
+      <p><b><a name="Contrast"></a>contrast, gamma:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Configure the midtone
+        levels of your image for best viewing. 
+        Select the value by entering a number into the form
+        field. 
+
+      <p><b><a name="Brightness"></a>brightness:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Select the value
+        by entering a number
+        into the text field. 
+
+
+$IF($V(IQEYE6),<!--,)
+      <p><b><a name="FlipRotate"></a>flip/rotate):</b> 
+$IF($V(MANUAL),<b>(all cameras except for the IQeye6)</b></p><p>,)
+        Select a flip or rotate setting to properly orient your camera's image.
+        The default orientation is with the 1/4"-20 screw hole on the 
+        bottom of the camera. 
+
+      <p> The Horizontal and Vertical settings reflect your camera's image
+          about a vertical or horizontal axis (respectively). Rotation angles
+          are measured clockwise.
+        BLTR reflects your image across a diagonal line starting in the bottom
+        left corner of your image and extending to the top right corner.
+        TLBR reflects across the diagonal extending from the top left corner
+        to the bottom right corner. 
+
+      <p> The 90, 270, BLTR, and TLBR settings require additional processing, 
+        which may slow performance. 
+$IF($V(IQEYE6),-->,)
+
+      <p><b><a name="LightingFrequency"></a>A/C power frequency:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        If your camera is trained on a scene lit by artificial
+        lighting, then you may set this value to reduce banding
+        in your images.  The United States uses A/C power with a 60
+        Hertz (Hz) frequency.  50Hz is used in many other countries.
+        A few countries use both frequencies.
+
+  <tr> 
+    <td colspan="3"><a name="GainSet"></a>
+      <b><font size="+3">gain settings</font></b></td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+  <tr> 
+    <td width=21></td>
+    <td> The gain settings affect the brightness of the image.
+
+      <p><b><a name="GainStyle"></a>gain style:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The autogain algorithm of your camera will 
+        set brightness to best display
+        the <a href="#GainWin">exposure window</a> 
+        (which may be set, on IQeye300, IQeye700 and IQeye501 cameras,
+         with the 
+$IF($V(MANUAL),
+      Exposure Window Page,
+      <a href=exposure.html target="_blank">Exposure Window Page</a>
+)
+        ).
+        The gain style setting chooses which
+        pixels within the exposure window will be used by
+        the autogain algorithm for setting brightness levels.
+        <ul>
+        <li>peakdetect: uses only the brightest pixels in the exposure window, 
+          making sure they're appropriately-adjusted for bright pixels.
+          This is a good setting for watching bright areas.
+        </li>
+        <li>darkdetect: uses only the darkest pixels in the exposure window,
+         making sure they're appropriately-adjusted for dark pixels.
+         This is a good setting for outdoor scenes where you want
+         to watch a shaded region. 
+       </li>
+       <li>average: uses <b>all</b> of the pixels in the exposure window
+         This is a good setting for indoor scenes where there are no
+         very bright or very dark areas to skew the gain calculations.
+       </li>
+       <li>clipaverage: uses all pixels <b>except</b> for the very darkest and
+         brightest pixels.
+         This is a good setting for outdoor scenes where you want
+         to ignore both sky and shadows and to watch a region
+         of intermediate brightness levels.  This is also a good setting for 
+         interior scenes.
+       </li>
+       <li>custom: an algorithm which is not one of the above.
+	 This may be the case if you have custom code in your camera 
+         or have made gain style settings with the command  line interface.
+       </li>
+       </ul>
+
+      <p><b><a name="ElecShutter"></a>electronic shutter:</b>sets the
+type of shutter response.
+     <ul>
+     <li>optimize speed:  Use this setting for fast moving subjects.
+This setting may cause images to appear grainy in low light
+conditions.
+     <li>optimize quality: Use this setting for high quality images.
+This setting may cause images to blur in low light conditions.
+     <li>auto: This setting is ideal when there is adequate light and
+objects are not moving too fast.
+     <li>fixed exposure: Forces an exposure speed.  The list of
+available exposures may change based on other settings like frame
+rate, lightgrabber, and resolution.
+     </ul>
+      <p><b><a name="AutoDelay"></a>autogain speed:</b>sets how fast
+the autogain responds to changing lighting conditions.
+     <ul>
+     <li>locked: gain is held at the current value</li>
+     <li>slow: slower speed for outdoor (sunlight) conditions</li>
+     <li>medium: faster speed for indoor (fixed) conditions</li>
+     <li>fastest: default speed is fastest possible response</li>
+     </ul>
+
+      <p><b><a name="NightMode"></a>$IF($V(MICRON),LIGHTGRABBER:,night mode:)</b> 
+$IF($V(MANUAL),<b>(all cameras except IQeye3M)</b></p><p>,)
+        Enables or disables special processing for low-light images.
+
+$DEF(MICRON, )
+$IF($CMP($O(1.2.20.1),MT9D001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9M001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9T001),,$DEF(MICRON,true))
+$IF($V(MANUAL),
+    For the IQeye 301/302/601/602$,
+    the 4x setting specifies "integration" of four frames$, 
+    twice the low-light correction as the
+    the 2x setting which specifies integration of two frames.
+,
+    $IF($V(MICRON),
+    The 4x setting specifies "integration" of four frames$,
+    twice the low-light correction as the
+    the 2x setting which specifies integration of two frames.
+  ,)
+)
+$IF($V(MANUAL),,</p>This item does not apply to monochrome cameras.)
+
+  <tr> 
+    <td colspan="3"><a name="DateStamp"></a>
+      <b><font size="+3">overlays</font></b></td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+  <tr> 
+    <td width=21></td>
+    <td>Overlays are information which is added on top of an image.
+
+      <p><b><a name="TimeStamp"></a>timestamp:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enable or disable a
+        timestamp overlay that will appear on your image.
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+      <p><b><a name="StampPos"></a>timestamp position:</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+
+        Select a
+	horizontal position (left, center, right) and a vertical
+	position (top, center, bottom) for the timestamp that appears
+	on your image.
+
+      <p><b><a name="StampColor"></a>timestamp color:</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Select black
+        or white to configure the color of the date/time stamp text.
+        The text will display on a clear background or a background of
+        the opposite color.
+$IF($V(IQEYE6),-->,)
+
+      <p><b><a name="OverlayText"></a>overlay text:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter a text
+        message, of no more than 31 characters, that will appear as an
+        overlay on your image.
+
+	You may use <a href="#dynamic-print">dynamic variables</a>
+        in this field.  
+$IF($V(MANUAL),<!--,)
+To use a '$$' sign, enter "$$$$".)
+$IF($V(MANUAL),-->,)
+      <p> Note: The overlay text automatically becomes enabled after
+        you enter text into the overlay text field and press
+        &lt;Tab&gt;.  Disable the text overlay by deleting the text
+        from the overlay text field and then pressing &lt;Tab&gt;.
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+      <p><b><a name="OverlayPos"></a>text position:</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Select a
+	horizontal position (left, center, right) and a vertical
+	position (top, center, bottom) for for your overlay text.
+
+      <p><b><a name="OverlayColor"></a>text color:</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Select black or white 
+        to configure the color of the overlay text.  
+       The text will display on a clear background or a 
+        background of the opposite color. 
+
+$IF($V(IQEYE6),-->,)
+
+
+$IF($V(DAYNIGHT),$INC(daynighthelp.dp),)
+
+    </td>
+    <td width=2></td>
+  </tr>
+
+
+
+</table>

@@ -1,0 +1,56 @@
+<table>
+  <tr> 
+    <td colspan=3><a name="tricks"></a><b>
+      <font size="+3">browser management advice</font></b></td>
+  </tr>
+  <tr> 
+    <td height="5"></td>
+  </tr>
+  <tr> 
+    <td width=21></td>
+    <td valign="top"> 
+      <p> Browsers are not perfect tools for camera interfaces.
+        You can help with a few tricks. 
+      <p><b>browser burps</b> 
+      <p>Reload/Refresh will normally fix any confused browser displays.
+      <p><b>anti-caching</b> 
+      <p>
+        A cache stores web pages and images on your computer.
+        Browsers typically enable caching for faster page reloads.
+        When configuring your $V(SP), you want to see the latest settings 
+        and images, not possibly-invalid cached data.
+        We work against caching in our page design,
+        but to reload a web page with new, un-cached information,
+        click on the 'Refresh' button while holding down the CTRL key
+        (in Netscape, click on the 'Reload' button while holding 
+        down the SHIFT key) 
+
+      <p><a name="BrowserPreferences"></a><b>preferences</b>
+      <p><b>Java</b></p>
+      <p>If you are not using Internet Explorer with ActiveX enabled,
+     Java must be enabled to manage your $V(SP).
+	Browsers typically enable Java by default.  For Internet Explorer,
+        Java settings are under Tools/Internet Options/Security.
+	For Netscape, Java settings are under Edit/Preferences/Advanced.
+        The first time Java is needed in a browser session,
+        A few seconds are required to start it.
+        This startup time won't necessary for the rest of the session.
+        Java can be downloaded at 
+        <a href="http://java.sun.com" target="_blank">http://java.sun.com</a>.
+
+      <p><b>cookies</b></p>
+      <p>
+        Cookies must be enabled for your $V(SP) to use 
+        <a href="#AuthenticationMode">Secure</a>
+        (instead of <!-- the default,--> Basic) authentication.
+        Browsers typically enable cookies by default.  For Internet Explorer,
+        cookie settings are under Tools/Internet Options/Security.
+	For Netscape, cookie settings are under Edit/Preferences/Advanced.
+	Cookies are small pieces of information stored on your computer.
+        Your $V(SP) sets an encrypted cookie when
+        you login. This cookie will be removed when you
+        logout or quit your browser.
+    </td>
+    <td width=2></td></tr>  
+</table>
+

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: No Browser Support</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=us-ascii">
+<script  src="gui.js" ></script>
+</head>
+
+<body bgcolor="#ffffff" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<script> 
+  writeTitleBar();
+  writeJumpMenu2Table(); 
+</script>
+
+<table width="100%" border="0">
+<tr>
+  <td valign=top height="235"><b><font face="Arial, Helvetica, sans-serif">
+    Sorry, your browser does not support this feature.</font></b>
+  </td>
+</tr>
+</table>
+
+<script> 
+  writeBareFooter(); 
+</script>
+</body></html>

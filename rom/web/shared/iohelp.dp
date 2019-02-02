@@ -1,0 +1,101 @@
+
+<table>
+  <tr><td height=5 width="21"><a name="io">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></a></td></tr>
+  <tr><td colspan=3><b><font size="+3">input/output</font></b></td></tr>
+  <tr><td height=5 width="21"></td></tr>
+  <tr>
+    <td width="21"></td>
+    <td> 
+      <p>Use these settings to configure the behavior of the
+        relay output of your camera. You may test your relay output
+        configuration by pressing the 'relay' button
+        at the bottom of this page.
+
+     <a name="io-attrib"></a>
+      <p><b>button text</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The text on the "activate" button 
+        on the live image viewing page.
+
+      <p><b>activate from live view</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        If "enabled", will
+        place an "activate" button on the live image viewing page.
+        This button, like the one on the input/output settings page, 
+        will activate the relay output.
+
+$IF($V(IQEYE7),<!--,)
+     <a name="io-led"></a>
+      <p><b>LED operation</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The behavior of the LED (the light
+        on the front of your camera).  A setting of 
+        "activity" causes it to blink when images are being sent.
+$IF($V(IQEYE7),-->,)
+
+     <a name="io-action"></a>
+      <p><b>relay state</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The normal, non-activated state of the relay.
+
+      <p><b>activation time</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The duration of the activation.
+        "momentary" activates the relay for a fraction of a second.
+        "toggle" causes relay activation to change the relay's state
+        from open to closed or from closed to open.
+
+      <p><b>forced idletime:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The minimum time between trigger events, including
+        those from the external relay, motion, and from "Relay" button
+        presses.
+        Your camera will not trigger another event until 
+        the specified amount of time elapses after the last post-trigger image.
+        Go to the 
+        <a href="triggerset.html" target="_blank">Trigger Settings page</a>
+        to set up trigger events.
+        This is the same setting as the 
+        'forced idletime' item on that page.
+
+      <p><b>activate on motion</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        If "enabled", motion trigger events
+        (configured on the <a href=motionset.html target="_blank">
+         motion settings page</a>).
+        will activate the relay output.
+       <p>Note that motion triggers will not operate the relay if
+         IQrecorder is archiving images.
+
+      <p><b>activate on external trigger</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        If "enabled",
+        the external relay input will activate the relay output.
+
+<!--
+      <p></a><b>activate on record fail</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Specify whether the relay output will be activated
+         when IQrecorder tries to
+         record an image and fails.  This could occur, for example,
+         if your camera or your FTP server becomes disconnected from the
+         network.  It might also occur if your FTP server runs out of
+         space and is not set up to overwrite older images.
+
+      <p></a><b>activate on near max storage</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Specify whether the relay output will be activated
+         when IQrecorder nears or reaches
+         the maximum storage allowed it on the FTP server.
+
+-->
+
+$IF($V(IQEYE7),,<!--)
+    <a name="analog-out"></a>
+     <p><b>analog output mode</b>
+     Select what is output on the analog video connector.
+$IF($V(IQEYE7),,-->)
+
+    </td></tr>  	       
+</table>

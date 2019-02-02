@@ -1,0 +1,287 @@
+
+
+
+var logging = '<param name="Logging" value="0">\n';
+
+var streamDptzParam = '<param name="StreamDptz" value="0"><param name="InternalDptz" value="0">\n';
+
+var camera_width  = $O(1.2.6.2);
+var camera_height = $O(1.2.6.3);
+
+
+var MainwinLeft;   
+var MainwinTop;    
+
+
+var FRAME_THICK = 5;
+
+var HORIZ_GAP = 25; 
+var VERT_GAP = 35;  
+
+
+var FULL_WIDTH = 400;
+var FULL_HEIGHT = 300;
+
+
+var GRID_WIDTH = 200;
+var GRID_HEIGHT = 150;
+
+var DSfactor = camera_width / FULL_WIDTH;
+
+
+var GridRatio = GRID_WIDTH / GRID_HEIGHT;
+
+var MAX_REGIONS = 4; 
+var Regions = new Array(MAX_REGIONS); 
+
+
+function CreateCameo()
+{
+    var out = '<div id="CtlDiv" style="z-index:1 background-color: black">ActiveX Control</div>';
+
+    
+    var ctl_width  = FULL_WIDTH  + GRID_WIDTH  + (HORIZ_GAP * 4);
+    var ctl_height = FULL_HEIGHT + GRID_HEIGHT + (VERT_GAP * 3);
+
+    document.write (out);
+    imAttr = ' width="' + ctl_width
+	+ '" height="' + ctl_height
+	+ '" border=0';
+
+    CreateCameoControl ("CtlDiv", imAttr);
+
+    for (i = 0; i < MAX_REGIONS; i++) {
+	Regions[i] = new Object ();
+    }
+
+    
+    Regions[0].grid_left   = 0;
+    Regions[0].grid_top    = 0;
+    Regions[0].grid_width  = FULL_WIDTH;
+    Regions[0].grid_height = FULL_HEIGHT;
+
+    Regions[0].source_left   = 0;
+    Regions[0].source_top    = 0;
+    Regions[0].source_width  = camera_width;
+    Regions[0].source_height = camera_height;
+    Regions[0].fps = 1;
+    Regions[0].label         = '$O(17.6.1.3.0)';
+    Regions[0].color = 'black';
+
+    
+    Regions[1].grid_left = 0;
+    Regions[1].grid_top = FULL_HEIGHT + VERT_GAP*2;
+
+    Regions[1].grid_width = GRID_WIDTH;
+    Regions[1].grid_height = GRID_HEIGHT;
+
+    Regions[1].source_left   = '$O(17.6.1.1.1.1)';
+    Regions[1].source_top    = '$O(17.6.1.1.2.1)';
+    Regions[1].source_width  = '$O(17.6.1.1.3.1)';
+    Regions[1].source_height = '$O(17.6.1.1.4.1)';
+    Regions[1].fps           = 0;
+    Regions[1].label         = '$O(17.6.1.3.1)';
+    Regions[1].color = 'red';
+
+
+    
+    Regions[2].grid_left   = GRID_WIDTH + HORIZ_GAP;
+    Regions[2].grid_top    = FULL_HEIGHT + VERT_GAP*2;
+    Regions[2].grid_width  = GRID_WIDTH;
+    Regions[2].grid_height = GRID_HEIGHT;
+
+    Regions[2].source_left   = '$O(17.6.1.1.1.2)';
+    Regions[2].source_top    = '$O(17.6.1.1.2.2)';
+    Regions[2].source_width  = '$O(17.6.1.1.3.2)';
+    Regions[2].source_height = '$O(17.6.1.1.4.2)';
+    Regions[2].fps           = 0;
+    Regions[2].label         = '$O(17.6.1.3.2)';
+    Regions[2].color = 'blue';
+
+    
+    Regions[3].grid_left   = FULL_WIDTH + HORIZ_GAP*2;
+    Regions[3].grid_top    = FULL_HEIGHT + (VERT_GAP*2); 
+    Regions[3].grid_width  = GRID_WIDTH;
+    Regions[3].grid_height = GRID_HEIGHT;
+
+    Regions[3].source_left   = '$O(17.6.1.1.1.3)';
+    Regions[3].source_top    = '$O(17.6.1.1.2.3)';
+    Regions[3].source_width  = '$O(17.6.1.1.3.3)';
+    Regions[3].source_height = '$O(17.6.1.1.4.3)';
+    Regions[3].fps           = 0;
+    Regions[3].label         = '$O(17.6.1.3.3)';
+    Regions[3].color = 'green';
+
+    
+    
+
+
+    
+
+
+
+    var need_fact = 0;
+    for (i = 1; i < Regions.length; i++) {
+	need_fact += SanityCheck (i);
+    }
+    
+    if (CfgPage && need_fact) {
+	SetDflts ();
+	return;
+    }
+
+    for (i = 0; i < Regions.length; i++) {
+	ScaleRegion (i);
+	CameoAdd (i);
+	theOCX_m().MontageSetFPS (i, Regions[i].fps);
+    }
+    
+    Regions[0].grid_width  = Regions[0].dest_width;
+    Regions[0].grid_height = Regions[0].dest_height;
+
+    with (Regions[0]) {
+	DSfactor = source_width / dest_width;
+    }
+
+
+    theOCX_m().Display = 1;
+
+}
+
+
+function ScaleRegion (index)
+{
+    with (Regions[index]) {
+	
+	var x_scale = grid_width / source_width;
+	var y_scale = grid_height / source_height;
+	
+	var scale = x_scale;
+	if (y_scale < scale) scale = y_scale;
+	Regions[index].dest_width  = Math.floor ((source_width * scale) + 0.5);
+	Regions[index].dest_height = Math.floor ((source_height * scale) + 0.5);
+	Regions[index].dest_left = Math.floor(grid_left);
+	Regions[index].dest_top  = Math.floor(grid_top);
+    }
+}
+
+
+function SanityCheck (index)
+{
+    var need_fact = 0;
+
+    with (Regions[index]) {
+	
+	if (source_left == "" ||
+	    source_top == "" ||
+	    source_width == "" ||
+	    source_height == "") {
+	    need_fact = 1;
+	    source_left = 0;
+	    source_top = 0;
+	    source_width = grid_width;
+	    source_height = grid_height;
+	}
+	if (fps == "") fps = 0;
+    }
+    return need_fact;
+}
+
+
+
+function DrawStaticRect (color, 
+			 x,     
+			 y,     
+			 width, 
+			 height 
+    )
+{
+    var color_gif = '1pix' + color + '.gif';
+    var out = '<img src="' + color_gif + '" width=' + width + 
+	' height=' + height + ' style="position: absolute; left: ' + x + 
+	'px; top: ' + y + 'px; z-index: 3">';
+    return out;
+}
+
+
+function CameoAdd (index)
+{
+    with (Regions[index]) {
+	theOCX_m().MontageAdd (index, 
+			       source_left, 
+			       source_top, 
+			       source_width, 
+			       source_height,
+			       dest_left,
+			       dest_top,
+			       dest_width,
+			       dest_height);
+    }
+}
+
+
+
+function DrawOneFrame (idx, color, thick, shadow, x, y, width, height)
+{
+    var tx, ty;
+    var out = "";
+    var label_top = y + height + FRAME_THICK;
+
+    tx = x;
+    ty = y;
+
+    if (shadow == false) {
+	
+	out += DrawStaticRect (color, tx-thick, ty-thick, 
+			       width+(2*thick), thick);
+	
+	out += DrawStaticRect (color, tx-thick, ty-thick, thick, height+(2*thick));
+    }
+    ty = ty + height;
+    
+    out += DrawStaticRect (color, 
+			   shadow ? tx+thick : tx-thick, 
+			   ty, 
+			   shadow ? width : width+(2*thick), 
+			   thick);
+    ty = y;
+    tx = x + width;
+    
+    out += DrawStaticRect (color, 
+			   tx, 
+			   shadow ? ty+thick : ty-thick, 
+			   thick, 
+			   shadow ? height : height+(2*thick));
+    return out;
+}
+
+
+
+function DrawFrames ()
+{
+    var out = "";
+    var thick = FRAME_THICK;
+    var shadow = false;
+
+    for (i = 0; i < Regions.length; i++) {
+	with (Regions[i]) {
+	    out += DrawOneFrame (i, 
+				 (CfgPage == true) ? color : 'black',
+				 thick, 
+				 shadow,
+				 grid_left + MainwinLeft,
+				 grid_top + MainwinTop,
+				 grid_width,
+				 grid_height);
+	    out += DrawLabel (i, grid_left + MainwinLeft,
+			      grid_top + MainwinTop + grid_height +
+			      FRAME_THICK);
+	}
+    }
+    document.getElementById ("grids").innerHTML = out;
+    if (CfgPage == true) {
+	for (i = 0; i < Regions.length; i++) {
+	    UpdateLabel (i);
+	}
+    }
+}

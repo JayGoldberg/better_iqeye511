@@ -1,0 +1,797 @@
+<!-- Copyright (C) 2006 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: privacy windows</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="boxes.js"></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+window.scrollTo(0,0);
+
+enableJavaAlert();
+
+var ds = $O(1.2.2);
+
+var cropLeft = $O(1.2.6.4,R);
+var cropTop =  $O(1.2.6.1,R);
+var cropwidth = $O(1.2.6.2,R);
+var cropheight = $O(1.2.6.3,R);
+
+var maxWidth = $O(1.2.18.3,B); 
+var maxHeight= $O(1.2.18.4,B); 
+var camOffsetLeft = 0; 
+var camOffsetTop = 0;  
+
+
+
+var ds = $O(1.2.2);
+
+$IF($V(IQEYE6),
+    var maxWidth = $O(1.2.18.3); 
+    var maxHeight= $O(1.2.18.4); 
+,
+    var maxWidth = $O(1.2.20.5); 
+    var maxHeight= $O(1.2.20.6);
+)
+
+
+var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+			    Math.ceil(maxHeight/322));
+
+var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+
+var dsfactor = Math.max(ds,ds_necessary);
+
+
+var dsreq = ds_necessary;
+
+
+if (isIQeye6) {
+     if (dsreq == 3) dsreq = 4;
+}
+if (isIQeye6 || isIQeye7) {
+    
+    if (dsreq > 4) dsreq = 4;
+}
+if (isIQeye500) {
+     
+    if (dsreq > 2) dsreq = 2;
+}	  
+
+var dsstring = "?ds=" + dsreq;
+
+
+
+var imWidth =  Math.floor(maxWidth/ds_float);
+var imHeight = Math.floor(maxHeight/ds_float);
+
+
+if (isIQeye6 && !isIQeye5) dsstring = "";
+
+
+
+
+
+var currBox=1;
+var numMasks = '$O(1.2.26.3)'; 
+var numWindows = numMasks - 0 + 1; 
+var maxNumWindows = 8;		
+if (numWindows>maxNumWindows) maxNumWindows = numWindows;
+
+
+var orient = "$O(1.2.4)";
+orient = (orient.match("90") || orient.match("270") ||
+  orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+
+var initX = $IF($V(IQEYE6),$O(1.2.6.4),$O(1.2.18.6));
+var initY = $IF($V(IQEYE6),$O(1.2.6.1),$O(1.2.18.5));
+var initW = $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7));
+var initH = $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8));
+
+
+if (orient=="portrait") { 
+    var tmp;
+    tmp = imWidth; imWidth = imHeight; imHeight = tmp;
+    tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
+    tmp = initW; initW = initH; initH = tmp;
+}
+
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+
+
+var suspendUpdate = false; 
+
+
+var lastX = initX;
+var lastY = initY;
+var lastW = initW;
+var lastH = initH;
+
+
+var unloading = false;
+
+function InitBoxes ()
+{
+    if (!UseActiveX()) return;
+    var x, y, w, h;
+    var url = 'now.jpg?snap=spush0.2' + dsstring; 
+
+    if (!isIQeye6) {
+           
+	url += '?ov=0';
+    }
+
+
+    x = Math.floor (initX/ds_float);
+    y = Math.floor (initY/ds_float);
+    w = Math.floor ($O(1.2.6.2)/ds_float);
+    h = Math.floor ($O(1.2.6.3)/ds_float);
+
+    var parms = 
+	'<param name="InternalDptz" value="0">'
+	+ '<param name="StreamDptz" value="0">'
+	+ '<param name="Windowless" value="1">'
+	+ '<param name="offsetx" value="' 
+	+   x + '">'
+	+ '<param name="offsety" value="' 
+	+   y + '">'
+	+ '<param name="DisplayWidth" value="' 
+	+ w + ' ">' 
+	+ '<param name="DisplayHeight" value="' 
+	+ h 
+	+ '">'
+
+    CreateControl ("live", 
+		   imAttr, 
+		   "", 
+		   parms,
+		   isIQeye6, isIQeye7 || isIQeye5, url);
+
+    
+    
+
+    
+    
+    BoxInit ('live', 'boxes', 320, 255, (maxNumWindows+1), 1, ds_float);
+
+    BoxSetXshift (-'$O(1.2.18.6)');
+    BoxSetYshift (-'$O(1.2.18.5)');
+    BoxSetDim (0, 0, 0, 0, 0);
+
+    var i;
+    if (numWindows > 0) {   
+	for (i=1; i<=numWindows; i++) {
+	    BoxSetDim (i, lefts[i], tops[i], widths[i], heights[i]);
+	    BoxSetColor (i, 'red');
+	}
+	if (i <= maxNumWindows) {
+	    for (;i <= maxNumWindows; i++) {
+		BoxSetDim (i, 0, 0, 0, 0);
+		BoxSetColor (i, 'red');
+	    }
+	}
+    }
+    DrawBoxes ();
+}
+
+function WriteLive ()
+{
+    if (UseActiveX()) {
+	document.write ('<div id="live"></div>');
+	document.write ('<span id="boxes">boxes</span>');
+	return;
+    }
+
+    document.write ('<div id="Applet_Div">Applet</div>');
+    var rv = 
+	'<applet code="WindowSet.class" name="spapplet" ' + imAttr + '>' 
+	+ '<param name="url1" value="1pixgray.gif">'
+	+ '<param name="offsetx" value="' 
+	+   initX/dsfactor + '">'
+	+ '<param name="offsety" value="' 
+	+   initY/dsfactor + '">'
+	+ '<param name="url2" value="'
+	+ 'now.jpg?snap=spush0.2';
+    
+    if (!isIQeye6) rv += '?ov=0';
+    rv += dsstring
+	+ '">'
+	+ '<param name="DEBUG" value="true">'
+	+ '<param name="dsfactor" value="' + dsfactor + '">'
+	+ '<param name="xShift" value="' + -$O(1.2.18.6) + '">'
+	+ '<param name="yShift" value="' + -$O(1.2.18.5) + '">'
+	+ '<param name="selectedWindow" value="1">'
+	
+        $IF($V(IQEYE6),rv += '<param name="hw" value="' + $O(1.2.6.2)/dsfactor + '">';
+	    rv += '<param name="hh" value="' + $O(1.2.6.3)/dsfactor + '">';,)
+
+	
+	
+        rv += '<param name="numWindows" value="' + (maxNumWindows+1) + '">';
+    var out = "";
+    var i=1;
+    if (numWindows>0) {   
+	for (i=1;i<=numWindows;i++) {
+	    out += '<param name="saveOid' +i+ '" value="OidCR1.2.26.2">'
+		+ '<param name="x'+i+'" value="'+ lefts[i] +'">'
+		+ '<param name="y'+i+'" value="'+ tops[i] +'">'
+		+ '<param name="w'+i+'" value="'+ widths[i] +'">'
+		+ '<param name="h'+i+'" value="'+ heights[i] +'">'
+		+ '<param name="xOid'+i+'" value="OidTR1.2.26.1.1.'+i +'">'
+		+ '<param name="yOid'+i+'" value="OidTR1.2.26.1.2.'+i +'">'
+		+ '<param name="wOid'+i+'" value="OidTR1.2.26.1.3.'+i +'">'
+		+ '<param name="hOid'+i+'" value="OidTR1.2.26.1.4.'+i +'">'
+		+ '<param name="color'+i+'" value="#FF0000">';
+	}
+    }
+    if (i <= maxNumWindows) {
+	for (;i<=maxNumWindows;i++) {
+	    out += '<param name="saveOid' +i+ '" value="OidCR1.2.26.2">'
+		+ '<param name="x'+i+'" value="0">'
+		+ '<param name="y'+i+'" value="0">'
+		+ '<param name="w'+i+'" value="0">'
+		+ '<param name="h'+i+'" value="0">'
+		+ '<param name="xOid'+i+'" value="OidTR1.2.26.1.1.'+i +'">'
+		+ '<param name="yOid'+i+'" value="OidTR1.2.26.1.2.'+i +'">'
+		+ '<param name="wOid'+i+'" value="OidTR1.2.26.1.3.'+i +'">'
+		+ '<param name="hOid'+i+'" value="OidTR1.2.26.1.4.'+i +'">'
+		+ '<param name="color'+i+'" value="#FF0000">';
+	}
+    }
+    rv += out;
+    rv += '</applet>';
+    CreateApplet ("Applet_Div", rv);
+}
+
+
+
+function resetToInitialVals() {
+    var boxnum = currBox;
+
+    if (UseActiveX()) {
+	BoxSetDim (boxnum, 
+		   lefts[boxnum], 
+		   tops[boxnum], 
+		   widths[boxnum],
+		   heights[boxnum]);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (!app) return false;
+	app.setX(boxnum,lefts[boxnum]);
+	app.setY(boxnum,tops[boxnum]);
+	app.setW(boxnum,widths[boxnum]);
+	app.setH(boxnum,heights[boxnum]);
+	app.paint();
+    }
+    return false;
+}
+
+
+
+function updateAllBoxes() {
+    updateTextBoxes(GAIN);
+    setTimeout("updateAllBoxes()",200);
+}
+
+
+function updateTextBoxes(boxnum) {
+    if (suspendUpdate==true) return;
+    var left, top, width, height;
+
+    if (UseActiveX()) {
+	var dim = BoxGetDim (boxnum);
+	left    = dim.left;
+	top     = dim.top;
+	width   = dim.width;
+	height  = dim.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) return;
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    var f = document.myform;
+    if (f.cropleft)   f.cropleft.value   = left;
+    if (f.croptop)    f.croptop.value    = top;
+    if (f.cropwidth)  f.cropwidth.value  = width;
+    if (f.cropheight) f.cropheight.value = height;
+}
+
+
+
+function deleteMask() {
+    currBox = currBox-0; 
+    if (currBox>numMasks) {
+	alert("You cannot delete an unconfigured mask");
+	return false;
+    }
+    var boxnum = currBox;
+
+    if (UseActiveX()) {
+	BoxSetDim (boxnum, 0, 0, 0, 0);
+    }
+    else {
+	var app = theApplet();
+	if (app) { 
+	    app.setX(boxnum,0);
+	    app.setY(boxnum,0);
+	    app.setW(boxnum,0);
+	    app.setH(boxnum,0);
+	    app.paint();
+	}
+    }
+
+    setEcam2("OidCB1.2.26.1.9." + currBox,"ON");    
+    
+    for (var i=currBox;i<numWindows;i++) {
+	var j = i+1;
+	lefts[i] = lefts[j];
+	tops[i] = tops[j];
+	widths[i] = widths[j];
+	heights[i] = heights[j];
+    }
+    setBoxNum(currBox);
+    decrementSelectedMaskOptions();  
+
+    window.onbeforeunload="";
+
+    reloadLater(); 
+    return false;
+}
+
+
+function formatIsValid(field) {
+    var name = field.name;
+    var val = field.value;
+    var horizRE = /left|width/;
+    var vertRE = /top|height/;
+    if (name.match(horizRE)) {
+        val = parseInt(val);
+        if (isNaN(val) || val<0 || val>maxWidth) {
+            alert("Please enter values from 0 to " + (maxWidth-1));
+            select(field);
+            return false;
+        }
+        field.value = val;
+    }
+    if (name.match(vertRE)) {
+        val = parseInt(val);
+        if (isNaN(val) || val<0 || val>maxHeight) {
+            alert("Please enter values from 0 to " + (maxHeight-1));
+            select(field);
+            return false;
+        }
+        field.value = val;
+    }
+    return true;
+}
+
+
+
+function appendElement(arr) {
+    var size = arr.length;
+    var temp = new Array(size+1);
+    for (var j=0; j<size; j++) 
+	temp[j] = arr[j];
+    temp[j] = 0;
+    return temp;
+} 
+
+
+
+function incrementSelectedMaskOptions() {
+    if (numWindows==maxNumWindows) {
+	if (numWindows>=2)
+	    document.myform.whichBox.options[numWindows-1] 
+		= new Option(numWindows);
+	return;
+    }
+    numWindows++;
+    document.myform.whichBox.options[numWindows-1] 
+	= new Option("NEW");
+
+    if (numWindows>=2)
+	document.myform.whichBox.options[numWindows-2] 
+	    = new Option(numWindows-1);
+
+    widths = appendElement(widths);
+    heights = appendElement(heights);
+    lefts = appendElement(lefts);
+    tops = appendElement(tops);
+
+    document.myform.whichBox.selectedIndex = currBox-1;
+}
+
+
+
+function decrementSelectedMaskOptions() {
+    
+    var box = document.myform.whichBox;
+
+    numWindows--;
+    box.options[numWindows-1] = new Option("NEW");
+    numMasks--;
+    box.options.length--;
+    widths.length--;
+    heights.length--;
+    lefts.length--;
+    tops.length--;
+
+    box.selectedIndex = currBox-1;
+}
+
+
+
+function setBoxNum(val) {
+    if (currBox != val) { 
+	var str = beforeUnloadHandler();
+	if (str) {
+	    var reply = confirm(str); 
+	    if (!reply) {
+		document.myform.whichBox.selectedIndex=currBox-1;
+		return;
+	    } else { 
+		resetToInitialVals();
+	    }
+	}
+    }
+
+    currBox = val-0;
+    if (UseActiveX()) {
+	BoxSetCur (currBox);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (app) app.selectWindow(currBox);
+    }
+}
+
+function writeBoxSelect() {
+    var outString='<select name="whichBox" ' 
+	+ 'onChange="setBoxNum(this.selectedIndex + 1)">';
+
+    if (numWindows==1) outString += "<option selected>NEW";
+    else { 
+	outString += "<option selected>1";
+	if (numWindows>2)
+	    for (var i=2;i<numWindows;i++) outString += "<option>" + i;
+	outString += "<option>NEW";
+    }
+    outString += "</select>";
+    document.write(outString);
+}
+
+
+function initMasks() {
+    
+    
+    if (numMasks==0) {
+      lefts = new Array(0,0); 
+      tops = new Array(0,0); 
+      widths = new Array(0,0); 
+      heights = new Array(0,0); 
+    } else {
+	var str = '$O(1.2.26.1.1.0,JL)';
+	lefts = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.26.1.2.0,JL)';
+	tops = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.26.1.3.0,JL)';
+	widths = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.26.1.4.0,JL)';
+	heights = eval("new Array(0," + str + ",0)"); 
+    }
+
+    for (var i=1; i<=numWindows; i++) { 
+	widths[i] = widths[i]-0; 
+	heights[i] = heights[i]-0;
+    }
+
+    
+    
+    for (var i=1; i<=numWindows; i++) {
+	lefts[i] -= camOffsetLeft;
+	if (lefts[i] < 0) {
+	    widths[i] += lefts[i];
+	    if (widths[i]<0) widths[i]=0;
+	    lefts[i] = 0;
+	}
+	if (lefts[i] + widths[i] >= maxWidth)
+	    widths[i] = maxWidth - 1 - lefts[i];
+	tops[i] -= camOffsetTop;
+	if (tops[i] < 0) {
+	    heights[i] += tops[i];
+	    if (heights[i]<0) heights[i]=0;
+	    tops[i] = 0;
+	}
+	if (tops[i] + heights[i] >= maxHeight)
+	    heights[i] = maxHeight - 1 - tops[i];
+    }
+
+    setBoxNum(1);
+}
+
+
+
+
+
+
+
+function submitNoThread(n0,v0) {
+    var name = n0, val = v0;
+    if (arguments.length>2) {
+        for (var n=2;n<arguments.length; n+=2) {
+            val +=  "&" + arguments[n] + "=" + arguments[n+1];
+        }
+    }
+
+    
+    if (theSendState()) {
+	showSending();
+        status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    sendCommand(ind);
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+function beforeUnloadHandler() {
+    var boxnum = currBox;
+    var left, top, width, height;
+
+    if (UseActiveX()) {
+	var dim = BoxGetDim (boxnum);
+	left    = dim.left;
+	top     = dim.top;
+	width   = dim.width;
+	height  = dim.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) {return;}
+
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    window.onbeforeunload=""; 
+
+    if (maskChanged(boxnum, left, top, width, height)){
+	return "You forgot to 'apply' your new settings!\n"
+	    + "Do you really want to leave without\n"
+	    + "applying your new privacy settings?";
+    } else return;
+}
+
+function unloadHandler() {
+    
+    suspendUpdate = true;
+    unloading = true;
+
+    if (!UseActiveX())
+	stopApplet();
+    window.status="";
+    return true;
+}
+
+
+function maskChanged(boxnum, left, top, width, height) {
+
+    if (boxnum > numMasks) { 
+	return (width>0) ? true: false;
+    }
+
+    var lastX = lefts[currBox];
+    var lastY = tops[currBox];
+    var lastW = widths[currBox];
+    var lastH = heights[currBox];
+
+    if (Math.abs(left - lastX)  > dsfactor) return true;
+    if (Math.abs(top - lastY)   > dsfactor) return true;
+    if (Math.abs(width - lastW) > dsfactor)  return true;
+    if (Math.abs(height - lastH)> dsfactor) return true;
+    return false;
+}
+
+function submitFunction() {
+    suspendUpdate = true;
+    var boxnum = currBox;
+    var left, top, width, height;
+
+    if (UseActiveX()) {
+	var dim = BoxGetDim (boxnum);
+	left    = dim.left;
+	top     = dim.top;
+	width   = dim.width;
+	height  = dim.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) {return;}
+
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    if (maskChanged(boxnum, left, top, width, height)) {
+
+	if (currBox > numMasks) {
+	    numMasks++;
+	    incrementSelectedMaskOptions();
+	}
+
+	
+	lefts[currBox] = left;
+	tops[currBox] = top;
+	widths[currBox] = width;
+	heights[currBox] = height;
+
+	window.status="setting privacy window...";
+
+	
+	submitNoThread(
+	    "OidTR1.2.26.1.1."+currBox, left,
+	    "OidTR1.2.26.1.2."+currBox, top,
+	    "OidTR1.2.26.1.3."+currBox, width,
+	    "OidTR1.2.26.1.4."+currBox, height,
+	    "OidCR1.2.26.2", "ON"); 
+
+	window.status="";
+    }
+
+    
+    return false; 
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+initMasks();
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" onUnload="unloadHandler()">
+
+<noscript>
+  <font color="#FF0000">
+    <b>You must enable JavaScript to use this page.</b></font></noscript>
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+<script>
+  writeSettingsHeader("window"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=780>
+<tr>
+      <!-- the image area -->
+      <td width=330 height=330 style="padding: 44px 18px 4px 38px;
+         background: url(gray.gif) no-repeat;" 
+         valign="top" align="left">
+	 <script>WriteLive();</script>
+  </td>
+  <td rowspan=2  valign="top" align="right" style="padding-top: 18px">
+
+<form name="myform" method="post">
+<table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+<tr>
+  <td class="subtitleleft">&nbsp;</td>
+  <td height=20 class="subtitleleft">
+    <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+  <script>
+      if (!isVAV)
+          document.write('<li><a href="cropset.html">crop</a></li>');
+      if (hasExposureSupport)
+	  document.write('<li><a href="exposure.html">exposure</a></li>');
+      if (hasPrivacySupport)
+          document.write('<li id="current"><a href="privacy.html">privacy</a></li></li>');
+      if (hasMotionSupport)
+	  document.write('<li><a href="motionset.html">motion</a></li></li>');
+  </script> 
+  </ul></td>
+</tr>
+<tr>  <td class="startsubleft">&nbsp; </td>
+  <td class="startsubw"> Mouse controls <script>writeHelpIcon("MaskWin");</script></a></td>
+</tr>
+<tr>  <td class="left" height=20>&nbsp;</td>
+  <td class="input">window 
+    <script >writeBoxSelect()</script></td>
+</tr>
+<tr> <td class="left" height=21>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+<tr> 
+   <td class="left" height=20>&nbsp; </td>
+   <td  class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+
+<tr> <td class="left">&nbsp; </td>
+  <td class="input" align="center">
+    <ul id="buttonp">
+      <li><a href=""
+        onClick="return submitFunction()" 
+	onMouseOver="window.status='submit current settings'; return true;" 
+        onMouseOut="window.status=''">apply</a></li>
+      <li><a href=""
+        onClick="return resetToInitialVals();"
+        onMouseOver="window.status='restore to initial values'; return true;"
+        onMouseOut="window.status='';">cancel</a></li>
+      <li><a href=""
+        onClick="return deleteMask()"
+        onMouseOver="window.status='delete this privacy window'; return true;"
+        onMouseOut="window.status='';">default</a></li></ul></td></tr>
+<tr><td class="endsubleft">&nbsp;</td>
+  <td class="endsub">&nbsp;</td>
+</tr>
+</table></form>
+  </td>
+</tr>
+<tr>
+  <td valign="bottom"  align="center" height=60>&nbsp; </td>
+</tr>
+</table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+
+
+<script>
+  writeFooter('logout');</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td class="b" colspan=2><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif"></td>
+</tr>
+</table>
+
+<script>if (UseActiveX()) InitBoxes ();</script>
+
+</body>
+</html>

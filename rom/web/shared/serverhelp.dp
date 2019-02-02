@@ -1,0 +1,212 @@
+<table>
+  <tr> 
+    <td height=5 width="21"><a name="setup-server">
+      <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td>
+  </tr>
+  <tr> 
+    <td colspan=3><b><font size="+3">network setup</font></b></td>
+  </tr>
+  <tr> 
+    <td height=5 width="21"></td>
+  </tr>
+  <tr> 
+    <td width="21"></td>
+    <td>The network configuration items enable you to configure how the
+      camera operates during TCP/IP connections.  Use the text input
+      fields and pull-down menus on the 
+$IF($V(MANUAL),
+      Network Settings Page,
+      <a href="serverset.html" target="_blank">Network Settings page</a>
+)
+      to adjust your camera's initial configuration settings.  
+      Changing a field on that page will immediately send a 
+      command to your camera which activates that change.
+      While the command is being sent, 
+      you may not be able to change other settings.
+
+     <a name="server-network"></a>
+      <p><b>Name:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+     Specify the name of the camera.
+
+      <p><b>IP address:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+     Specify the IP address of the camera.  This will not take 
+     effect until the camera is rebooted.
+
+      <p><b><a name="Subnet"></a>subnet mask:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify the subnet
+        mask, or netmask, that the camera should use. IP networks can
+        be divided into several smaller networks by subnetting. When a
+        network is subnetted, you must specify a subnet mask which
+        tells network devices which smaller network they belong to.
+
+      <p><i>NOTE: IF THE SUBNET MASK IS NOT PROPERLY CONFIGURED, THE
+        CAMERA MAY NOT BE ABLE TO COMMUNICATE WITH OTHER DEVICES ON
+        THE NETWORK. </i>
+
+      <p><b><a name="Gateway"></a>TCP/IP gateway:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter the IP
+        address of the host to use as a TCP/IP gateway between
+        networks. The gateway allows communication between devices
+        that are on different networks. Without a correct gateway
+        setting, the camera cannot receive or transmit data from/to
+        devices that are not in the same network address range.
+
+      <p><b><a name="Nameserver"></a>primary nameserver:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Specify
+        the IP address of the external nameserver (if any) the camera
+        will use when it attempts a TCP/IP connection with another
+        host. An external nameserver must be specified for the camera
+        to access an FTP server by using its text-based name. Since
+        network devices can only recognize numeric IP addresses, a
+        nameserver is needed to resolve the correct numeric IP address
+        from a text-based name used in a connection request.
+
+      <p><b><a name="DomainName"></a>domain name:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter the
+        domain name for the network that the 
+        camera is on. For example, one might enter mycompany.com as
+        the domain name for your camera. The camera will append this
+        suffix to requests that it sends to the nameserver.
+
+      <p><b><a name="webport"></a>web port:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Enter the desired web port 
+         (i.e. the port number of your camera's web server).
+         Port numbers may range from 0 to 65536.  
+         The default port number is 80.  
+         If your camera has a network name of mycam.mycompany.com,
+         and has web port 8080, then its URL address is
+         http://mycam.mycompany.com:8080 .  If its web port is 80,
+	 then its url may be abbreviated as http://mycam.mycompany.com.
+
+      <p><b><a name="MaxBandwidth"></a>bandwidth limit:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        This sets the maximum network bandwidth limit in kilobits per second.
+        "Unlimited" <!-- is the default and -->
+        means that image streams are delivered at full speed.  
+        You may wish to change this so that an image stream doesn't 
+        take up all the bandwidth in your network.
+	Specifying a non-zero value will restrict your camera to
+        that amount of bandwidth.   For example, a value of 64 will limit
+        the frame rate of your camera so that it outputs
+        no more than 64 kilobits of image data each second.
+        The value "0" is
+	will be accepted as an alternate method of specifying "unlimited."
+
+     <p><b><a name="ethermode"></a>ethernet mode:</b>
+     Sets the camera's ethernet connection mode.  "Auto" is the default
+value and autonegotiates the correct setting with the switch.  If your
+switch is not set to autonegotiate you can set the camera to 10Mbit or
+100Mbit, full-duplex or half-duplex.  This setting should match your
+switch.  Use extreme caution when changing this setting as the
+incorrect value means you will no longer be able to connect to the
+camera.  Changing this value requires a reboot.
+
+     <a name="server-smtp"></a>
+      <p><b><a name="Mailserver"></a>mailserver:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        the name
+        or IP address of a SMTP (Simple Mail Transfer Protocol)
+        server on your camera's network.  The mail server must be an
+        SMTP server and must accept connections on port 25.
+      <p><i><b>Note:</b>For your camera to use a text-based name for 
+        connection attempts, you must specify a nameserver.</i> 
+
+      <p><b>username:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,) the username for SMTP
+servers which require a login.
+
+      <p><b>password:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,) the password for SMTP
+servers which require a login.
+
+     <a name="server-time"></a>
+      <p><b><a name="Timezone"></a>time zone:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Choose the
+        appropriate time zone setting from the pull-down menu.  Make
+        sure the time zone is correct before you set the $V(SP) clock.
+
+      <p><b><a name="Date"></a>clock date:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Adjust the date of your camera in MM/DD/YY format.
+      <p><b><a name="Clock"></a>clock time:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Adjust the time of your camera in 24 hour format (HH:MM:SS).
+        Before adjusting the clock time, make sure that you have already 
+        selected the appropriate time zone for your camera.
+      <p><b><a name="Timeserver"></a>timeserver protocol:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+         Set this select box to 'none', 'ntp', or 'daytime', depending 
+         on the timeserver protocol used by your network.
+         Setting this to 'none' will mean that your camera does
+         not obtain its time from the network. 
+      <p><b><a name="Timeserver-ip"></a>timeserver IP address:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter the IP address of the timeserver on your network (if any).
+
+        <p>Note, do not enter a DNS name.  You may set this to 0.0.0.0 to
+        specify 'none'.
+
+        <p>Note that if 'passive', in NTP behavior (next item), is checked, 
+        then entries in this field will have no effect.
+
+      <p><b><a name="Timeserver-NTPoptions"></a>NTP behavior</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        The following items apply only if NTP is the selected
+        timeserver protocol.
+ 
+        <ul>
+	<li><b>passive:</b> Enable or disable acceptance of incoming time
+	    broadcasts sent by an NTP server on the local subnet.
+	<li><b>broadcast:</b> Enable or disable the sending of NTP broadcasts
+            by your camera to find a time server on your local subnet.
+            If you have set a timeserver IP address, 
+            then that will be the timeserver used.
+            In this case, a broadcast will be sent only if the specified
+            timeserver fails to respond.
+	</ul>
+<!--
+      <p><b><a name="RARP"></a>RARP:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enable or disable querying for a RARP 
+        host when the camera boots up. 
+        If the camera sits on a network that uses a RARP server, 
+        the RARP host can supply the camera a dynamic IP address at boot time.
+        However, since remote connections depend on knowing the 
+        IP address of the camera, connectivity may not be available to remote 
+        users. Refer to your RARP server documentation for information on 
+        configuring the server to respond to the camera. 
+      <p><b><a name="DHCP"></a>DHCP:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enable or disable querying for a DHCP 
+        host when the camera boots up. 
+        If the camera sits on a network that uses a DHCP server, 
+        the DHCP host can supply the camera a dynamic IP address at boot time.
+        However, since remote connections depend on knowing the 
+        IP address of the camera, connectivity may not be available to remote 
+        users. Refer to your DHCP server documentation for information on 
+        configuring the server to respond to the camera. 
+
+      <p><b><a name="BOOTP"></a>BOOTP:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enable or disable querying
+        for a BOOTP host when the camera boots up.  If the camera sits
+        on a network that uses a BOOTP server, the BOOTP host can
+        supply the camera an IP address at boot time.  Refer to your
+        BOOTP server documentation for information on configuring the
+        server to respond to the camera.
+
+
+      <p><i>NOTE: THIS SETTING MUST BE PROPERLY CONFIGURED FOR THE
+        CAMERA TO BE ACCESSIBLE OVER THE INTERNET</i>.
+-->
+        <br>
+    <td width=2></td></tr>
+</table>

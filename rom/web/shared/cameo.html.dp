@@ -1,0 +1,86 @@
+<!-- Copyright (C) 2006 IQinVision -->
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1"
+http-equiv="content-type">
+<title>$SP $SN: Cameo View</title>
+<link rel="stylesheet" href="style.css">
+
+<style type="text/css">
+<!-- style sheet overrides -->
+<!-- redefine the input width smaller -->
+input {font-size: 12px; width: 20px;
+    background-color: white;
+    margin: 0px 2px 0px 3px; padding-right: 0px;
+    border: solid 1px black;}
+</style>
+
+<script src="lib.js"></script>
+<script src="gui.js" ></script>
+<script src="vid.js" ></script>
+<script src="cameo.js" ></script>
+<script>
+
+
+var CfgPage = false;
+
+
+function DrawLabel (idx, x, y)
+{
+    var out = '<span id="gridlabel' + idx + '" style="position: absolute; left: ' + x + 'px; top: ' + y + 'px; z-index: 1; width: ' + Regions[idx].grid_width + 'px">' + Regions[idx].label + '</span>';
+    return out;
+}
+
+function theOCX_m() {
+    if (!isIE) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1_m");
+}
+
+
+
+function LoadHandler()
+{
+    var livepos = GetElementPosition ("CtlDiv");
+    MainwinLeft = livepos.x;
+    MainwinTop  = livepos.y;
+    DrawFrames();
+}
+
+</script>
+</head>
+
+<body onload="LoadHandler();">
+<form name="myform" onSubmit="return false" action="">
+  <table class="main" cellspacing=0 cellpadding=0 width=820>
+    <script>writeCameoHeader("cameo"); </script>
+    <tr>
+      <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+      <td colspan=2 valign="center" align="center">
+          <img src="1pixclear.gif" width=1 height=15>
+        <table cellspacing=0 cellpadding=0
+          style="margin-top: 0; margin-left: 0;
+          border-top: solid 0 #DDD; border-right: solid 0 #BBB;
+          border-bottom: solid 0 #BBB; border-left: solid 0 #DDD;
+          background: #ffffff;">
+          <span id="grids"></span>
+          <script language="JScript"> 
+            CreateCameo ();
+            
+          </script>
+          <img src="1pixclear.gif" width=1 height=25>
+
+        </table>
+      </td>
+      <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+    </tr>
+
+    <tr>
+      <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+      <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+      <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

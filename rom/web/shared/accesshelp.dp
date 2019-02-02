@@ -1,0 +1,135 @@
+<table>
+  <tr><td height=5 width="21"><a name="access-security">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td></tr>
+  <tr><td colspan=3><b><font size="+3">security</font></b></td></tr>
+  <tr><td height=5 width="21"></td></tr>
+  <tr> 
+
+    <td width="21"></td>
+    <td> 
+      <p>You may choose two passwords: the <b>general
+       password</b> for username "login" 
+       and the <b>management password</b> for username "root".</p>
+      <blockquote> 
+        <p>When general password protection is enabled, users
+          must enter the general password to view camera images.</p>
+        <p>To change camera settings, users must enter the management password.
+          You should change this password when setting up a new camera.</p>
+      </blockquote>
+
+      <p><b><a name="GenPassProtection"></a>general password
+        protection:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Use the pull-down menu to 
+        enable or disable general password protection for your camera.
+        When this feature is enabled, users must enter
+        the general password to view camera images.
+
+      <p><b><a name="GenPass"></a>change general password:</b> 
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter a
+        new general password. This password should be seven or fewer
+        alphanumeric characters with no spaces. 
+        Passwords should contain both numbers and letters 
+        to decrease their chances of being guessed.
+
+      <p><b><a name="AuthenticationMode"></a>authentication mode:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+	You may choose Basic or Secure authentication for submitting
+        usernames and passwords to your camera.
+
+        <p>Basic authentication sends usernames and passwords
+        over the network without secure encoding.
+        It allows logging in by a URL address like:
+	<dl>
+	    <dd>http://myusername:mypassword@mycamera.mycompany.com.
+        </dl> 
+
+        <p>Basic authentication is less secure since:
+          <ul>
+           <li>Passwords submitted with basic authentication can
+            be learned by "sniffing" internet traffic.</li>
+           <li>Many login attempts can be submitted quickly by URLs.</li>
+           <li>You must close all web browser windows to logout.  Otherwise
+           un-authorized users can access your camera from your computer.</li>
+         </ul>
+
+        <p>Note:For additional security, we recommend
+          using secure authentication.</p>
+
+        <p>Secure authentication encrypts usernames and passwords
+        before they are sent over the network.  The MD5 encryption
+        standard and a "handshaking" protocol ensure security.
+        Secure authentication does not allow users to login by simply
+        specifying their passwords as part of a URL address.  
+        In order for secure authentication to work,
+$IF($V(MANUAL),
+        cookies,
+        "<a href="#BrowserPreferences">cookies</a>" 
+)
+        must be enabled in your web browser.
+
+      <p><b><a name="ManagePass1"></a>change management password:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter a new management password. This password should be seven
+        or fewer alphanumeric characters with no spaces. 
+        Passwords should contain both numbers and letters 
+        to decrease their chances of being guessed.
+        The management password cannot be disabled.  Users must
+        enter the management password in order to change camera settings.
+
+      <p><b><a name="ManagePass2"></a>retype management password:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Type the same password as that entered into the 
+$IF($V(MANUAL),
+        change management password,
+        <a href="#ManagePass1">change management password</a>
+)
+        field.
+
+      <p><b><a name="AccessHours"></a>weekdays/weekends</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        You can limit access to camera images on weekends or weekdays
+        (or both).  Set weekdays or weekends to ON or OFF to allow or 
+        deny access to camera images for the selected days. 
+        Alternatively, select TIMER, then specify the periods 
+        during which images will be accessible by entering the start 
+        and stop times in 24 hour format (hh:mm, e.g. 16:00 = 4 PM,
+        01:00 = 1 AM).  During "OFF" hours, camera images
+        will be accessible only to the management user.
+$IF($V(IQEYE6),<!--,)
+        Others will see the  
+$IF($V(MANUAL),
+        access denied message,
+       <a href="#ClosedMessage">access denied message</a>
+)
+        on a black background.
+$IF($V(IQEYE6),-->,)
+
+      <p>Note that IQrecorder will not record images during "OFF"
+        access hours.
+
+<!-- commented out for iqeye6 -->
+$IF($V(IQEYE6),<!--,)
+      <p><b><a name="ClosedMessage"></a>access denied message:</b>
+$IF($V(MANUAL),<b>(all cameras)</b></p><p>,)
+        Enter the text that the camera will show in off hours. </p>
+
+     <p><b><a name="OverlayPos"></a>message position:</b> 
+$IF($V(MANUAL),<b>(IQeye3 cameras)</b></p><p>,)
+        Select a
+	horizontal position (left, center, right) and a vertical
+	position (top, center, bottom) for the access denied message
+        that appears on your image.
+$IF($V(IQEYE6),-->,)
+
+     <p><b><a name="firmware-upload"></a>camera firmware:</b>Select a
+local file to update the camera's firmware.  It is very important that
+the camera does not lose power during this process.  The camera will reboot
+after a successful update.
+     <p><b><a name="license-file"></a>license file:</b>Select a local
+license file to unlock functionality on this camera.
+Contact IQinVision to obtain this file.  The camera must be rebooted
+for changes to take effect. 
+    </td></tr>
+</table>

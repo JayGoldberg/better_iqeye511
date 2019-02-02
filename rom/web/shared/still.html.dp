@@ -1,0 +1,276 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Still Images</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<link rel="stylesheet" href="style.css">
+
+<style type="text/css">
+
+html, body {margin: 0; padding: 0;
+  color: #333; background: #EEE;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; font-style: bold;}
+
+#topmenuvid {background: #EEE;  position:relative; z-index:1; height: 66px; margin: 0; padding: 4px; 
+   white-space: nowrap;}
+
+#mousecontrols {position: absolute; top: 96px; left: 117px; visibility: hidden;}
+
+h2 {color: #333; text-align: left;
+  font: 16px Arial, Verdana, sans-serif; font-weight: bold; line-height: 18px;
+  padding: 0; margin: 0;}
+
+#main {color: #333; background: white;
+  margin: 0; padding: 0; margin-left: 12px; width: 100%;
+  position: absolute; z-index: 0;
+  top: 76px;  left: 0;}
+
+#buttonh {margin: 0; padding: 0; white-space: nowrap;}
+#buttonh li {list-style: none; float: left;  
+  margin-left: 2px; padding-left: 8px; padding-bottom: 0px;
+  color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonh a {display: block; float: left; padding: 0px 45px 3px 0;
+  text-decoration: none; font-weight: bold; 
+  color: white;
+  width:  .1em;}
+html>body #buttonh a {width: auto;}    
+
+#buttonh a {float: none;}            
+
+li.menu  {background: #399 url(menulogo.gif) 77% 0 no-repeat;}
+a.menu  {background: #399 url(menulogo.gif) 100% 0 no-repeat;}
+a.menu:hover {color: #FC6;}
+ 
+li.zoomin  {background: #399 url(zoom.gif) 0 0 no-repeat;}
+a.zoomin  {background: #399 url(zoom.gif) 100% 0 no-repeat;}
+a.zoomin:hover {background: #399 url(zoom.gif) 100% 33% no-repeat;}
+
+li.zoomout  {background: #399 url(zoom.gif) 0 0 no-repeat;}
+a.zoomout  {background: #399 url(zoom.gif) 100% 66% no-repeat;}
+a.zoomout:hover {background: #399 url(zoom.gif) 100% 100% no-repeat;}
+
+li.sizep  {background: #399 url(size.gif) 0 0 no-repeat;}
+a.sizep  {background: #399 url(size.gif) 100% 0 no-repeat;}
+a.sizep:hover {background: #399 url(size.gif) 100% 33% no-repeat;}
+
+li.sizem  {background: #399 url(size.gif) 0 0 no-repeat;}
+a.sizem {background: #399 url(size.gif) 100% 66% no-repeat;}
+a.sizem:hover {background: #399 url(size.gif) 100% 100% no-repeat;}
+
+#buttonm {margin: 0; padding: 0; white-space: nowrap;}
+#buttonm li {list-style: none; float: left;  
+  margin-left: 2px; padding-left: 8px; padding-bottom: 0px;
+  color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonm a {display: block; float: left; padding: 0px 8px 3px 0;
+  text-decoration: none; font-weight: bold; 
+  color: white;
+  width:  .1em;}
+html>body #buttonm a {width: auto;}    
+
+#buttonm a {float: none;}            
+#buttonm a:hover {color: #FC6;}
+
+li.menu  {background: #399 url(buttonm.gif) 0 0 no-repeat;}
+a.menu  {background: #399 url(buttonm.gif) 100% 0 no-repeat;}
+
+
+table.content {color: #333; background: white; 
+  margin: 0; clear: left; font-size: 12px;
+  border: 0;}
+
+
+table.menu {float: left; margin: 0; padding:0; clear: none;}
+
+table.dptz a {padding: 0px 8px 1px 6px; margin-left: 0px;
+  text-decoration: none;  font-weight: 600; font-size: 16px; line-height: 18px;
+  color: white;
+  width:  .1em;}
+html>body a.dptz {width: auto;}    
+
+a.dptz {float: none;}            
+
+a.left {background: white url(rose.gif) 100% 0 no-repeat;}
+a.left:hover {background: #399 url(rose.gif) 100% 50% no-repeat;}
+
+a.up {background: white url(rose.gif) 0 0 no-repeat;}
+a.up:hover {background: #399 url(rose.gif) 0 50% no-repeat;}
+
+a.down {background: white url(rose.gif) 66% 0 no-repeat;}
+a.down:hover {background: #399 url(rose.gif) 66% 50% no-repeat;}
+
+a.right {background: white url(rose.gif) 33% 0 no-repeat;}
+a.right:hover {background: #399 url(rose.gif) 33% 50% no-repeat;}
+
+td {padding: 0; margin: 0; white-space: nowrap;}
+
+td.dptz {background: #EEE url(rose.gif) 0 100% no-repeat; padding: 1px 0 0 2px;}
+
+td.contenttd {background: white; padding: 0px; margin: 0; text-align: center; clear: none;}
+
+b {font-size: 12px; font-weight: bolder;}
+
+select {font-size: 12px; height: 18px; border: 0; margin: 0px 0px 0px 3px;}
+
+td.help a {padding: 0px 3px 0px 2px; margin-left: 5px;
+  text-decoration: none; font-weight: 600; font-size: 10px; line-height: 12px;
+  background: #EEE url(helpt.gif) 100% 0 no-repeat;
+  color: white;
+  width:  .1em;}
+html>body #help a {width: auto;}    
+
+td.subtitle a {float: none;}            
+td.subtitle a:hover {color: #FC6;}
+
+
+</style>
+<script  src="gui.js" ></script>
+<script>
+
+function play() {
+    location.replace(referringPage + location.search);
+    return false;
+}
+
+
+
+
+
+function getArgs() {
+    var args = new Object();
+    var query = location.search.substring(1);
+    var pairs = query.split("?");
+    for (var i=0; i<pairs.length; i++) {
+	var pos = pairs[i].indexOf('=');
+	if (pos==-1) continue;
+	var argname = pairs[i].substring(0,pos);
+	var value = pairs[i].substring(pos+1);
+	args[argname] = unescape(value);
+    }
+    
+    if (args.ds) dsfactor = parseFloat(args.ds);
+    if (args.width) imWidth = parseInt(args.width);
+    else {
+	imWidth =  (dsfactor > 1) ? wrw/dsfactor : wrw;
+    }
+    if (args.height) imHeight = parseInt(args.height);
+    else {
+	imHeight = (dsfactor > 1) ? wrh/dsfactor : wrh;
+    }
+    if (args.wx) wx = parseInt(args.wx);
+    if (args.wy) wy = parseInt(args.wy);
+    if (args.wh) wh = parseInt(args.wh);
+    if (args.ww) ww = parseInt(args.ww);
+    if (args.ov) ovstring = "?ov=" + parseInt(args.ov);
+    if (args.from) referringPage = args.from;
+
+    dsstring = (dsfactor == ds) ? "":("?ds=" + dsfactor);
+
+    imAttr = 
+	' width=\"' + imWidth + '\" height=\"' + imHeight + '\" border=0 ';
+}
+
+
+
+
+
+
+var wx = $O(1.2.6.7,R);		
+var wy = $O(1.2.6.8,R);		
+var ww = $O(1.2.6.9,R);		
+var wh = $O(1.2.6.10,R);	
+
+var ds = $O(1.2.2,B);	
+var dsfactor = ds;
+if (dsfactor < ds) dsfactor=ds;	
+var dsstring = (dsfactor > 1) ? ("?ds=" + dsfactor) : ""; 
+var wrw =  $O(1.2.6.2,B);
+var wrh =  $O(1.2.6.3,B);
+var imWidth = (dsfactor > 1) ? 
+    ((wrw - wrw%dsfactor)/dsfactor) : $O(1.2.6.9,B);
+var imHeight = (dsfactor > 1) ? 
+    ((wrh - wrh%dsfactor)/dsfactor) : $O(1.2.6.10,B);
+var imAttr = 
+    ' width=\"' + imWidth + '\" height=\"' + imHeight + '\" border=0 ';
+var ovstring = "";
+var referringPage = "/";
+
+getArgs();
+
+var imgArgs = "?ww=" + ww + "?wh=" + wh + "?wx=" + wx + "?wy=" + wy 
+    + dsstring + ovstring;
+var preSrc = "now.jpg?snap=pre" +imgArgs;
+var preSrcString = '\"now.jpg?snap=pre' +imgArgs + '\" ';
+
+var helpString = 
+    "Click on the \"play\" button to resume the live image feed.\n"
+    + "Click on the \"new\" button to get another still image.\n";
+
+var imagenum = 0;
+function newImage() {
+    
+    
+    document.mainImage.src = preSrc + "?dummy=" + imagenum++;
+    return false;
+}
+
+</script>
+</head>
+
+<body BGCOLOR="#FFFFFF" TEXT="#808080" 
+ LINK=$V(COLOR) VLINK=$V(COLOR) ALINK=$V(COLOR)> 
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+  <script>
+  writeViewingHeader("home"); </script> 
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=566></td>
+  <td colspan=2 valign="top" align="left">
+
+   <table cellspacing=0 cellpadding=0 class="content" style="margin: 20px 0 10px 20px">
+     <tr valign="left"> 
+     <td><ul id="buttonm"><li class="menu"><a href="" class="menu"
+          onClick="return play();"
+          onMouseOver="window.status='go to updating image page'; return true;" 
+          onMouseOut="window.status=''">start live stream</a></li></ul></td>
+     <td><ul id="buttonm"><li class="menu"><a href="" class="menu"
+          onClick="return newImage();"
+          onMouseOver="window.status='get a new image'; return true;" 
+          onMouseOut="window.status=''">new still image</a></li></ul></td>
+     </tr>
+   </table>
+  
+<br>
+
+<table border=0 width="100%" cellpadding=1>
+  <tr valign="top"><td> 
+    <noscript><font color="#FF0000">
+      <b>You must enable Javascript<br>to see an image.</b></font>
+    </noscript>
+       <script>
+          document.write("<img src=" + preSrcString + imAttr 
+			 + " name=\"mainImage\"" + ">");
+        </script></td>
+  </tr>
+</table>
+
+
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+
+
+</form>
+
+
+</body>
+</html>
+

@@ -1,0 +1,134 @@
+<!-- Copyright (C) 2008 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN Images</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+
+
+var streamDptzParam = '<param name="StreamDptz" value="0"><param name="InternalDptz" value="0">\n';
+var logging = '<param name="Logging" value="0">\n';
+var ds = $O(1.2.2);		
+var cropwidth = $O(1.2.6.2);	
+var cropheight = $O(1.2.6.3);	
+var image = new Object();
+
+
+var snap = "spush";		
+var src = "now.jpg";		
+var dsfactor = ds;		
+var dsstring = "";		
+var imAttr = " border=0";	
+var DEBUG = false;		
+var urimods=""; 
+                
+
+
+
+
+
+
+
+
+
+var needsApplet =  isIE || isNav6 || isOpera;
+
+if (needsApplet && !navigator.javaEnabled()) {
+    alert("You must enable Java for this page to work correctly.");
+}
+
+function handleURIMod(name, value) {
+    if (name=="src") src = unescape(value);
+    else if (name=="snap")   snap = unescape(value);
+    else if (name=="ds")     dsfactor = parseInt(value);
+    else if (name=="width")  image.width = value;
+    else if (name=="height") image.height = value;
+    else if (name="DEBUG")   DEBUG = true;
+    else urimods += "?" + name + "=" + value;
+}
+
+function handleURIMods() {
+    var query = location.search.substring(1); 
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+
+    for (var i=0; i<pairs.length; i++) {
+	var pos = pairs[i].indexOf('=');
+	if (pos==-1) continue;
+	var name = pairs[i].substring(0,pos);
+	var value = pairs[i].substring(pos+1);
+	handleURIMod(name, value);
+    }
+
+    if (dsfactor != ds) dsstring = "?ds=" + dsfactor;
+    if (!image.width) image.width   = cropwidth/dsfactor;
+    if (!image.height) image.height =  cropheight/dsfactor;
+    imAttr += ' width="' + image.width + '" height="' + image.height + '"';;
+}
+
+handleURIMods();
+
+function writeImageDivs() {
+    var imageString = '"' + src + '?snap=' + snap +  urimods + dsstring +'" ';
+
+    if (!needsApplet) {
+	document.write('<img src=' + imageString + imAttr + '>');
+    } else {
+	var outString = '<applet code="ShowServerPush.class" name="spapplet" '
+	    + imAttr + '>\n'
+	    + '<param name="url" value=' + imageString + '>\n';
+	if (DEBUG) outString += '<param name="DEBUG" value="true">\n';
+	outString += '</applet>\n';
+	document.write(outString);
+    }
+}
+
+function stopApplet() {
+    var app = document.applets["spapplet"];
+    if (app) app.stop();
+    return false;
+}
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF"
+    leftmargin="0" rightmargin="0" topmargin="0" bottommargin="0"
+    onBeforeUnload="stopApplet();">
+
+<noscript><b>You must enable Javascript<br>to see an image.</b></noscript>
+<script>
+if (UseActiveX()) {
+    document.write ('<div id="CtlDiv">ActiveX Control</div>');
+    CreateControl ("CtlDiv", imAttr, logging, streamDptzParam,
+		   isIQeye6, isIQeye7, "now.jpg?snap=spush");
+}
+else {
+    writeImageDivs();
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

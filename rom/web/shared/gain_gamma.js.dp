@@ -1,0 +1,69 @@
+
+
+
+
+
+var defaultBrightness = 0.50;
+var defaultGamma = 0.45;
+
+
+$IF($CMP($O(1.2.20.1),MCM20027),,defaultGamma = 0.55;)
+
+
+$IF($CMP($O(2.21),2d),,defaultGamma = 0.45;)
+$IF($CMP($O(2.21),2c),,defaultGamma = 0.45;)
+
+function setBrightness(field) {  
+    if (isNaN(field.value) 
+	|| (field.value < 0.2) || (field.value > 1.0)) { 
+	alert("You must enter a number between 0.2 and 1.0");
+	return false;
+    }
+    setEcam2("OidTB1.2.8.4", escape(field.value));
+    return false;
+}
+
+function setGamma(field) {
+    if (isNaN(field.value) || (field.value < 0.1) 
+	|| (field.value > 2.55)) { 
+	alert("You must enter a number between 0.1 and 2.55");
+	return false;
+    }
+    setEcam2("OidTB1.2.1", escape(field.value));
+    return false;
+}
+
+function upDowngif (name) {
+    var val;
+    var incr = 0.05;
+    if (name == "brightup") {
+        val = parseFloat(document.myform.brightness.value) + incr;
+	if (val>1.0) val = 1.0;
+        document.myform.brightness.value = numbform(val,2);
+        setEcam2("OidTB1.2.8.4", val);
+    } else if (name == "brightdown") {
+        val = parseFloat(document.myform.brightness.value) - incr;
+	if (val<0.0) val = 0.0;
+        document.myform.brightness.value = numbform(val,2);
+        setEcam2("OidTB1.2.8.4", val);
+    } else if (name == "brightdefault") {
+        document.myform.brightness.value = defaultBrightness;
+        setEcam2("OidTB1.2.8.4", "FACTORY");
+    } else if (name == "gammaup") {
+        val = parseFloat(document.myform.gamma.value) + incr;
+	if (val>2.55) val = 2.55;
+        document.myform.gamma.value = numbform(val,2);
+        setEcam2("OidTB1.2.1", val);
+    } else if (name == "gammadown") {
+        val = parseFloat(document.myform.gamma.value) - incr;
+	if (val<0.1) val = 0.1;
+        document.myform.gamma.value = numbform(val,2);
+        setEcam2("OidTB1.2.1", val);
+    } else if (name == "gammadefault") {
+        document.myform.gamma.value = defaultGamma;
+        setEcam2("OidTB1.2.1", "FACTORY");
+    }
+    return false;	
+}
+
+

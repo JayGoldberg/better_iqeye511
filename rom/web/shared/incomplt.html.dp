@@ -1,0 +1,39 @@
+<HTML><HEAD><TITLE>$SP $SN: Settings command not properly completed</TITLE>
+$INC(oemvars.dp)
+<STYLE type="text/css">
+td {font-family: Arial, Helvetica, sans-serif;}
+b {font-family: Arial, Helvetica, sans-serif;}
+h2 {font-family: Arial, Helvetica, sans-serif; color:#000000;}
+</STYLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" text="#808080" link="#800000">
+<h2>incomplete command</h2>
+<TABLE width=100%><TR>
+<TD HEIGHT="5" width=100% border="0" bgcolor=$V(COLOR)><img src="1pixclear.gif" width="1" height="1" BORDER="0"></TD></TR>
+<tr><td>
+
+<P>You have exited a settings page before a requested change has been
+verified by the camera.  Your browser window may become confused.
+This can normally be corrected by hitting Reload/Refresh in your
+browser.
+</P> 
+<P><font size = "-1">When making changes in camera
+settings, wait for each setting change to be executed and acknowledged
+before proceeding.  On a fast connection this normally takes a few
+seconds.  On slow connections time delays can vary, watch the display
+on your settings page to view the results of your command before
+proceeding.</font>
+</P> 
+
+<!-- close gif needed here.  Scripts to close the window too? -->
+</td>
+</tr> 
+<TR>
+  <TD HEIGHT=3 border="0" bgcolor=$V(COLOR)>
+    <img src="1pixclear.gif" width="1" height="1" BORDER="0" ALT="">
+  </TD>
+</TR>
+</Table>
+</BODY>
+</HTML>

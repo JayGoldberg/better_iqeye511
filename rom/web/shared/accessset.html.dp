@@ -1,0 +1,593 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: access settings</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta name="Copyright" value="Copyright &copy; 2006 - 2009 IQinVision">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+var DoBlink   = false;
+var BlinkIsOn = true;
+var UpdatingFirmware = false;
+var StatCheck = false;
+
+$INC(vars_nocache.js.dp)
+
+
+$IF($V(IQEYE7),$DEF(IQEYE5, ),)
+
+enableJavaAlert();
+
+
+function checkSuper(form){
+    var val = form.superPass1.value;
+    var rv = true;
+    if(val != form.superPass2.value){
+       alert("Superuser passwords do not match");
+       rv = false;
+    } else if (! isAPassword(form.superPass1)) {
+	alert("Please enter 1 to 32 alphanumeric characters.\n" +
+              "Do not include white space characters.\n" +
+	      "Password not changed.");
+	rv = false;
+    }
+
+    if (rv == false) {
+	form.superPass1.value = " ";
+	form.superPass2.value = " ";
+	form.superPass1.focus();
+	form.superPass1.select();
+	return false;
+    }
+    rv = setEcam2("OidPB2.3", val);
+    if(!rv) {
+
+    } else {
+	alert("failed to set password");
+    }
+    return false;
+}
+
+function formatIsValid(field) {
+    if (field.name.match("OidTB1\\.3\\.9\\.[12]") ) { 
+	if (! isATime2(field)) {
+	    alert("You must enter a military time in the format hh:mm");
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+    if (field.name == "OidPB2.2") { 
+	if (! isAPassword(field)) {
+	    alert("Please enter 1 to 32 alphanumeric characters.\n" +
+		  "Do not include white space characters.\n" +
+		  "Password not changed.");
+	    return false;
+	}
+	return true;
+    }
+    if (field.name == "OidTB1.2.9.1.9.4") { 
+	if (field.value.length >32) {
+	    alert("Please enter at most 32 alphanumeric characters.");
+	    return false;
+	}
+	return true;
+    }
+    return true;
+}
+
+function setAccessDeniedDefaults() {
+    
+    
+    submit('OidSB1.2.9.1.8.4','enabled', 
+	   
+	   
+	   'OidSB1.2.9.1.10.4','white_on_black'); 
+}
+
+
+function writeIQauth () {
+    var lic = "$O(18.2,R)";
+    if (lic.toLowerCase() == "demo")
+	document.write('Demo');
+    else {
+	if (lic.toLowerCase() == "false")
+	    document.write('Not ');
+	document.write('Installed');
+    }
+}
+
+function writeIQrec () {
+    var lic = "$O(18.1,R)";
+    if (lic.toLowerCase() == "demo")
+	document.write('Demo');
+    else {
+	if (lic.toLowerCase() == "false")
+	    document.write('Not ');
+	document.write('Installed');
+    }
+}
+$IF($V(IQEYE5),,
+function writeIQnight () {
+    var lic = "$O(18.3,R)";
+    if (lic.toLowerCase() == "demo")
+	document.write('Demo');
+    else {
+	if (lic.toLowerCase() == "false")
+	    document.write('Not ');
+	document.write('Installed');
+    }
+}
+)
+
+$IF($V(IQERS),,
+function setAuthenticationMode(index) {
+    
+    if (index==0) submit("OidSB7.6","basic");
+    else submit("OidSB7.6","secure");
+}
+
+function writeAuthenticationModeSelect() {
+    var mode = "$O(7.6)";
+    document.write('<select name="mode" '
+		   + 'onChange="setAuthenticationMode(selectedIndex)">');
+    if (mode.toLowerCase() == "secure")
+	document.write('<option>basic<option selected>secure</select>\n');
+    else
+	document.write('<option selected>basic<option>secure</select>\n');
+}
+)
+
+function writeWeekdaysSelect() {
+    var MonStatus = '$O(1.3.9.3)';
+    var TueStatus = '$O(1.3.9.4)';
+    var WedStatus = '$O(1.3.9.5)';
+    var ThuStatus = '$O(1.3.9.6)';
+    var FriStatus = '$O(1.3.9.7)';
+    var status = 'off';
+    
+    
+    var stat='ON';
+    if (MonStatus==stat && TueStatus==stat && WedStatus==stat
+	&& ThuStatus==stat && FriStatus==stat) status = stat;
+    stat='TIMER';
+    if (MonStatus==stat && TueStatus==stat && WedStatus==stat
+	&& ThuStatus==stat && FriStatus==stat) status = stat;
+    document.write
+	( '<select name="weekdays" '
+	  + ' onChange="setWeekdays(this.options[selectedIndex].text)">\n');
+    if (status=='TIMER') {
+      document.write 
+	  ('<option>on <option>off <option selected>timer </select>\n');
+    } else if (status=='ON') {
+      document.write 
+	  ('<option selected>on <option>off <option>timer </select>\n');
+    } else {
+      document.write 
+	  ('<option>on <option selected>off <option>timer </select>\n');
+    }
+}
+
+function writeWeekendsSelect() {
+    var SatStatus = '$O(1.3.9.8)';
+    var SunStatus = '$O(1.3.9.9)';
+    var status = 'off';
+    
+    
+    var stat='ON';
+    if (SatStatus==stat && SunStatus==stat) status = stat;
+    stat='TIMER'
+    if (SatStatus==stat && SunStatus==stat) status = stat;
+    document.write
+	( '<select name="weekends" '
+	  + ' onChange="setWeekends(this.options[selectedIndex].text)">\n');
+    if (status=='TIMER') {
+      document.write 
+	  ('<option>on <option>off <option selected>timer </select>\n');
+    } else if (status=='ON') {
+      document.write 
+	  ('<option selected>on <option>off <option>timer </select>\n');
+    } else {
+      document.write 
+	  ('<option>on <option selected>off <option>timer </select>\n');
+    }
+}
+
+function setWeekdays(val) { 
+   submit("OidSB1.3.9.3",val,"OidSB1.3.9.4",val,
+	  "OidSB1.3.9.5",val,"OidSB1.3.9.6",val,
+	  "OidSB1.3.9.7",val);
+}
+
+function setWeekends(val) { 
+   submit("OidSB1.3.9.8",val, "OidSB1.3.9.9",val);
+}
+
+function submitLicense() {
+     if (document.licenseupload.codekey.value.length == 0) {
+        alert ("Please select a license file.");
+        return false;
+     }
+     document.licenseupload.submit();
+     updateStatusText ("Submitting license...");
+     window.setTimeout('updateUploadStatus();', 100);
+     return false;
+}
+
+function submitFirmware() {
+     if (document.firmwareupload.firmware.value.length == 0) {
+        alert ("Please select a firmware file.");
+        return false;
+     }
+     UpdatingFirmware = true;
+     StatCheck = true;
+     document.firmwareupload.submit();
+     updateStatusText ("Submitting firmware...");
+     
+     startBlinker ();
+     return false;
+}
+
+
+function firmwareStatCheck ()
+{
+    if (UpdatingFirmware && StatCheck) {
+	StatCheck = false;
+	window.setTimeout('updateUploadStatus();', 10000);
+    }
+}
+
+function updateUploadStatus () 
+{
+     updateStatusText ("Requesting status, please wait...");
+     
+     if (AjaxGetOid ("7.7.1") == false) {
+	 stopBlinker ();
+	 updateStatusText ("XML error");
+     }
+}
+
+
+function AjaxDone (result_code, http_status, result_text)
+{
+    var stop = true;
+    
+    if (result_code == 4) updateUploadStatus ();
+    else {
+	if (UpdatingFirmware) {
+	    if (result_text.toLowerCase().match("complete")) {
+		result_text = result_text + ".  Please wait while camera reboots...";
+		
+		setTimeout ('loadIndexPage()', 40000);
+		
+		stop = false;
+	    }
+	}
+	
+	if (stop)
+	    stopBlinker ();
+	updateStatusText (result_text);
+    }
+}
+
+function updateStatusText (text)
+{
+    if (text.toLowerCase().match("accepted")) {
+	text = text + ".  Reboot camera for changes to take effect.";
+    }
+    if (!getObject("recordingtext")) return;
+    getObject("recordingtext").innerHTML = text;
+}
+
+function startBlinker ()
+{
+    if (DoBlink) return;
+    DoBlink = true;
+    BlinkIsOn = false;
+    statusTextBlinker();
+}
+
+function stopBlinker ()
+{
+    DoBlink = false;
+}
+
+function statusTextBlinker ()
+{
+    if (!getObject("recordingtext")) return;
+    if (!DoBlink) {
+	getObject("recordingtext").style.visibility = "visible";
+	return;
+    }
+    if (BlinkIsOn) {
+	getObject("recordingtext").style.visibility = "hidden";
+	BlinkIsOn = false;
+    }
+    else {
+	getObject("recordingtext").style.visibility = "visible";
+	BlinkIsOn = true;
+    }
+    setTimeout ("statusTextBlinker()", 500);
+}
+
+function writeMsg () {
+     var out = '<tr><td colspan=2 class="subtitle" align="right" valign="bottom"><span id="recordingtext">&nbsp</span></td></tr>';
+     document.write (out);
+}
+
+
+function LicFilename () {
+     var hwaddr = "$SH";
+     var newhw;
+     var re = /:/g;
+
+     newhw = hwaddr.replace (re, "");
+     document.write ("(expecting: codeauth-" + newhw + ")");
+}
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript><font color="#FF0000">
+<b>You must enable Javascript for this page to work properly.</b></font>
+</noscript>
+
+<form name="superuser" onSubmit="return checkSuper(this)">
+
+<!-- each row has 3 tds: a border on each side, and the content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+<script>
+  writeSettingsHeader("access");</script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=780>
+    <tr>
+      <!-- the image area -->
+      <td width=330 height=330 style="padding: 44px 18px 4px 38px;
+         background: url(gray.gif) no-repeat;" 
+         valign="top" align="left">
+        <script>
+          
+          writeCroppedImage();
+          
+	  
+	  
+        </script>&nbsp;</td>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+        <tr>		    
+          <td class="subtitleleft"><img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+        <tr>
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle">Passwords
+             <script>
+              writeHelpIcon("access-security");</script></td></tr>
+
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">general protection $O(2.9,JSB)</td></tr>
+        $IF($V(IQERS),,
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">authentication mode
+            <script>
+               writeAuthenticationModeSelect();</script></td></tr>)
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">change general password $O(2.2,JPB)</td></tr> 
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">change management password
+            <input type="password" name="superPass1" value="" size="32" 
+             onChange="this.form.superPass2.focus()"></td></tr> 
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub">retype management password
+            <input type="password" name="superPass2" value="" size="32" 
+             onChange="checkSuper(this.form)"></td></tr> 
+
+        <tr>
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle">Access Hours
+             <script>
+              writeHelpIcon("AccessHours");</script></td></tr>
+
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">weekdays
+            <script>
+               writeWeekdaysSelect();</script></td></tr>
+        <tr>		   
+          <td class="left">&nbsp;</td>
+          <td class="input">weekends
+            <script>
+               writeWeekendsSelect();</script></td></tr>
+        <tr> 		   
+          <td class="left">&nbsp;</td>
+          <td class="input">camera is on (24 hour HH:MM) $O(1.3.9.2,JTB)</td></tr>
+        <tr>		  
+          <td class="left">&nbsp;</td>
+          <td class="input">camera is off $O(1.3.9.1,JTB)</td></tr>
+
+        <tr>		  
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub">
+        $IF($V(IQEYE6),<!--,)
+             access denied message
+            <input type="text" name="OidTB1.2.9.1.9.4" value="$O(1.2.9.1.9.4)"
+             size="25" 
+             onChange="setAccessDeniedDefaults(); setEcam(this)">
+        $IF($V(IQEYE6),-->,)
+          </td>
+        </tr>
+
+	</form>
+
+	<tr>
+          <td class="subtitleleft"><img src="1pixclear.gif" width=1 height=42></td>
+          <td class="subtitle">&nbsp;</td>
+	</tr>
+
+	<iframe style="width:0px;height:0px;"
+name="firmwareuploadframe" onload="firmwareStatCheck();"></iframe>
+	<form method="post" name="firmwareupload" enctype="multipart/form-data" target="firmwareuploadframe">
+	<tr>
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle">Camera Firmware
+             <script>
+		writeHelpIcon("firmware-upload");
+	     </script>
+	  </td>
+	</tr>
+        <tr>
+	  <td class="startsubleft">&nbsp;</td>
+	  <td class="startsub">Firmware File
+	    <input type="file" name="firmware" style="width:240px;"size=31>
+	  </td>
+        </tr>
+        <tr>
+	  <td class="endsubleft">&nbsp;</td>
+	      <td class="endsub">     
+	    <table style="width: 100%; text-align: left;" cellspacing="2">
+              <tr>
+	        <td style="align: right; color: #333; font-size:
+12px">(expecting: $O(4.7))</td>
+	        <td>
+   	          <ul id="buttonp">
+	            <li><a href="" onClick="return submitFirmware();">upload</a></li>
+                  </ul>
+	        </td>
+              <tr>
+	    </table>
+          </td>
+	</tr>
+	</form>
+
+	<iframe style="width:0px;height:0px;" name="fileuploadframe"></iframe>
+	<form method="post" name="licenseupload" enctype="multipart/form-data" target="fileuploadframe">
+	<tr>
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle">Camera License
+             <script>
+		writeHelpIcon("license-file");
+	     </script>
+	  </td>
+	</tr>
+        <tr>
+	  <td class="startsubleft">&nbsp;</td>
+	  <td class="startsub">License File
+	    <input type="file" name="codekey" style="width:240px;"size=31>
+	  </td>
+        </tr>
+        <tr>
+	  <td class="endsubleft">&nbsp;</td>
+	  <td class="endsub">
+	    <table style="width: 100%; text-align: left;" cellspacing="2">
+              <tr>
+	        <td style="align: right; color: #333; font-size: 12px"><script>LicFilename();</script></td>
+	        <td>
+	          <ul id="buttonp">
+	            <li><a href="" onClick="return submitLicense();">upload</a></li>
+                  </ul>
+	        </td>
+              <tr>
+	    </table>
+          </td>
+	</tr>
+	</form>
+
+<!--
+	<tr>
+          <td class="subtitleleft"><img src="1pixclear.gif" width=1 height=42></td>
+          <td class="subtitle">&nbsp;</td>
+	</tr>
+-->
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left" width=320>
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+        <tr>
+          <td class="subtitleleft">&nbsp
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle">Information
+             <!-- <script>
+              writeHelpIcon("tbd");</script></td></tr> -->
+        <tr>
+          <td class="startsubleftg">&nbsp;</td>
+          <td class="startsubg">
+            firmware: $SV</td></tr>
+        <tr> 
+          <td class="leftg">&nbsp;</td>
+          <td class="inputg">filename: $O(4.7,R)</td></tr>
+        <tr> 
+          <td class="endsubleftg">&nbsp;</td>
+          <td class="endsubg">
+            bootcode: $O(2.16)</td></tr>
+
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle">On-Camera Intelligent Software
+             <!-- <script>
+              writeHelpIcon("tbd");</script></td></tr> -->
+        <tr> 
+          <td class="startsubleftg">&nbsp;</td>
+          <td class="startsubg">
+            IQauthenticate: <script>writeIQauth()</script></td></tr>
+        <tr> 
+          <td class="leftg">&nbsp;</td>
+          <td class="inputg">
+	$IF($V(IQEYE5),,	
+            IQnightlight: <script>writeIQnight()</script></td></tr>
+	)
+        <tr> 
+          <td class="endsubleftg">&nbsp;</td>
+          <td class="endsubg">
+            IQrecorder: <script>writeIQrec()</script></td></tr>
+      </td></tr></table> <!-- end bottom left content -->
+
+     <script>
+	  writeMsg();</script> 
+  </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<script>
+  writeFooter('logout','reboot');</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

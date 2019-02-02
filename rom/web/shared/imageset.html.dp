@@ -1,0 +1,888 @@
+<!-- Copyright (C) 2005 - 2008 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Image settings</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+$DEF(MICRON, )
+$IF($CMP($O(1.2.20.1),MT9D001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9M001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9T001),,$DEF(MICRON,true))
+$IF($CMP($O(1.2.20.1),MT9M011),,$DEF(MICRON,true))
+
+$DEF(LIGHTG, )
+$IF($V(MICRON),$DEF(LIGHTG,true),)
+$IF($V(IQEYE5),$DEF(LIGHTG,true),)
+$IF($V(IQEYE6),$DEF(LIGHTG,true),)
+$IF($V(IQEYE7),$DEF(LIGHTG,true),)
+
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="gain_gamma.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+$INC(maxsize.js.dp)
+
+$DEF(LIVEDS, )
+$IF($V(IQEYE7),$DEF(LIVEDS, true),)
+
+var daynight = "$O(2.40.5)";
+if (daynight == "1") daynight = 1;
+else daynight = 0;
+
+var replay = '$O(1.15.1)';
+replay = replay.toLowerCase();
+if (replay == 'enabled' || replay == 'disabled') replay = true;
+else replay = false;
+
+var recordingEnabled = "$O(1.13.11,R)";
+recordingEnabled = (recordingEnabled=="ENABLED") ? true:false;
+var recorderPath = "$O(1.13.4)";
+var recordingToInternal = false;
+if (recordingEnabled && (recorderPath.search("hdisk") != -1))
+    recordingToInternal = true;
+
+
+if (isIQeye6 && "$O(1.13.11)" == "ENABLED") dsstring = "";
+
+var DEBUG = false;
+
+var Speeds = new Array($O(1.2.8.11,JL));
+
+window.scrollTo(0,0);
+
+
+function writeReplay ()
+{
+    if (replay == false) return;
+    var out;
+    out = '<tr>'
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">replay controls $O(1.15.1,JSB)</td></tr>';
+    document.write (out);
+}
+
+
+function lightGFix ()
+{
+    $IF($CMP($O(1.2.20.1),MT9V032),return;,)  
+    var elSel = document.getElementById('OidSB1.2.30');
+    
+    while (elSel.length > 2) {  
+	elSel.remove(elSel.length - 1);
+    }
+}
+
+
+function writeDaynightInfo ()
+{
+    if (!daynight) return;
+
+    var out
+        = '<table class="input" cellspacing=0 cellpadding=0 width=335' 
+	+ ' style="margin: 0 0 8px 32px;">'
+        + '<tr>'
+	+ '<td class="subtitleleft">&nbsp;</td>'
+	+ '<td class="subtitle">Daynight Settings'
+	+' <script>writeHelpIcon("IQdaynight")<\/script>'
+	+ '</td></tr>'
+        + '<tr>'
+	+ '<td class="startsubleft">&nbsp;</td>'
+	+ '<td class="startsub">Mode $O(1.2.32.1,JSB)</td></tr>'
+        + '<tr> '
+        + '<td class="left">&nbsp;</td>'
+        + '<td class="input" nowrap>At night use <select name="OidSB1.2.32.2"'
+        + 'id="OidSB1.2.32.2" onChange="setEcamColorAtNight(this)">';
+
+    
+    
+    
+    
+    if("$O(1.2.32.2)" == "Enabled")
+      out = out + '<OPTION SELECTED>color<OPTION>b&w</select>';
+    else
+      out = out + '<OPTION>color<OPTION SELECTED>b&w</select>';
+
+    out = out
+	+ '</td></tr>'
+        + '<tr> '
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input" nowrap style="disabled: true">Daytime starts $O(1.2.32.3,JTB)'
+	+ '</td></tr>'
+        + '<tr> '
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input" nowrap style="disabled: true">Daytime ends $O(1.2.32.4,JTB)'
+	+ '</td></tr>'
+        + '<tr> '
+	+ '<td class="endsubleft">&nbsp;</td>'
+	+ '<td class="endsub">Current State: $O(1.2.32.5)</td></tr>'
+        + '</table>';
+    document.write (out);
+    checkDaytimes();
+}
+
+
+function setEcamColorAtNight(field) {
+  if(field.selectedIndex == "0")
+      setEcam2("OidSB1.2.32.2", "Enabled");
+    else
+      setEcam2("OidSB1.2.32.2", "Disabled");
+}
+
+
+function postSetEcam(field) {
+    
+    if (field.name == "OidSB1.2.32.1") checkDaytimes ();
+    
+    
+    else if (field.name == "OidSB1.2.30") reloadLater();
+    
+    else if (field.name == "OidSB1.2.27") reloadLater();
+    
+    else if (field.name == "OidTB1.2.31") reloadLater();
+}
+
+function checkDaytimes() {
+    
+    var modeField = document.getElementById("OidSB1.2.32.1");
+    var val = modeField.options[modeField.selectedIndex].text;
+    if (val == "timer") {
+	document.myform["OidTB1.2.32.3"].disabled = false;
+	document.myform["OidTB1.2.32.4"].disabled = false;
+    }
+    else {
+	document.myform["OidTB1.2.32.3"].disabled = true;
+	document.myform["OidTB1.2.32.4"].disabled = true;
+    }
+}
+
+var orient = "$O(1.2.4)".toLowerCase();
+
+function formatIsValid(field) {
+    if (field.name == "OidTB1.2.31") { 
+	var val = field.value;
+	if (val.toLowerCase().match("unlimited")) return true;
+        if (val != 0 && (val<1 || val>100)) {
+            alert("Please enter a number between 1.00 and 100.00");
+	    field.focus();
+            return false;
+        }
+    }
+    else if (field.name == "OidSB1.2.9.1.10.2"
+	|| field.name == "OidSB1.2.9.1.10.1") { 
+	
+        var chosen = field.options[field.selectedIndex].text;
+	if (chosen.toLowerCase() == "custom") {
+	    alert("Setting the color scheme to 'custom' is only \n"
+		  + "possible via the telnet interface to your $SP.\n"
+		  + "Please see your manual for details.");
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB1.2.9.1.9.2") { 
+	if (field.value.length > 31) { 
+	    alert("You may enter no more than 31 characters.");
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB1.2.21") { 
+	var maxval = 3.99;
+	if (isIQeye6) maxval = 1.99;
+	if (isNaN(field.value) || (field.value < 0.0) 
+	    || (field.value > maxval)) { 
+	    alert("You must enter a number between 0.0 and " + maxval);
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB1.2.3") { 
+	if (!isIQeye5 && (isNaN(field.value) || (field.value < 0.0) 
+	    || (field.value > 10.0))) { 
+	    alert("You must enter a number between 0.0 and 10.0");
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidSB1.15.1") { 
+	
+	if (recordingToInternal && 
+	    field.options[field.selectedIndex].text == 'enabled') {
+	    alert ("Replay controls cannot be enabled while recording to internal drive");
+	    
+	    field.selectedIndex = 1-field.selectedIndex;
+	    field.focus();
+	    return false;
+	}
+    }
+    return true;
+}
+
+
+var isMonochrome = ('$O(1.2.13)'=='ENABLED') ? true:false;
+function preSetEcam(field) {
+    if (field.name == "OidTB1.2.21") { 
+	if (field.value==0.0 && !isMonochrome) { 
+	    setEcam2("OidSB1.2.13", "ENABLED");
+	    isMonochrome = true;
+	}
+	if (field.value>0.0 && isMonochrome) { 
+	    setEcam2("OidSB1.2.13", "DISABLED");
+	    isMonochrome = false;
+	}
+    }
+}
+
+function frameRateVal(val) {
+    return (val==0) ? "unlimited":val;
+}
+
+
+var gainStyle = '$O(1.2.8.14)';
+gainStyle = gainStyle.toLowerCase();
+function setGainStyle(field) {
+    
+    var newval = field.options[field.selectedIndex].value;
+    if (gainStyle != newval) {
+	setEcam2("OidSB1.2.8.14", newval);
+	gainStyle = newval;
+    }
+    return false;
+}
+
+
+
+
+function gainStyleSelectString() {
+    var val = gainStyle;
+    var valArray = new Array("peakdetect", "darkdetect", "average",
+			     "clipaverage");
+    var outstring 
+	=  "<select name='gainStyle' onChange='setGainStyle(this);'>";
+    var selected = -1;
+
+    for (i=0; i<valArray.length; i++) {
+        if (val == valArray[i]) {
+            selected=i;
+            break;
+        }
+    }
+
+    for (i=0; i < valArray.length; i++) {
+        outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + valArray[i] + '">' + valArray[i] 
+	    + '</option>\n';
+    }
+
+    if (selected < 0) {
+	outstring += '<option selected value="'
+            + gainStyle + '">custom</option>';
+    }
+    outstring += '</select>\n';
+    return outstring;
+}
+
+
+var shutter = '$O(1.2.8.12)';
+
+if (shutter == "FORCE")
+    shutter = "fixed " + '$O(1.2.8.24)'; 
+
+function setShutter(field) {
+     var newval = field.options[field.selectedIndex].value;
+     if (shutter != newval) {
+	 if (newval.match("fixed")) {
+	     submit ("OidSB1.2.8.12", "FORCE",
+		     "OidTB1.2.8.11", newval.substr(6));
+	 }
+	 else
+	     submit ("OidSB1.2.8.12", newval,
+		     "OidTB1.2.8.11", "120");
+	 
+	 if (newval == "ANTIFLICKER" ||
+	     shutter == "ANTIFLICKER") reloadLater();
+	 shutter = newval;
+     }
+     return false;
+}
+
+function shutterSelectString () {
+     var textArray = new Array ("optimize speed", "optimize quality",
+     "auto");
+     var valArray = new Array ("SPEED", "QUALITY", "NORMAL");
+     
+     $IF($CMP($O(1.2.20.1),MT9V032),,textArray[textArray.length]="anti-flicker";valArray[valArray.length]="ANTIFLICKER";)  
+
+     for (i = textArray.length, k = valArray.length, j = 0; 
+	  j < Speeds.length; j++, i++, k++) {
+	 var rounded = Math.round (Speeds[j]);
+	 textArray[i] = "fixed 1/" + rounded + " sec"; 
+	 valArray[k] = "fixed " + Speeds[j];
+     }
+
+     var outstring = "<select name='OidSB1.2.8.12' onchange='setShutter(this);'>";
+     var selected = -1;
+
+     for (i = 0; i < valArray.length; i++) {
+	  if (valArray[i] == shutter) selected = i;
+	  outstring += (i==selected) ? '<option selected ' : '<option ';
+	  outstring += 'value="' + valArray[i] + '">' + textArray[i] + '</option>\n';
+     }    
+     if (selected < 0) {
+	  outstring += '<option selected value="' + shutter +
+'">(custom) '+shutter+'Hz</option>';
+     }
+     outstring += '</select>\n';
+     return outstring;
+}
+
+var compression = '$O(1.2.10)';
+var quality = '$O(1.2.7)';
+compression = compression.toLowerCase();
+
+function qualitySelectString() {
+     var compArray = new Array ("high", "medium", "low", "xlow");
+     var valArray = new Array ("medium", "high", "fine", "superfine");
+     var outstring = "<select name='quality' onchange='setQuality(this);'>";
+     var selected = -1;
+
+     if (compression == "high") selected = 0;
+     else if (compression == "medium") selected = 1;
+     else if (compression == "low") selected = 2;
+     else if (compression == "xlow") selected = 3;
+
+     for (i=0; i < valArray.length; i++) {
+	outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + compArray[i] + '">' + valArray[i] 
+	    + '</option>\n';
+     }
+     if (selected < 0) {
+        outstring += '<option selected value="' + quality +
+'">'+quality+'</option>';
+     }
+     outstring += '</select>\n';
+     return outstring;    
+}
+
+function setQuality(field) {
+     var newval = field.options[field.selectedIndex].value;
+     if (field.selectedIndex > 3) {  
+        setEcam2 ("OidSB1.2.7", newval);
+	quality = newval;
+     }
+     else if (compression != newval) {
+        setEcam2 ("OidSB1.2.10", newval);
+        compression = newval;
+     }
+     return false;
+}
+
+var autoDelay = '$O(1.2.8.22)';
+var autoGain = '$O(1.2.8.6)';
+autoGain = autoGain.toLowerCase();
+
+function setAutoDelay(field) {
+    var newval = field.options[field.selectedIndex].value;
+    var newDelay;   
+     
+    if (newval == "fast") { 
+	newDelay = "0.000";
+    }
+    else if (newval == "medium") {
+	newDelay = "0.125";
+    }
+    else if (newval == "slow") {
+	newDelay = "0.813";
+    }
+    else if (newval == "locked") {
+	
+	var hold_value = getOIDVal ("1.2.8.7");
+	
+	setEcam2 ("OidTB1.2.8.5", hold_value);
+	autoDelay = "locked";
+	return false;
+    }
+    if (newDelay != autoDelay || autoGain == "disabled") {
+	autoDelay = newDelay;
+	submit ("OidTB1.2.8.22", newDelay, "OidTB1.2.8.6", "ENABLED");
+    }
+    return false;
+}
+
+function autoDelaySelectString() {
+     var val = autoDelay;
+     var valArray = new Array("locked", "slow", "medium", "fast");
+     var outstring 
+	=  "<select name='autoDelay' onChange='setAutoDelay(this);'>";
+     var selected;
+
+     if (autoGain == "disabled") selected = 0;
+     else if (autoDelay == "0.813") selected = 1;
+     else if (autoDelay == "0.125") selected = 2;
+     else if (autoDelay == "0.000")  selected = 3;
+     else {
+       valArray[4] = "custom";
+       selected = 4;
+     }
+    for (i=0; i < valArray.length; i++) {
+        outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + valArray[i] + '">' + valArray[i] 
+	    + '</option>\n';
+    }
+    outstring += '</select>\n';
+    return outstring;
+}
+       
+var liveds = "$O(17.5.1)";
+
+
+function setLiveDS (field) {
+    var newval = field.options[field.selectedIndex].value;
+    if (liveds != newval) {
+        setEcam2 ("OidTB17.5.1", newval);
+        shutter = newval;
+    }
+    return false;
+}
+
+
+function liveDSSelectString () {
+    var imager_height = $O(1.2.20.6);
+    var selected = -1;
+    var textArray = new Array ("optimize quality", "optimize speed", 
+			       "unknown");
+    var valArray = new Array ("1", "4", "1");
+    var outstring = "<select name='OidTB17.5.1' onchange='setLiveDS(this);'>";
+    var entries;
+
+    
+    imager_height = imager_height - 0; 
+    if (imager_height < 1200) valArray[1] = "2";
+
+    if (liveds == "1") selected = 0;
+    else if (liveds == "2" || liveds == "4") selected = 1;
+    else selected = 2;
+
+    if (selected == 2) entries = 3; else entries = 2;
+    for (i = 0; i < entries; i++) {
+	outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + valArray[i] + '">' + textArray[i] + '</option>\n';
+    }    
+    outstring += '</select>\n';
+    return outstring;
+}
+
+function writeGainStyleSelect() {
+    document.write(gainStyleSelectString());
+}
+
+function writeShutterSelect() {
+    document.write(shutterSelectString());
+}
+
+function writeQuality() {
+     document.write(qualitySelectString());
+}
+
+function writeAutoDelaySelect() {
+    document.write(autoDelaySelectString());
+}
+
+function writeLiveDS() {
+    document.write(liveDSSelectString());
+}
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)" onClick="return imageFactory();"'
+    + ' onMouseOver=\'window.status="restore defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'restore image factory defaults</a></li>\n';
+
+
+
+function imageFactory() {
+    var msg =
+        "This will set all image settings to factory default values.\r\n"
+        + "Do you want to continue?";
+    if (confirm(msg)) {
+	if (daynight) {
+	    
+	    submit("OidCB1.2.14","ON","OidCB1.2.9.3","ON",
+		   "OidCB1.2.32.6","ON");   
+	}
+	else {
+	    
+	    submit("OidCB1.2.14","ON","OidCB1.2.9.3","ON");   
+	}
+        reloadLater();
+    }
+    return false;
+}
+
+function runTest() {
+
+    window.status = "testing frame rate, please wait";	
+    showSending();
+    out = getOIDVal("1.2.28.1");
+    if (isNav6) { 
+	
+	
+	
+	
+	setTimeout('testOutput(getOIDVal("1.2.28.1"));',6000);
+    } else testOutput(out);
+}
+
+
+function testOutput(out) {
+    var output1 = "Frame rate is " + out + " frames per second";
+    var output2 = "Network bottlenecks and connection speed can \n"
+		+ "affect frame rate, and are not measured in this test."
+    window.status = output1;
+    showEmptySendState();
+    alert(output1 + "\n" + output2);
+}
+
+
+function writeOverlay()
+{
+    var val = "$DEF(foo,$O(1.2.9.1.9.2))$RPL(",&quot;,$V(foo))"; 
+    var out = "";
+    out += '<tr>'
+	+ '<td class="subtitleleft">&nbsp;</td>'
+	+ '<td class="subtitle">Overlays';
+    document.write (out);
+    writeHelpIcon("DateStamp");
+    out = "";
+    out += '</td></tr>'
+	+ '<tr>' 
+	+ '<td class="startsubleft">&nbsp;</td>'
+	+ '<td class="startsub">timestamp $O(1.2.9.1.8.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr> '
+	+ '<td class="endsubleft">&nbsp;</td>'
+	+ '<td class="endsub">overlay text'
+	+ '<input type="text" name="OidTB1.2.9.1.9.2"' 
+	+ 'value="' + val + '"'
+	+ 'size="31" onChange="setEcam(this)"></td>'
+	+ '</tr>';
+    document.write (out);
+}
+
+/*
+ * writeTimestamp3
+ *
+ * Write timestamp field for iqeye3, which
+ * has positionable and colorable overlays
+ */
+function writeTimestamp3()
+{
+    var out
+        = '<table class="input" cellspacing=0 cellpadding=0 width=335' 
+	+ ' style="margin: 0 0 8px 32px;">'
+	+ '<tr>'
+	+ '<td class="subtitleleft">&nbsp;</td>'
+	+ '<td class="subtitle">Timestamp';
+    document.write (out);
+    writeHelpIcon("DateStamp");
+    out = "";
+    out += '</td></tr>'
+	+ '<tr>' 
+	+ '<td class="startsubleft">&nbsp;</td>'
+	+ '<td class="startsub">timestamp $O(1.2.9.1.8.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>' 
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">horizontal position'
+	+ '$O(1.2.9.1.2.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>' 
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">vertical position'
+	+ '$O(1.2.9.1.3.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>' 
+	+ '<td class="endsubleft">&nbsp;</td>'
+	+ '<td class="endsub">color'
+	+ '$O(1.2.9.1.10.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>'
+	+ '</table>';
+    document.write (out);
+}
+
+/*
+ * writeOverlay3
+ *
+ * Write overlay field for iqeye3, which
+ * has positionable and colorable overlays
+ */
+function writeOverlay3()
+{
+    var val = "$DEF(foo,$O(1.2.9.1.9.2))$RPL(",&quot;,$V(foo))";
+    var out = "";
+    out += '<tr>'
+	+ '<td class="subtitleleft">&nbsp;</td>'
+	+ '<td class="subtitle">Overlay';
+    document.write(out);
+    writeHelpIcon("OverlayText");
+    out = "";
+    out += '</td></tr>'
+	+ '<tr> '
+	+ '<td class="startsubleft">&nbsp;</td>'
+	+ '<td class="startsub">overlay text'
+	+ '<input type="text" name="OidTB1.2.9.1.9.2"' 
+	+ 'value="' + val + '"'
+	+ 'size="31" onChange="setEcam(this)"></td>'
+	+ '</tr>'
+	+ '<tr> '
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">horizontal position $O(1.2.9.1.2.2,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>' 
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">vertical position $O(1.2.9.1.3.2,JSB)</td>'
+	+ '</tr>'
+	+ '<tr>' 
+	+ '<td class="endsubleft">&nbsp;</td>'
+	+ '<td class="endsub">color $O(1.2.9.1.10.2,JSB)</td>'
+	+ '</tr>';
+    document.write(out);
+}
+
+function LoadHandler() 
+{
+    lightGFix ();
+}
+
+</script>
+</head>
+
+<body onload="LoadHandler();" onUnload="return stopApplet()"> 
+
+<noscript><font color="#ff0000">
+<b>You must enable Javascript for this page to work properly.</b></font>
+</noscript>
+
+<form name="myform" onSubmit="return false" action="">
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+<script>
+  writeSettingsHeader("image"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=780>
+    <tr>
+      <!-- the image area -->
+
+      <td width=330 height=330 style="padding: 44px 18px 4px 38px;
+         background: url(gray.gif) no-repeat;" 
+         valign="top" align="left">
+        <script>
+          
+          writeCroppedImage();
+          
+	  
+	  
+       </script>
+      </td>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+           <tr>
+             <td class="subtitleleft"><img src="1pixclear.gif" width=8 height=1></td>
+             <td height=20 class="subtitleleft">
+               <span id=sendState name=sendState>&nbsp;</span></td></tr>
+             </td></tr>
+
+           <tr>
+             <td class="subtitleleft">&nbsp;</td>
+             <td class="subtitle">Image Settings
+                <script>
+                 writeHelpIcon("ImageSet");</script></td></tr>
+
+        <tr>
+           <tr>
+             <td class="startsubleft">&nbsp;</td>
+	     <td class="startsub">quality<script>writeQuality();</script></td></tr> 
+
+           $IF($V(MAXFPS),,<!--)
+           <tr>
+             <td class="left">&nbsp;</td>
+             <td class="input">max frame rate (fps) $O(1.2.31,JTB)</td>
+           </tr>
+           $IF($V(MAXFPS),,-->)
+
+           <!-- comment out if no color support -->
+           <!-- I do not use O( ,JTB) since the value has leading spaces -->
+           $IF($CMP($O(1.2.20.2),1),<!--,)
+ 	   <tr><td class="left">&nbsp;</td>
+  	     <td class="input">saturation
+               <input name="OidTB1.2.21" value=$O(1.2.21.B) 
+                onChange="setEcam(this)"></td></tr>
+           $IF($CMP($O(1.2.20.2),1),-->,)
+
+           <tr> 
+             <td class="left">&nbsp;</td>
+             <td class="input">contrast, gamma
+               <!-- commented out reset function  <a href="javascript:void(0)" tabindex="-1" 
+                 onClick="return upDowngif ('gammadefault');"
+                 onMouseOver="window.status='set default contrast'; return true;" 
+                 onMouseOut="window.status=''">
+                 <font size="-2" color=$V(COLOR)>default</font></a>  -->
+               <input type="text" id="gamma" value="$O(1.2.1)"
+                 onChange="setGamma(this)">
+             </td></tr>
+           <tr> 
+             <td class="left">&nbsp;</td>
+              <!-- code for default brightness -->
+              <!--
+                <a href="javascript:void(0)" tabindex="-1"
+                 onClick="return upDowngif('brightdefault');"
+                 onMouseOver="window.status='set default brightness'; return true;" 
+                 onMouseOut="window.status=''">
+                 <font size="-2" color=$V(COLOR)>default</font></a> -->
+             <td class="input">brightness
+               <input type="text" id="brightness" value="$O(1.2.8.4)"
+                  onChange="setBrightness(this)">
+              </td></tr>
+
+           <!-- commented out for iqeye6, in for iqeye5 -->
+           $IF($V(IQEYE6),<!--,)
+           $IF($V(IQEYE5), -->,)
+           <tr> 
+             <td class="left">&nbsp;</td>
+             <td class="input">sharpness
+               $IF($V(IQEYE5),$O(1.2.3,JSB),$O(1.2.3,JTB))</td>
+           </tr>
+           $IF($V(IQEYE5),<!-- ,)
+           $IF($V(IQEYE6),-->,)
+           
+           <!-- comment out flip rotate if not allowed -->
+           $IF($O(1.2.33),,<!--)
+           <tr> 
+             <td class="left">&nbsp;</td>
+             <td class="input">flip rotate $O(1.2.4,JSB)
+             </td></tr>
+           $IF($O(1.2.33),,-->)
+
+           $IF($V(LIVEDS),
+           <tr>
+             <td class="left">&nbsp;</td>
+             <td class="input">live page 
+	     <script>writeLiveDS();</script></td>
+           </tr>
+	   ,)
+
+	   <script>writeReplay();</script>
+
+           <tr> 
+             <td class="endsubleft">&nbsp;</td>
+             <td class="endsub">A/C power frequency $O(1.2.12.1,JSB)
+             </td>
+           </tr>
+
+
+           <tr>
+             <td class="subtitleleft">&nbsp;</td>
+             <td class="subtitle">Gain Settings
+                <script>
+                 writeHelpIcon("GainSet");</script></td></tr>
+
+           <tr> 
+             <td class="startsubleft">&nbsp</td>
+             <td class="startsub">gain style
+               <script>
+                 writeGainStyleSelect();</script>
+             </td></tr>
+
+           <tr> 
+             <td class="left">&nbsp</td>
+             <td class="input">electronic shutter
+               <script>
+                 writeShutterSelect();</script>
+             </td></tr>
+
+           <tr> 
+             <td class="left">&nbsp</td>
+             <td class="input">autogain
+               <script>
+                 writeAutoDelaySelect();</script>
+             </td></tr>
+           <tr>
+             <td class="endsubleft">&nbsp;</td>
+             <td class="endsub">$IF($V(LIGHTG),LIGHTGRABBER,night mode)
+              $IF($V(LIGHTG),$O(1.2.30,JSB),$O(1.2.27,JSB))</td></tr>
+           
+	     
+	     <script>
+	     $IF($V(IQEYE6),writeOverlay();,writeOverlay3();)
+             </script>
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left">
+        <script>
+	$IF($V(IQEYE6),writeDaynightInfo();,writeTimestamp3();)</script>
+      </td></tr> <!-- end bottom left content -->
+
+         </form>
+    </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+<script> 
+  writeFooter('myDefaults');
+  var thresh = "$O(1.2.8.19.1,R)";
+  if (thresh.toLowerCase() == "enabled") {
+     
+     document.myform["quality"].disabled = true;
+     document.myform.gainStyle.disabled = true;
+     document.myform.gamma.disabled = true;
+     document.myform.brightness.disabled = true;
+     document.myform[$IF($V(LIGHTG),"OidSB1.2.30","OidSB1.2.17")].disabled = true;
+     if (isIQeye6) {
+          document.myform["OidTB1.2.31"].disabled = true;
+     }
+     else {
+          document.myform["OidTB1.2.3"].disabled = true;
+     }
+     $IF($CMP($O(1.2.20.2),1),<!--,)
+          document.myform["OidTB1.2.21"].disabled = true;
+     $IF($CMP($O(1.2.20.2),1),-->,)
+  }
+</script>
+  <!-- commented out for non-iqeye6 and iqeye5 -->
+  $IF($V(MAXFPS),,<!--)
+<script> 
+  document.myform["OidTB1.2.31"].value = frameRateVal("$O(1.2.31,B)");
+</script>
+  $IF($V(MAXFPS),,-->)
+   
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!-- Copyright (C) 2006 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: multiview settings</title>
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+
+$INC(oemvars.dp)
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+enableJavaAlert();
+
+
+var myDefaultsHref =
+    '<li><b><a href="multiview.html"'
+    + ' onMouseOver=\'window.status="go to multiview"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'multiview display</a></b></li>\n';
+
+function formatIsValid(field) { 
+    var val = field.value;
+    var name = field.name;
+    
+
+    
+    if (name.match("OidTB17.1.1.1")) {
+	if (isAnIPAddress(field)) {
+	    return true;
+	}
+        if (val.length==0) return true; 
+	
+	var nameserver = "$O(3.6.13)";
+	if (nameserver.match("0.0.0.0")) { 
+	    alert("Please enter an IP Address, in the format:\n"
+		  + "xxx.xxx.xxx.xxx where xxx are numbers between 0 and 255");
+	    return false;
+	}
+	if (val.length >31) {
+	    alert("Please input 31 characters or less");
+	    return false;
+	}
+	return true;
+    }
+
+    
+    if (name.match("OidTB17.1.1.2")) {
+	var exp = /[^\d]/; 
+	if (val.match(exp) || val<0 || val>65536) {
+	    alert("Please enter a value from 0 through 65536");
+	    return false;
+	}
+	return true;
+    }
+
+    return true;
+}
+
+function setLabel(field) {
+    if (field.value.length > 31) { 
+	alert("You may enter no more than 31 characters.");
+	return false;
+    }
+    
+    
+    
+
+    
+    
+    setEcam2(field.name, escape(escape(field.value)));
+    return false;
+}
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+<form name="myform" method="post">
+
+<!-- each row has 3 tds: a border on each side, and the content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with all the content
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+<script>
+  writeSettingsHeader("multiview"); </script>
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="right">
+    <table class="content" cellspacing=0 cellpadding=0 width=780>
+    <tr>
+      <td colspan=2> 
+        <table class="input" cellspacing=0  cellpadding=0>
+          <!--
+             Multiview shows up to 9 camera image
+             streams on the same display. Leave the ip address section blank
+             for any display area where you don't want to show an image.
+             If you want to display 4 or fewer images, 
+             click <a href="quadviewset.html"> here</a>.
+          
+          -->
+          <tr>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft" colspan=4>
+              <span id=sendState name=sendState>&nbsp;</span></td>
+          </tr>
+          <tr>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle" align="right" colspan=4>Multiview
+              <script>
+                writeHelpIcon("multiview");</script></td>
+          </tr>
+
+<!--
+          <tr>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">top left</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">top center</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">top right</td></tr>
+-->
+            <td class="startsubleft">
+              <img src="1pixclear.gif" width=9 height=1></td>
+            <td class="startsub">IP address $O(17.1.1.1.1,JTB24)</td>
+            <td class="startsubleft">
+              <img src="1pixclear.gif" width=9 height=1></td>
+            <td class="startsub">IP address $O(17.1.1.1.2,JTB24)</td>
+            <td class="startsubleftg">
+              <img src="1pixclear.gif" width=9 height=1></td>
+            <td class="startsubg">IP address $O(17.1.1.1.3,JTB24)</td>
+          </tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">port $O(17.1.1.2.1,JTB)</td>
+            <td class="left">&nbsp;</td>
+            <td class="input">port $O(17.1.1.2.2,JTB)</td>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">port $O(17.1.1.2.3,JTB)</td>
+          </tr>
+          <tr> 
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.1" value=\''
+          	 + unescape('$O(17.1.1.3.1)')
+          	 + '\' onChange="setLabel(this)">');
+                </script></td>
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">label
+              <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.2" value=\''
+          	 + unescape('$O(17.1.1.3.2)')
+          	 + '\' size=32 onChange="setLabel(this)">'); 
+                </script></td>
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">label
+              <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.3" value=\''
+          	 + unescape('$O(17.1.1.3.3)')
+          	 + '\' size=32 onChange="setLabel(this)">'); 
+                </script></td>
+          </tr>
+          
+<!--
+          <tr>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">center left</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">center</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">center right</td>
+          </tr>
+-->
+          <tr>
+            <td class="subtitleleft">
+              <img src="1pixclear.gif" width=1 height=24></td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td></tr>
+          
+          <tr>
+            <td class="startsubleft">&nbsp;</td>
+            <td class="startsub">IP address $O(17.1.1.1.4,JTB24)</td>
+            <td class="startsubleft">&nbsp;</td>
+            <td class="startsub">IP address $O(17.1.1.1.5,JTB24)</td>
+            <td class="startsubleftg">&nbsp;</td>
+            <td class="startsubg">IP address $O(17.1.1.1.6,JTB24)</td>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">port $O(17.1.1.2.4,JTB)</td>
+            <td class="left">&nbsp;</td>
+            <td class="input">port $O(17.1.1.2.5,JTB)</td>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">port $O(17.1.1.2.6,JTB)</td>
+          </tr>
+          <tr> 
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.4" value=\''
+          	 + unescape('$O(17.1.1.3.4)')
+          	 + '\' size=32 onChange="setLabel(this)">');
+                 </script></td>
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.5" value=\''
+          	 + unescape('$O(17.1.1.3.5)')
+          	 + '\' size=32 onChange="setLabel(this)">');
+                 </script></td>
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.6" value=\''
+          	 + unescape('$O(17.1.1.3.6)')
+          	 + '\' size=32 onChange="setLabel(this)">');
+                 </script></td>
+          </tr>
+          
+<!--
+          <tr>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">bottom left</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">bottom center</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitle">bottom right</td>
+          </tr>
+-->
+          <tr>
+            <td class="subtitleleft">
+              <img src="1pixclear.gif" width=1 height=24></td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td></tr>
+          
+          <tr>
+            <td class="startsubleftg">&nbsp;</td>
+            <td class="startsubg">IP address $O(17.1.1.1.7,JTB24)</td>
+            <td class="startsubleftg">&nbsp;</td>
+            <td class="startsubg">IP address $O(17.1.1.1.8,JTB24)</td>
+            <td class="startsubleftg">&nbsp;</td>
+            <td class="startsubg">IP address $O(17.1.1.1.9,JTB24)</td>
+          <tr>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">port $O(17.1.1.2.7,JTB)</td>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">port $O(17.1.1.2.8,JTB)</td>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">port $O(17.1.1.2.9,JTB)</td>
+          
+          </tr>
+          <tr> 
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.7" value=\''
+          	 + unescape('$O(17.1.1.3.7)')
+          	 + '\' size=32 onChange="setLabel(this)">');
+                 </script></td>
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.8" value=\''
+          	 + unescape('$O(17.1.1.3.8)')
+          	 + '\' size=32 onChange="setLabel(this)">');
+                 </script></td>
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">label
+               <script>
+                document.write
+                  ('<input type="text" name="OidTB17.1.1.3.9" value=\''
+          	 + unescape('$O(17.1.1.3.9)')
+          	 + '\' onChange="setLabel(this)">');
+                 </script></td>
+          </tr>
+          <tr>
+            <td class="subtitleleft">
+              <img src="1pixclear.gif" width=1 height=96></td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td>
+            <td class="subtitleleft">&nbsp;</td></tr>
+
+        </table>
+      </td>
+    </tr>
+    </table> <!-- end description of main content -->
+  </td>
+  <td class="r"><img src="1pixclear.gif"  width=11 height=1></td>
+</tr>
+<script>
+  writeFooter('logout','myDefaults');
+</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif" width=11 height=1></td>
+  <td colspan=2 class="b"> <img src="1pixclear.gif" width=1  height=11></td>
+  <td class="br"><img src="1pixclear.gif" width=1  height=1></td>
+</tr>
+</table>  
+</form>
+</body>
+</html>

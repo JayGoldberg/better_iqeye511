@@ -1,0 +1,205 @@
+<!-- Copyright (C) 2006 - 2009 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN Images</title>
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<script src="lib.js"></script>
+
+<script>
+
+
+
+var ds = $O(1.2.2);		
+var cropWidth = $O(1.2.6.2);	
+var cropHeight = $O(1.2.6.3);	
+var cropLeft = $O(1.2.6.4);
+var cropTop =  $O(1.2.6.1);
+var maxWidth = $O(1.2.18.3,B); 
+var maxHeight= $O(1.2.18.4,B); 
+var defWidth = 320;
+var defHeight = 240;
+var image = new Object();
+image.width = defWidth; 
+image.height = defHeight; 
+
+
+var ds_necessary = Math.max(Math.ceil(cropWidth/image.width),
+			    Math.ceil(cropHeight/image.height));
+
+
+var snap = "spush0.2";		
+var src = "now.jpg";		
+var dsstring = "";		
+var imAttr = " border=0";	
+var DEBUG = false;		
+var urimods=""; 
+                
+
+var useOCX = (isIE && isWin) ? true:false;
+
+var prodID = "$O(2.21)";
+
+var isIQeye2 = prodID.match("1"); 
+
+var isIQeye3 = (prodID == "2a") || (prodID == "2f") || (prodID == "29");
+var isIQevent = (prodID == "2f");
+
+
+
+
+var isIQeye7 = (prodID=="3b") || (prodID=="4d");
+var isIQeye5 = (prodID=="3c") || (prodID=="3b") || (prodID=="4d");
+
+var isIQeye6 = (prodID=="2d") || (prodID=="3c") || (prodID=="3b") || (prodID=="4d");
+
+var imageString;
+
+if (needsApplet && !useOCX && !navigator.javaEnabled()) {
+    alert("You must enable Java for this page to work correctly.");
+}
+
+function handleURIMod(name, value) {
+    if (name=="src") src = unescape(value);
+    else if (name=="snap")   snap = unescape(value);
+    else if (name=="width")  defWidth = image.width = value;
+    else if (name=="height") defHeight = image.height = value;
+    else if (name="DEBUG")   DEBUG = true;
+    else urimods += "?" + name + "=" + value;
+}
+
+function handleURIMods() {
+    var query = location.search.substring(1); 
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+
+    for (var i=0; i<pairs.length; i++) {
+	var pos = pairs[i].indexOf('=');
+	if (pos==-1) continue;
+	var name = pairs[i].substring(0,pos);
+	var value = pairs[i].substring(pos+1);
+	handleURIMod(name, value);
+    }
+
+    image.width = cropWidth/ds_necessary;
+    image.height = cropHeight/ds_necessary;
+
+    if (ds_necessary!=ds) dsstring = "?ds=" + ds_necessary;
+    
+    if (isIQeye6 && (ds_necessary >= 3)) {
+       dsstring = "?ds=4";
+    }
+    if (isIQeye7) {
+	dsstring = "?ds=qvga";
+	image.width = 320;
+	image.height = 240;
+    }
+    imAttr += ' width="' + image.width + '" height="' + image.height + '"';;
+}
+
+function imageDivs() {
+    imageString = src + '?snap=' + snap;
+    if (isIQeye5) imageString += dsstring;
+    else if (!isIQeye6) imageString += urimods + dsstring;
+
+    var outString = 
+	'<div  id=bkgd style="position:absolute;">'
+	+ '<img src=1pixgraycc.gif '
+	+ 'width="' + defWidth
+	+ '" height="' + defHeight + '"></div>'
+	+ '<div  id=mainfeed style="position:absolute;'
+	
+	
+	+ ';">';
+
+    if (!needsApplet) {
+	outString +=
+	    '<a href="' + location.host + '/" target="_parent">' 
+	    + '<img src="' + imageString + '" ' + imAttr + '></a>';
+    } else if (useOCX) { 
+	
+	
+
+	
+         
+	outString += '<object id="Iqeye1" '
+	    + 'CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+	    + 'CODEBASE="iqweb.ocx#Version=1,0,3,7"'
+	    + imAttr + ">\n"
+	    + '<param name="_Version" value="65536">\n'
+	    + '<param name="_ExtentX" value="11289">\n'
+	    + '<param name="_ExtentY" value="8467">\n'
+	    + '<param name="_StockProps" value="0">\n'
+	    + '<param name="InternalDptz" value="0">\n'
+	    + '<param name="StreamDptz" value="0">\n'
+	    + '<param name="URL" value="/' + imageString + '">\n';
+	outString += '</object>\n';
+
+    } else { 
+	outString += 
+	    '<applet code="SPLink.class" name="spapplet" ' + imAttr + '>\n'
+	    + '<param name="url" value="' + imageString + '">\n';
+	if (DEBUG) outString += '<param name="DEBUG" value="true">\n';
+	outString += '</applet>';
+    }
+    outString += '</div>';
+    return outString;
+}
+
+function writeImageDivs() {
+    document.write(imageDivs());
+}
+
+function theOCX() {
+    if (!isIE) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1");
+}
+
+
+
+function pollForClick() {
+    var ocx = theOCX();
+    if (ocx && ocx.GetClicked()) {
+	ocx.ClearClicked();
+	top.location="/";
+	return;
+    }
+
+    var ap = document.applets["spapplet"];
+    if (!ocx && ap && ap.isActive() && ap.getClicked()) {
+	ap.resetClicked();
+	top.location="/";
+	return;
+    }
+
+    setTimeout("pollForClick();", 200);
+}
+
+function stopApplet() {
+    var app = document.applets["spapplet"];
+    if (app) app.stop();
+    return false;
+}
+
+handleURIMods();
+
+</script>
+<base target="_parent">
+</head>
+
+<body bgcolor="#FFFFFF"
+    leftmargin="0" rightmargin="0" topmargin="0" bottommargin="0"
+    onBeforeUnload="stopApplet();">
+
+<noscript><b>You must enable Javascript<br>to see an image.</b></noscript>
+<script>
+writeImageDivs();
+
+
+if (needsApplet) setTimeout("pollForClick();", 4000);
+</script>
+</body>
+</html>

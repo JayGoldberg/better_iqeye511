@@ -1,0 +1,19 @@
+<table>
+  <tr><td height=5 width="21"><a name="RecordDlg">
+    <img src="1pixclear.gif" width=1 height=5 border=0 alt=""></a></td></tr>
+  <tr><td colspan=3><b><font size="+3">record dialog</font></b></td></tr>
+  <tr><td height=5 width="21"></td></tr>
+  <tr>
+    <td width="21"></td>
+    <td> 
+      <p>Enter setting for live recording.
+      <p>Record resolution uses the current camera settings, which can
+be changed on the window settings and trigger pages.
+$IF($V(IQEYE3),,
+      <p>Record rate is how fast to record in frames per second.
+)
+      <p>Record duration is how long to record.  "Manual" means record
+until the "stop" button is pressed.
+         
+    </td></tr>  	       
+</table>

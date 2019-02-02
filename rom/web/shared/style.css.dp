@@ -1,0 +1,313 @@
+$DEF(COLOR,#399)
+$DEF(HOVERCOLOR,#FC6)
+$DEF(INPUTBKGD,rgb(251,242,221) url(tancorner2.gif))
+
+html, body {margin: 0; padding: 0; 
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 12px; background: #EEE;}
+
+/*  main div for mgmt pages */
+#main {color: #333; background: #EEE; position: absolute; z-index: 0; 
+    width: 100%; height: 100%;}
+
+/*  main div for viewing video, home playback */
+#mainv {color: #333; background: white; position: absolute; top: 0; left: 0;
+    z-index: 0;}
+
+/*  overlay div for mgmt pages Brian, change position as needed here */
+#overlay {color: #333; background: white; position: absolute; 
+    top: 60px; left: 20px;
+    z-index: 1;}
+
+/*  sending, complete feedback */
+h1 {color: #333;
+  font: 16px Arial, Verdana, sans-serif; font-weight: bold;
+  padding: 1px 8px 0; margin: 0;}
+
+#sendState {font: 16px Arial, Verdana, sans-serif; color: red; 
+  font-weight:bold; padding: 3px 3px 0 0; line-height: 16px;}
+
+/* home page */
+h2 {color: #333; text-align: left;
+  font: 16px Arial, Verdana, sans-serif; font-weight: bold; line-height: 18px;
+  padding: 0; padding-left: 14px; margin: 0;}
+
+
+
+/* recording, not recording, attempting recording feedback, 
+   only on recorderset */
+#recordingtext {font: 12px Arial, Verdana, sans-serif; color: red;
+    font-weight: bold; white-space: nowrap; 
+    display: block; float:  left; padding: 3px 3px 0 3px;}
+
+/* top teal tabs on gray background, all mgmt pages */
+#nav {margin: 0; padding: 0; height: 22px; background: transparent; display: inline;}
+#nav li {list-style: none; float: left; 
+    margin-left: 3px; padding-left: 12px;
+    color: white; font-size: 10px; line-height: 18px; white-space: nowrap; 
+    background: $V(COLOR) url(tab.gif) 0 0 no-repeat;}
+#nav a {display: block; float: left; padding: 1px 12px 3px 0;
+    text-decoration: none; font-weight: bold; 
+    background: $V(COLOR) url(tab.gif) 100% 0 no-repeat;
+    color: white; width: .1em;}
+html>body #nav a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#nav a {float: none;}            /* End IE5-Mac hack */
+#nav a:hover {color: $V(HOVERCOLOR);}
+#nav #current, #nav #current a {color: $V(COLOR); 
+    background-image: url(tabCt.gif);}
+
+/* tan_peach tabbed subwindows, windowset */
+#win {margin: 0 0 0 6px; padding: 0; height: 20px;  background: transparent;}
+#win li {list-style: none; float: left;
+    margin-left: 3px; padding-left: 12px;
+    color: white; font-size: 10px; line-height: 16px; white-space: nowrap; 
+    background: $V(COLOR) url(tealtab.gif) 0 0 no-repeat;}
+#win a {display: block; float: left; padding: 1px 12px 3px 0;
+    text-decoration: none; font-weight: bold;
+    background: $V(COLOR) url(tealtab.gif) 100% 0 no-repeat;
+    color: white;
+    width:  .1em;}
+html>body #win a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#win a {float: none;}            /* End IE5-Mac hack */
+#win a:hover {color: $V(HOVERCOLOR);}
+#win #current, #win #current a {color: $V(COLOR); 
+    background-image: url(peachtabct.gif);}
+
+
+
+/* teal on white buttons - all mgmt pages*/
+#button {margin: 0; padding: 0; white-space: nowrap;}
+#button li {list-style: none; float: left;
+    margin-left: 4px; padding-left: 10px;
+    color: white; font-size: 12px; line-height: 18px; white-space: nowrap; 
+    background: $V(COLOR)
+    url(buttonr.gif) 0 50% no-repeat;}
+#button a {display: block; float: left; padding: 1px 10px 3px 0;
+    text-decoration: none; font-weight: bold;
+    background: $V(COLOR)
+    url(buttonr.gif) 100% 0 no-repeat;
+    color: white;
+    width:  .1em;}
+html>body #button a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#button a {float: none;}            /* End IE5-Mac hack */
+#button a:hover {color: $V(HOVERCOLOR);}
+
+/* teal on tan_peach buttons, windowset*/
+#buttonp {margin: 0; padding: 0; white-space: nowrap;}
+#buttonp li {list-style: none; float: right;
+    margin-left: 4px; padding-left: 10px;
+    color: white; font-size: 12px; line-height: 18px; white-space: nowrap; 
+    background: $V(COLOR)
+    url(buttonp.gif) 0 50% no-repeat;}
+#buttonp a {display: block; float: right; padding: 1px 10px 3px 0;
+    text-decoration: none; font-weight: bold;
+    background: $V(COLOR)
+    url(buttonp.gif) 100% 0 no-repeat; color: white; width:  .1em;}
+html>body #buttonp a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#buttonp a {float: none;}            /* End IE5-Mac hack */
+#buttonp a:hover {color: $V(HOVERCOLOR);}
+
+/* home page pan tilt */
+#buttonh {margin: 0; padding: 0; height: 18px; white-space: nowrap;}
+#buttonh li {list-style: none; float: left;  
+    margin-left: 2px; padding-left: 8px; padding-bottom: 0px; 
+    color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonh a {display: block; float: left; padding: 0px 45px 3px 0;
+    text-decoration: none; font-weight: bold; 
+    color: white;
+    width:  .1em;}
+html>body #buttonh a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#buttonh a {float: none;}            /* End IE5-Mac hack */
+#buttonh a:hover {color: $V(HOVERCOLOR);}
+
+/*  home page zoom, size, etc buttons  */
+#buttonm {margin: 0; padding: 0; white-space: nowrap;}
+#buttonm li {list-style: none; float: left;  
+    margin-left: 2px; padding-left: 8px; padding-bottom: 0px;
+    color: white; font-size: 10px; line-height: 16px; white-space: nowrap;}
+#buttonm a {display: block; float: left; padding: 0px 8px 3px 0;
+    text-decoration: none; font-weight: bold; 
+    color: white;
+    width:  .1em;}
+html>body #buttonm a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+#buttonm a {float: none;}            /* End IE5-Mac hack */
+#buttonm a:hover {color: $V(HOVERCOLOR);}
+
+
+/*  home page specialty buttons, goes with buttonm above */
+
+a.menu:hover {color: $V(HOVERCOLOR);}
+li.menu  {background: $V(COLOR) url(buttonm.gif) 0 0 no-repeat;}
+a.menu  {background: $V(COLOR) url(buttonm.gif) 100% 0 no-repeat;} 
+
+li.zoomin  {background: $V(COLOR) url(zoom.gif) 0 0 no-repeat;}
+a.zoomin  {background: $V(COLOR) url(zoom.gif) 100% 0 no-repeat;}
+a.zoomin:hover {background: $V(COLOR) url(zoom.gif) 100% 33% no-repeat;}
+
+li.zoomout  {background: $V(COLOR) url(zoom.gif) 0 0 no-repeat;}
+a.zoomout  {background: $V(COLOR) url(zoom.gif) 100% 66% no-repeat;}
+a.zoomout:hover {background: $V(COLOR) url(zoom.gif) 100% 100% no-repeat;}
+
+li.sizep  {background: $V(COLOR) url(size.gif) 0 0 no-repeat;}
+a.sizep  {background: $V(COLOR) url(size.gif) 100% 0 no-repeat;}
+a.sizep:hover {background: $V(COLOR) url(size.gif) 100% 33% no-repeat;}
+
+li.sizem  {background: $V(COLOR) url(size.gif) 0 0 no-repeat;}
+a.sizem {background: $V(COLOR) url(size.gif) 100% 66% no-repeat;}
+a.sizem:hover {background: $V(COLOR) url(size.gif) 100% 100% no-repeat;}
+
+table {white-space: nowrap;}
+td {padding: 0; margin: 0; white-space: nowrap;}
+table.main {background: white;}
+
+table.content {color: #333; background: white; 
+    margin: 0;  font-size: 12px; text-align: center; border: 0;}
+
+td.topmenu {background: #FFF url(topwhite.gif);}
+
+
+/*  start home page tables  */
+
+/* for the top table of the home page */
+td.topmenuh {background: #FFF url(topwhiteh.gif) 0 0 repeat-x; padding-bottom: 6px;}
+
+
+td.contenttd {background: white; padding: 0px; margin: 0; text-align: center; clear: none;}
+
+b {font-size: 12px; font-weight: bolder;}
+
+table.menu {float: left; margin: 0; padding:0; clear: none;}
+
+table.dptz a {padding: 0;
+    text-decoration: none;
+    color: white;
+    width:  .1em;}
+
+td.dptz {background: #EEE url(rose.gif) 0 -44px no-repeat; 
+    padding: 0; margin: 0 2px 0 2px;}
+
+a.left {background: white url(rose.gif) 100% 0 no-repeat; margin: 0 2px 0 2px;}
+a.left:hover {background: $V(COLOR) url(rose.gif) 100% 50% no-repeat;}
+
+a.up {background: white url(rose.gif) 0 0 no-repeat; margin: 1px 2px 0 2px;}
+a.up:hover {background: $V(COLOR) url(rose.gif) 0 50% no-repeat;}
+
+a.down {background: white url(rose.gif) 67% 0 no-repeat; 
+    margin: 0 2px 1px 2px;}
+a.down:hover {background: $V(COLOR) url(rose.gif) 67% 50% no-repeat;}
+
+a.right {background: white url(rose.gif) 33% 0 no-repeat; margin: 0 2px 0 2px;}
+a.right:hover {background: $V(COLOR) url(rose.gif) 33% 50% no-repeat;}
+
+/* end of home page tables  */
+
+td.buttonbar {background: white; padding: 2px 4px 2px 0px; 
+   border: 0; border-top: solid 2px #666; margin: 0;}
+
+td.logo {background: white; padding: 4px 34px 12px 0;
+   border: 0; border-top: solid 2px #666; margin: 0}
+
+td.l {background: #EEE url(left.gif); width: 11px;}
+td.r {background: #EEE url(right.gif); width: 11px;}
+td.b {background: #EEE url(bottom.gif); height: 11px;}
+td.tr {background: #EEE url(white.gif) 100% 0 no-repeat;}
+td.br {background: #EEE url(white.gif) 100% 100% no-repeat;}
+td.tl {background: #EEE url(white.gif) 0 0 no-repeat;}
+td.bl {background: #EEE url(white.gif) 0 100% no-repeat;}
+
+table.input {color: #333; background: rgb(251,242,221); 
+    margin: 0 20px 8px 10px; padding: 0; clear: left; font-size: 12px; 
+    border: 0; text-align: right;}
+
+
+/* help buttons in subtitle tds  */
+td.subtitle {font-size: 11px; color: #666; font-weight: 600; 
+    white-space: nowrap;
+    padding: 5px 11px 1px 0; background: white; border: 0px;}
+
+/* td:subtitle a {line-height: 10px;} */
+td.subtitle a {padding: 0px 3px 0px 3px; margin-left: 5px;
+    text-decoration: none; font-weight: 600; font-size: 10px;
+    background: white url(helpt.gif) 100% 0 no-repeat;
+    line-height: 12px;
+    color: white;
+    width:  .1em;}
+html>body td.subtitle a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+td.subtitle a {float: none;}            /* End IE5-Mac hack */
+td.subtitle a:hover {color: $V(HOVERCOLOR);}
+
+/* help button on home page  */
+td.help a {padding: 4px 7px 4px 7px; margin-left: 5px;
+    text-decoration: none; font-weight: 900; font-size: 12px;
+    line-height: 20px;
+    background: #EEE url(helpgray.gif) 100% 0 no-repeat;
+    color: white;
+    width:  .1em;}
+html>body td.help a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+td.help a {float: none;}            /* End IE5-Mac hack */
+td.help a:hover {color: $V(HOVERCOLOR);} 
+
+td.input {text-align: right; padding: 1px 8px 0px 2px; margin: 0;
+    white-space: nowrap; font-size: 12px;
+    background: $V(INPUTBKGD) 100% 50% no-repeat;}
+td.subtitleleft {background: white; border: 0px;}
+td.startsub {padding: 4px 8px 0 2px; margin: 0; border: 0;
+    white-space: nowrap;
+    background: $V(INPUTBKGD) 100% 0 no-repeat;}
+td.endsub {padding: 1px 8px 6px 2px; margin: 0; border: 0;
+    white-space: nowrap;
+    background: $V(INPUTBKGD) 100% 100% no-repeat;}
+td.left {margin: 0; border: 0; width:8px;
+    background: $V(INPUTBKGD) 0 50% no-repeat;}
+td.startsubleft {padding-top: 4px; margin: 0; border: 0; width:8px;
+    background: $V(INPUTBKGD) 0 0 no-repeat;}
+td.endsubleft {padding-bottom: 6px; margin: 0; border: 0; width:8px;
+    background: $V(INPUTBKGD) 0 100% no-repeat;}
+
+td.startsubw {font-size: 14px; color: #666; font-weight: 600;
+    white-space: nowrap;
+    margin: 0; border: 0; padding: 14px 10px 4px 0px; text-align: right;
+    background: $V(INPUTBKGD) 100% 0 no-repeat;}
+td.startsubw a {padding: 0px 3px 0px 3px; margin-left: 5px;
+    text-decoration: none; font-weight: 600; font-size: 10px;
+    line-height: 12px;
+    background: rgb(251,242,221) url(helpp.gif) 100% 0 no-repeat;
+    color: white;
+    width:  .1em;}
+html>body td.startsubw a {width: auto;}    /* fixes IE6 hack */
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+td.startsubw a {float: none;}            /* End IE5-Mac hack */
+td.startsubw a:hover {color: $V(HOVERCOLOR);}
+
+/*  grayed out input fields for multiview page  */
+td.inputg {text-align: right; padding: 1px 8px 0px 2px; margin: 0; 
+    white-space: nowrap; font-size: 12px;
+    background: white url(tancorner3.gif) 100% 50% no-repeat;}
+td.leftg {margin: 0; border: 0;
+    background: white url(tancorner3.gif) 0 50% no-repeat;}
+td.startsubg {padding: 4px 8px 0 2px; margin: 0; border: 0;  
+    white-space: nowrap;
+    background: white url(tancorner3.gif) 100% 0 no-repeat;}
+td.endsubg {padding: 1px 8px 6px 2px; margin: 0; border: 0;  
+    white-space: nowrap;
+    background: white url(tancorner3.gif) 100% 100% no-repeat;}
+td.startsubleftg {padding-top: 4px; margin: 0; border: 0;
+    background: white url(tancorner3.gif) 0 0 no-repeat;}
+td.endsubleftg {padding-bottom: 6px; margin: 0; border: 0;
+    background: white url(tancorner3.gif) 0 100% no-repeat;}
+ 
+input {font-size: 12px; width: 150px;
+    background-color: white;
+    margin: 0px 2px 0px 3px; padding-right: 0px;
+    border: solid 1px black;}
+
+select {font-size: 12px; width: 155px; height: 18px; border: 0;
+    margin: 0px 0px 0px 3px;}

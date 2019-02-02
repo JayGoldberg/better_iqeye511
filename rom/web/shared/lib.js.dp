@@ -1,0 +1,1070 @@
+
+
+
+
+
+
+
+
+var isPTZ =  "$O(1.4.7,B)"; 
+isPTZ =  (isPTZ == "YES" || isPTZ == "yes" || isPTZ == "Yes") ? true:false;
+
+
+
+
+
+
+var isNav = (navigator.appName == "Netscape"); 
+var isNav6 = (isNav && (parseFloat(navigator.appVersion) >= 5.0));
+var isIE = (!isNav && (navigator.appVersion.indexOf("MSIE") != -1));
+var isWin = (navigator.appVersion.indexOf("Win") != -1);
+var isMac = (navigator.appVersion.indexOf("Mac") != -1);
+var isNT = (navigator.appVersion.indexOf("Windows NT") != -1);
+var isOpera = (navigator.userAgent.indexOf("Opera") != -1);
+if (isOpera) isIE = false;
+var isMacIE = (isMac && isIE);
+var NavVers = 0.0;
+var isW3C = (document.getElementById) ? true:false; 
+
+var IEVers = 0.0;
+if (isIE) {
+    var start = navigator.appVersion.indexOf("MSIE");
+    var end = navigator.appVersion.indexOf(";",start);
+    IEVers = parseFloat(navigator.appVersion.substring(start+4, end));
+}
+
+var isMozilla = false;
+if (isNav) {
+    var start = navigator.userAgent.indexOf("Mozilla/");
+    NavVers = parseFloat(navigator.userAgent.substring(start+8));
+    if (NavVers>=5.0) { 
+        start = navigator.userAgent.indexOf("Netscape/");
+	if (start<0) isMozilla = true;
+	else NavVers = parseFloat(navigator.userAgent.substring(start+9));
+    }
+}
+
+
+var offsetLeft = 0, offsetTop = 0; 
+
+
+
+if (isIE) {  
+    
+    if (isMac) {
+	
+	offsetLeft = 20; offsetTop = 10;
+	if (IEVers > 4.5) {
+	    offsetLeft = 10; offsetTop = 80;
+	}
+    } else { 
+	offsetLeft = 30; 
+	offsetTop = 75;  
+    }
+} 
+
+
+
+
+var needsApplet =  isIE || isNav6 || isOpera;
+
+
+
+
+
+
+
+
+
+
+
+
+var needsIframe = isMac;
+
+
+
+function propsAlert(arg, freq) {
+    var i;
+    var count=0;
+    if (!freq) freq = 20;
+    var str = "";
+    arg = getObject(arg);
+    for (i in arg) {
+        if (i=="innerHTML") str += i+ ":[deleted to save output]\n";
+	else str += i + ":" + arg[i] + "\n";
+	if (i == "style") {
+	    for (var j in arg.style) {
+		str += "style " + j + ":" + arg.style[j] + "\n";
+		count++;
+		if (count%freq == 0) {
+		    alert(str);
+		    str="";
+		}
+	    }
+	}
+	count++;
+	if (count%freq == 0) {
+	    alert(str);
+	    str="";
+	}
+    }
+    alert(str);
+}
+
+
+
+function arrayAlert(arg) {
+   if (!arg) {
+       alert(arg + " does not exist");
+       return;
+   }
+   if (!arg.length) {
+       alert(arg + " does not have a length");
+       return;
+   }
+   for (var ind=0; ind<arg.length; ind++) propsAlert(arg[ind]);
+}
+
+
+function select(field) {
+    field.focus();
+    field.select();
+}
+
+
+function numbform(value, place) {
+    return Math.round(value*Math.pow(10,place))/(Math.pow(10,place));
+}
+
+
+function isANatural(field) {
+    if (isNaN(field)) return false;
+    if (field<0) return false;
+    if (parseInt(field) == field) return true;
+    return false;
+}
+
+
+function isATime2(field) { 
+    if (field.type != "text") return false;
+    var exp = new RegExp("(\\d\\d):(\\d\\d)$$");
+    var arr = field.value.match(exp);
+    if (arr == null) {
+	exp = new RegExp("(\\d):(\\d\\d)$$");
+	arr = field.value.match(exp);
+	if (arr) { 
+	    field.value = "0" + arr[1] + ":" + arr[2];
+	}
+	else return false; 
+    }
+    if ((arr[1]<0) || (arr[2]<0) || (arr[1]>24) || (arr[2]>60)) return false;
+    return true;
+}
+
+
+
+function isAnIPAddress(field) {
+    if (field.type != "text") return false;
+    
+    var exp = new RegExp("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)$$");
+    var arr = field.value.match(exp);
+    if (arr == null) return false; 
+    if (arr[1] > 255) return false; 
+    if (arr[2] > 255) return false; 
+    if (arr[3] > 255) return false; 
+    if (arr[4] > 255) return false; 
+    return true;
+}
+
+
+function isAPassword(field) {
+    if (field == null) return false;
+    if (field.type != "text" && field.type!="password") return false;
+    var val = field.value;
+    if (val == null) return false;
+    if (val.length ==0) return false;
+    if (val.length > 32) return false;
+    var exp = /[^\x21-\x7E]/;  
+    if (val.match(exp)) return false;
+    return true;
+}
+
+
+function getObject(obj) {
+    var theObj = null;
+    if (typeof obj=="object") return obj;
+    if (typeof obj=="string") {
+	var str = (document.all) ? "document.all." + obj:"document." + obj;
+	if (eval(str)) theObj = eval(str);
+    }
+    if (isW3C && !theObj) return document.getElementById(obj);
+    return theObj;
+}
+
+
+function getImObj(obj) {
+    var theObj = eval("document."+obj);
+    if (isW3C && !theObj) theObj = document.getElementById(obj);
+    if (!theObj) return null;
+    return theObj;
+}
+
+
+function hide(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.visibility) theObj.visibility = "hidden"; 
+    else theObj.style.visibility="hidden"; 
+}
+
+
+function show(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.visibility) theObj.visibility = "visible"; 
+    else theObj.style.visibility="visible"; 
+}
+
+function theSendState() {
+    return getObject("sendState");
+}
+
+
+function showEmptySendState() {
+    if (theSendState()) theSendState().innerHTML = "&nbsp;";
+}
+
+
+function showSending() {
+    if (theSendState()) theSendState().innerHTML = "SENDING";
+}
+
+
+
+
+function showWaiting() {
+    if (!theSendState()) return;
+    if (theSendState().innerHTML == "SENDING") {
+	theSendState().innerHTML = "WAITING";
+    }
+}
+
+
+function showCompleted() {
+    status = "completed sending command to camera";
+    if (theSendState()) theSendState().innerHTML = "COMPLETED";
+    setTimeout("scheduleEmptySendState()", 1000);
+}
+
+
+
+function scheduleEmptySendState() {
+    if (!theSendState()) return;
+    if (!(theSendState().innerHTML == "SENDING")) {
+	showEmptySendState();
+	status = "";
+    } else setTimeout("scheduleEmptySendState()",100);
+}
+
+
+
+function transferCompleted() {
+    if (!theSendState()) return true;
+    if (theSendState().innerHTML == "SENDING") return false;
+    if (theSendState().innerHTML == "WAITING") return false;
+    return true;
+}
+
+
+function getObjectLeft(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return 0;
+    
+    if (theObj.style && theObj.style.pixelLeft != null) 
+	return theObj.style.pixelLeft+ offsetLeft; 
+
+    var rv = theObj.offsetLeft; 
+    if (rv) return rv - 0 + offsetLeft;
+    return theObj.x + offsetLeft; 
+}
+
+
+function getObjectTop(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+
+    if (theObj.style && theObj.style.pixelTop != null) 
+	return theObj.style.pixelTop + offsetTop; 
+    var rv = theObj.offsetTop; 
+    if (rv) return  rv - 0 + offsetTop;
+    return theObj.y; 
+}
+
+
+function getObjectVis(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.style) return theObj.style.visibility;
+    else return theObj.visibility; 
+}
+
+function isHiding(obj) {
+    var vis = getObjectVis(obj);
+    if (vis == "hide" || vis =="hidden" || vis == "") return true;
+    return false;
+}
+
+
+function getClickX(evt) {
+    if (evt.pageX) return evt.pageX + offsetLeft; 
+    if (isMacIE) {
+	return window.event.offsetX + offsetLeft + document.body.scrollLeft;
+    }
+    return window.event.offsetX + offsetLeft;
+}
+
+
+function getClickY(evt) {
+    if (evt.pageY) return evt.pageY + offsetTop; 
+    if (isMacIE)
+	return window.event.offsetY + offsetTop + document.body.scrollTop;
+    return window.event.offsetY + offsetTop;
+}
+
+
+var webport = "$O(7.1,N)";
+var hostname = window.location.hostname;
+function loadIndexPage() {
+    var loc = "http://" + hostname;
+    if (webport != "80") loc += ":" + webport;
+    loc += "/"; 
+    window.location.href = loc;
+}
+
+
+function logout() {
+    var expires = new Date(); 
+
+
+    
+    
+
+    
+    SetCookie("SrvrCreds", "00000000000000000000000000000000", expires, "/");
+    loadIndexPage();
+    return false;
+}
+
+
+function reboot() {
+    setEcam2("OidCB2.11","ON");
+    setTimeout('loadIndexPage()',30000);
+    alert("Your camera is being rebooted.\n" +
+	  "The main webpage will load after the reboot is completed.");
+    return false;
+}
+
+
+function SetCookie(name, value) {
+    var argv = SetCookie.arguments;
+    var argc = SetCookie.arguments.length;
+    var expires = (argc > 2) ? argv[2] : null;
+    var path    = (argc > 3) ? argv[3] : null;
+    var domain  = (argc > 4) ? argv[4] : null;
+    var secure  = (argc > 5) ? argv[5] : false;
+    document.cookie = name + "=" + escape (value) +
+        ((expires == null) ? "" : ("; expires=" + expires.toGMTString())) +
+        ((path    == null) ? "" : ("; path=" + path)) +
+        ((domain  == null) ? "" : ("; domain=" + domain)) +
+        ((secure  == true) ? "; secure" : "");
+}
+
+
+function logoutLater() {
+   status = "waiting for commands to complete before logging out";
+   if (transferCompleted()) {
+        status = "";
+	logout();
+   }
+   else setTimeout("logoutLater();", 100);
+}
+
+
+function reloadLater() {
+   status = "waiting for commands to complete before reloading page";
+   if (transferCompleted()) {
+       
+       
+       var oldhref = window.location.href;
+       var start = oldhref.indexOf("?dummy");
+       var newhref;
+       if (start>=0) {
+	   var newver = oldhref.substring(start+7)-0+1;
+	   newhref = oldhref.substring(0,start)+"?dummy=" + newver;
+       } else {
+	   newhref = oldhref+"?dummy=0";
+       }
+       if (document.images) {
+	   
+	   
+	   window.location.replace(newhref);
+       } else window.location.href = newhref;
+       status = "";
+   }
+   else setTimeout("reloadLater();", 100);
+}
+
+
+var loadLaterLocation = ""; 
+function loadLater(loc) {
+   status = "waiting for commands to complete before reloading page";
+   if (transferCompleted()) {
+       if (document.images) {
+	   
+	   
+	   window.location.replace(loc);
+       } else window.location.href = loc;
+       status = "";
+   }
+   else {
+       if (!loadLaterLocation) loadLaterLocation = loc;
+       setTimeout("loadLater(loadLaterLocation);", 100);
+   }
+}
+
+function checkTransfer() {
+    if (! transferCompleted()) {
+        window.open("incomplt.html","incomplete",
+                    "height=400,width=600,scrollbars");
+    }
+    return false;
+}
+
+
+function factory(setting, value, phrase) {
+    var msg =
+	"This will set all " + phrase + 
+	" settings to factory default values.\r\nDo you want to continue?";
+    if (confirm(msg)) {
+	setEcam2(setting, value);
+	reloadLater();
+    }
+    return false;
+}
+
+var helpwin = null;
+
+
+function helpMe(section) {
+    if (!helpwin || helpwin.closed) { 
+	helpwin = window.open("help.html#" + section, "helpwin",
+			      "height=600,width=600,scrollbars");
+    } else {
+	helpwin.location.hash = section;
+	helpwin.focus();
+    }
+    return false;
+}
+
+
+
+
+
+
+function formatIsValid(field) {
+    return true;
+}
+
+
+function preSetEcam() {
+    return;
+}
+
+
+function postSetEcam(field) {
+    return;
+}
+
+
+function setEcam(field) {
+    if (! formatIsValid(field)) return false;
+    preSetEcam(field);
+    var fname = field.name;
+    var ftype = field.type;
+    var fval  = field.value;
+    if (ftype == "select-one") fval = field.options[field.selectedIndex].text;
+    else if (ftype == "text") { }
+    else if (ftype == "password") { } 
+    else if (ftype == "checkbox") fval = (field.checked)? "enabled":"disabled";
+
+    
+    
+    if (fval.match("&")) fval = '"' + fval + '"';
+
+    setEcam2(fname, escape(fval));
+    postSetEcam(field);
+    return false;
+}
+
+var commandBufferSize = 40; 
+                            
+var commandBuffer = new Array();
+for (var i=0; i<commandBufferSize; i++) {
+    commandBuffer[i] = new Object();
+    commandBuffer[i].name = null;
+    commandBuffer[i].val = null;
+    commandBuffer[i].output = null;
+} 
+
+
+function iframeText() {
+    if (!window.commandIframe) return "";
+    if (!window.commandIframe.document) return "";
+    if (!window.commandIframe.document.body) return "";
+    if (!window.commandIframe.document.body.innerHTML) return "";
+    return window.commandIframe.document.body.innerHTML;
+}
+
+function getReplyFromIframe(ind) {
+    if (!window.commandIframe) return;
+    var newhref = window.commandIframe.location.href;
+    if (newhref.indexOf("cmd_done") > -1) {
+	commandBuffer[ind].output = iframeText();
+
+	
+	
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+    } else if (newhref.indexOf(commandBuffer[ind].name) > -1) {
+	commandBuffer[ind].output = iframeText();
+    } 
+
+    
+    
+    
+    
+    else if (newhref.indexOf(window.location.href) > -1) {
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+
+	
+	
+	commandBuffer[ind].output = 'netscape7 bug'; 
+    }
+    else setTimeout("getReplyFromIframe(" + ind + ")", 100);
+}
+
+
+
+function getOIDFromIframe(name) {
+    if (!window.commandIframe) return null;
+    if (window.commandIframe.location.href) {
+	if (window.commandIframe.location.href.indexOf("get.oid?" + name) > -1)
+	    return iframeText();
+	
+	
+	if (window.commandIframe.location.href.indexOf(window.location.href) > -1)
+	    return null;
+    }
+
+    setTimeout("getOIDFromIframe('" + name + "')",100);
+}
+
+
+function sendCommand(ind) {
+    var name = commandBuffer[ind].name;
+    var val  = commandBuffer[ind].val;
+    commandBuffer[ind].output = null;
+    if (needsIframe) {
+	
+	if (!window.commandIframe) return;
+	var name = commandBuffer[ind].name;
+	var val = commandBuffer[ind].val;
+	var href = "now.oid?" + name + "=" + val;
+	window.status = "setting " + href;
+	
+	window.commandIframe.location.href = href;
+	
+	
+	getReplyFromIframe(ind);  
+    } 
+    else { 
+	
+	
+	AjaxSetOid (name, val, ind);
+    }
+    getCommandOutput(ind);
+}
+
+
+
+function getCommandOutput(ind) {
+    var output = commandBuffer[ind].output;
+    if (output != null) { 
+		
+	var start = output.indexOf("%");
+	if (start != -1) {
+	    var stop = output.toLowerCase().indexOf("</pre>");
+	    var msg = output.substring(start, stop);
+	    if (msg.indexOf("%Info") != -1) {
+		
+		
+		window.status = msg;
+	    } 
+	    else alert(msg);
+	}
+	showCompleted();
+	commandBuffer[ind].name = null; 
+    } else if (needsIframe) 
+	setTimeout("getCommandOutput(" + ind + ")", 100);
+}
+
+
+function getOIDVal(oidnum) {
+    var output;	
+    if (needsIframe) {
+	if (!window.commandIframe) return null;
+	window.commandIframe.location.href = "get.oid?" + oidnum;
+	output = getOIDFromIframe(oidnum);
+
+	
+	
+	output = null;
+    }
+    else {
+	
+	
+	output = AjaxGetOidValSync (oidnum);
+    }
+    if (output == null) return "";
+
+    
+    var loutput = output.toLowerCase();	
+    var start = loutput.indexOf("<xmp>");
+    if (start == -1) return "";
+    var stop = loutput.indexOf("</xmp>");
+    return msg = output.substring(start+5, stop);
+}
+
+
+
+
+function setEcam2(name, val) { 
+    
+    if (theSendState()) {
+	showSending();
+	status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+      
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    
+    
+    
+    setTimeout("sendCommand(" + ind + ");",1);  
+    return false;
+}
+
+
+function submit(n0,v0) {
+    if (arguments.length<=2) return setEcam2(n0,v0); 
+    var val=v0;
+    for (var n=2;n<arguments.length; n+=2) {
+	val +=  "&" + arguments[n] + "=" + arguments[n+1];
+    }
+    setEcam2(n0,val);
+}
+
+function enableJavaAlert() {
+    if(!isIE) { 
+	
+	if (!navigator.javaEnabled()) {
+	    alert("You must enable java for this page to work correctly.");
+	}
+    }
+}
+
+function spushImgString(args) {
+    return '"now.jpg?snap=spush' + args + '"';
+}
+
+function preImg(args) {
+    return "now.jpg?snap=pre" + args;
+}
+
+function preImgString(args) {
+    return '"now.jpg?snap=pre' + args + '"';
+}
+
+
+
+
+
+
+var AjaxAsyncRequest = false;
+
+
+var AjaxSyncRequest = false;
+
+function AjaxInitAsync ()
+{
+    var rv = true;
+    try {
+	AjaxAsyncRequest = new XMLHttpRequest();
+    } catch (trymicrosoft) {
+        try {
+	    AjaxAsyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (othermicrosoft) {
+	    try {
+		AjaxAsyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxAsyncRequest = false;
+		rv = false;
+	    }
+        }
+    }
+    return rv;
+}
+
+function AjaxInitSync ()
+{
+    var rv = true;
+    try {
+	AjaxSyncRequest = new XMLHttpRequest();
+    } catch (trymicrosoft) {
+        try {
+	    AjaxSyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (othermicrosoft) {
+	    try {
+		AjaxSyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxSyncRequest = false;
+		rv = false;
+	    }
+        }
+    }
+    return rv;
+}
+
+ 
+function AjaxParseResponse () 
+{
+    var result = null;
+    var str = AjaxAsyncRequest.responseText;
+
+    
+    var start = str.indexOf ("<xmp>");
+    var stop  = str.indexOf ("</xmp>");
+    
+    if (start > 0 && (stop > start)) {
+	result = str.substring (start+5, stop);
+    }
+    return result;
+}
+
+
+var AjaxErrs = new Array();
+AjaxErrs[12001] = "out of handles";
+AjaxErrs[12002] = "internet timeout";
+AjaxErrs[12003] = "extended error";
+AjaxErrs[12004] = "internal error";
+AjaxErrs[12005] = "invalid url";
+AjaxErrs[12006] = "unrecognized scheme";
+AjaxErrs[12007] = "name not resolved";
+AjaxErrs[12012] = "internet shutdown";
+AjaxErrs[12016] = "invalid operation";
+AjaxErrs[12017] = "operation canceled";
+AjaxErrs[12018] = "incorrect handle type";
+AjaxErrs[12019] = "incorrect handle state";
+AjaxErrs[12020] = "no proxy request";
+AjaxErrs[12021] = "registry value not found";
+AjaxErrs[12022] = "bad registry param";
+AjaxErrs[12023] = "no direct access available";
+AjaxErrs[12024] = "no context supplied";
+AjaxErrs[12025] = "no callback";
+AjaxErrs[12026] = "request pending";
+AjaxErrs[12027] = "incorrect format";
+AjaxErrs[12028] = "item not found";
+AjaxErrs[12029] = "cannot connect";
+AjaxErrs[12030] = "connection aborted";
+AjaxErrs[12031] = "connection reset";
+AjaxErrs[12032] = "force retry";
+AjaxErrs[12033] = "invalid proxy";
+AjaxErrs[12036] = "internet handle exists";
+AjaxErrs[12150] = "no http headers";
+AjaxErrs[12151] = "no returned headers";
+AjaxErrs[12152] = "http invalid server response";
+AjaxErrs[12153] = "http invalid header";
+AjaxErrs[12154] = "http invalid query";
+AjaxErrs[12155] = "http header exists";
+AjaxErrs[12156] = "redirect failed";
+
+
+
+function AjaxCheckReady () 
+{
+    var code;
+    var text;
+
+    
+    if (AjaxAsyncRequest.readyState == 4) {
+	
+	if (AjaxAsyncRequest.status == 200) {
+	    var result;
+	    result = AjaxParseResponse ();
+	    if (result) {
+		code = 0; text = result;
+	    }
+	    else {
+		code = 1; text = "Unable to parse response";
+	    }
+	}
+	else if (AjaxAsyncRequest.status == 404) {
+	    code = 2; text = "Request URL does not exist";
+	}
+	else {
+	    if (AjaxAsyncRequest.status == 12029) {
+		code = 4; text = "Request timeout";
+	    }
+	    else {
+		code = 5; 
+		text = "XML Error: status code is " + AjaxAsyncRequest.status; 
+		if (AjaxErrs[AjaxAsyncRequest.status] != undefined)
+		    text += ": " + AjaxErrs[AjaxAsyncRequest.status]; 
+	    }
+	}
+	
+	AjaxDone (code, AjaxAsyncRequest.status, text);
+    }
+}
+
+
+
+function AjaxGetOid (oid) 
+{
+    if (!AjaxAsyncRequest) {
+	if (AjaxInitAsync () == false) return false;
+    }
+    var url = "get.oid?" + oid;
+    AjaxAsyncRequest.open ("GET", url, true);
+    AjaxAsyncRequest.onreadystatechange = AjaxCheckReady;
+    
+    AjaxAsyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxAsyncRequest.send(null);
+    return true;
+}
+
+
+function AjaxDone (result_code, http_status, result_text) {}
+
+
+function AjaxGetOidValSync (oid) 
+{
+    if (!AjaxSyncRequest) {
+	if (AjaxInitSync () == false) return false;
+    }
+
+    var url = "get.oid?" + oid;
+    AjaxSyncRequest.open ("GET", url, false);
+    
+    AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxSyncRequest.send(null);
+    if (AjaxSyncRequest.readyState == 4 &&
+	AjaxSyncRequest.status == 200) {
+	return AjaxSyncRequest.responseText;
+    }
+    return null;
+}
+
+
+function AjaxSetOid (oid, val, ind)
+{
+    if (!AjaxSyncRequest) {
+	if (AjaxInitSync () == false) return false;
+    }
+    var url = "set.oid?" + oid + "=" + val;
+    
+    AjaxSyncRequest.open ("GET", url, false);
+    
+    AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxSyncRequest.send(null);
+    if (AjaxSyncRequest.readyState == 4) {
+	if (AjaxSyncRequest.status == 200) {
+	    commandBuffer[ind].output = AjaxSyncRequest.responseText;
+	}
+    }
+    return true;
+}
+
+
+
+
+function SetCookie(name, value) {
+    var argv = SetCookie.arguments;
+    var argc = SetCookie.arguments.length;
+    var expires = (argc > 2) ? argv[2] : null;
+    var path    = (argc > 3) ? argv[3] : null;
+    var domain  = (argc > 4) ? argv[4] : null;
+    var secure  = (argc > 5) ? argv[5] : false;
+    document.cookie = name + "=" + escape (value) +
+        ((expires == null) ? "" : ("; expires=" + expires.toGMTString())) +
+        ((path    == null) ? "" : ("; path=" + path)) +
+        ((domain  == null) ? "" : ("; domain=" + domain)) +
+        ((secure  == true) ? "; secure" : "");
+}
+
+function getCookie(Name) {
+    var search = Name + "=";
+    if (document.cookie.length > 0) { 
+        offset = document.cookie.indexOf(search);
+        if (offset != -1) { 
+            offset += search.length;
+            
+            end = document.cookie.indexOf(";", offset);
+            
+            if (end == -1)
+                end = document.cookie.length;
+            return unescape(document.cookie.substring(offset, end));
+        }
+    }
+    return null;
+}
+
+
+var UsingActiveX = -1;
+
+
+function UseActiveX () {
+    if (UsingActiveX >= 0) {
+	return UsingActiveX;
+    }
+    if (isIE && isWin) { 
+	var val = getCookie("activex");
+	if (val == null) { 
+	    var now = new Date();
+	    
+	    now.setTime(now.getTime() + 1000*60*60*24*365*1000);
+	    
+	    if (isIE
+		
+		){
+		SetCookie("activex","1",now);
+		UsingActiveX = 1;
+	    } else {
+		SetCookie("activex","0",now);
+		UsingActiveX = 0;
+	    }
+	} else {
+	    if (val) UsingActiveX = 1;
+	    else UsingActiveX = 0;
+	}
+    }
+    else UsingActiveX = 0;
+    return UsingActiveX;
+}
+
+
+function CreateApplet (DivID, app_string) {
+     var d = document.getElementById (DivID);
+     d.innerHTML = app_string;
+}
+
+
+function CreateControl (DivID, imAttr, logging, streamDptzParam,
+			isIQeye6, isIQeye7, imageString) {
+    
+    var outString
+	= '<object id="Iqeye1" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="iqweb.ocx#Version=1,0,3,7"'
+        + ' standby="ActiveX control is loading">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
+	+ logging
+	+ streamDptzParam;
+    outString += (isIQeye6 && !isIQeye7) ? 
+	'<param name="URL" value="/now.jpg?snap=spush">\n' :
+	'<param name="URL" value="/' + imageString + '">\n';
+    outString += '<br><b>ActiveX Camera Control</b>'
+        + '<font color="#FF5555">'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
+        + '<br><a href=appletvid.html>Click here</a>'
+	+ ' to display with a Java Applet instead.'
+        + '</font></object>\n';
+    var d = document.getElementById(DivID);
+    if (d)
+	d.innerHTML = outString; 
+}
+
+function CreateCameoControl (DivID, imAttr) {
+    
+    var outString
+	= '<object id="Iqeye1_m" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="iqweb.ocx#Version=1,0,3,7"'
+        + ' standby="ActiveX control is loading">\n'
+        + '<param name="StreamDptz" value="0">\n'
+        + '<param name="InternalDptz" value="0">\n'
+        + '<param name="Display" value="0">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
+        + '<param name="Windowless" value="1">\n'
+        + '<parm name="Smoothing" value="1">\n'
+	+ '<param name="URL" value="/now.jpg?snap=spush?ds=1">\n';
+    outString += '<br><b>ActiveX Cameo Camera Control</b>'
+        + '<font color="#FF5555">'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
+        + '<br><a href=appletvid.html>Click here</a>'
+	+ ' to display with a Java Applet instead.'
+        + '</font></object>\n';
+    var d = document.getElementById(DivID);
+    if (d)
+	d.innerHTML = outString; 
+}
+
+
+function GetElementPosition (id)
+{
+    e = document.getElementById(id);
+
+    var left = 0;
+    var top  = 0;
+    
+    while (e.offsetParent){
+	left += e.offsetLeft;
+	top  += e.offsetTop;
+	e     = e.offsetParent;
+    }
+    
+    left += e.offsetLeft;
+    top  += e.offsetTop;
+
+    
+
+    return {x:left, y:top};
+}
+
+
+function MouseCoords (ev) 
+{
+    
+    if (ev.pageX || ev.pageY){
+	return {x:ev.pageX, y:ev.pageY};
+    }
+    
+    return {
+	x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
+	y:ev.clientY + document.body.scrollTop  - document.body.clientTop
+    };
+}
+
+

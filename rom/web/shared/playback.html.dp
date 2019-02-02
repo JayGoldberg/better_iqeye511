@@ -1,0 +1,391 @@
+<!-- Copyright (C) 2006 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>IQrecorder</title>
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+$INC(camvars.dp)
+$INC(oemvars.dp)
+
+<link rel="stylesheet" href="style.css">
+
+<style type="text/css">
+
+html, body {margin: 0; padding: 0;
+  color: #333; background: #EEE;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px; font-style: bold;}
+
+table.content {color: #333; background: white; 
+  margin: 0; clear: left; font-size: 12px;
+  border: 0;}
+
+table.menu {float: left; margin: 0; padding:0; clear: none;}
+
+td.contenttd {background: white; padding: 0px; margin: 0; text-align: center; clear: none;}
+
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+
+function checkBrowserVersion() {
+    if (navigator.appName=="Netscape") { 
+	var vers = navigator.vendorSub; 
+	if (!vers) vers = navigator.appVersion; 
+	vers = parseFloat(vers);
+        if (navigator.userAgent.indexOf("Gecko") != -1) { 
+	    return; 
+	}	
+	if (vers < 7.01) {
+	    alert("You are using Netscape version " + vers + "\n"
+		  + "This application is designed for Netscape 7.01+\n"
+		  + "You may upgrade at\n"
+		  + "http://channels.netscape.com/ns/browsers/download.jsp");
+	}
+	return;
+    } 
+
+    if (navigator.appVersion.indexOf("Windows")< 0) {    
+	
+	
+	return;
+    }
+							 
+    if (navigator.appVersion.indexOf("MSIE") != -1) { 
+	var vers = 0.0;
+	var start = navigator.appVersion.indexOf("MSIE");
+	var end = navigator.appVersion.indexOf(";",start);
+	vers = parseFloat(navigator.appVersion.substring(start+4, end));
+	if (vers < 6.0) {
+	    alert("You are using Internet Explorer version " + vers + "\n"
+		  + "This application is designed for version 6.0+\n"
+		  + "You may upgrade by clicking on the menubar item\n"
+		  + "'Tools,' then following the link to 'Windows Update'.");
+	}
+    }
+}
+
+
+
+function propsAlert(arg, freq) {
+    var i;
+    var count=0;
+    if (!freq) freq = 20;
+    var str = "";
+    arg = getObject(arg);
+    for (i in arg) {
+        if (i=="innerHTML") str += i+ ":[deleted to save output]\n";
+	else str += i + ":" + arg[i] + "\n";
+	if (i == "style") {
+	    for (var j in arg.style) {
+		str += "style " + j + ":" + arg.style[j] + "\n";
+		count++;
+		if (count%freq == 0) {
+		    alert(str);
+		    str="";
+		}
+	    }
+	}
+	count++;
+	if (count%freq == 0) {
+	    alert(str);
+	    str="";
+	}
+    }
+    alert(str);
+}
+
+function theApplet() {
+    if (document.applets && document.applets.length>0) 
+	return document.applets[0]; 
+    if (document.embeds.length>0) 
+	return document.embeds[0]; 
+}
+
+function camName() {
+    var app = theApplet();
+    if (app) return app.getCam();
+}
+
+var diskSpaceAlertGiven = false;
+var storageLimit = "$O(1.13.8)";
+var storageUsed = "$O(1.13.12)"; 
+var firstCall = true;
+function checkDiskUsage() {
+    if (storageLimit==0) return;
+
+    if (camName() == "$O(2.4)") {
+	
+	if (!firstCall) {
+	    storageUsed = getOIDVal("1.13.12"); 
+	}
+	if (storageUsed.toLowerCase()=="unknown") storageUsed = 0;
+	firstCall = false;
+	var percentage = 100.0;
+	if (storageLimit >0) {
+	    percentage = 100*storageUsed/storageLimit;
+	}
+
+	
+	var roundedLimit = Math.round(storageLimit * 10)/10;
+	if (storageLimit<0.1) roundedLimit = storageLimit-0;
+	percentage = Math.round(percentage);
+
+	var out = percentage + "% of " + roundedLimit + " GB used";
+	
+	var overwrite = "$O(1.13.9)".toLowerCase();
+
+	if (percentage>80 && overwrite=="disabled") {
+	    if (getObject("footertext")) { 
+		getObject("footertext").innerHTML = 
+		    "<font color=red>" + out + "</font>";
+	    } else {
+		window.status = out;
+		if (!diskSpaceAlertGiven) {
+		    alert("Your archive disk has only " + (100-percentage) 
+			  + "\%\nof its disk space free.");
+		}
+		diskSpaceAlertGiven = true;
+	    }
+	}
+    }
+    setTimeout("checkDiskUsage()", 900000); 
+}
+
+var recorderState = "$O(1.13.11)";
+if (recorderState == "DISABLED") {
+    if (document.cookie.length<=0 ||
+	document.cookie.indexOf("notRecordingAlert")==-1) {
+	var reply = confirm
+	    ("Your camera is not recording images.\n"
+	     +"Starting PLAYBACK requires a Java plug-in.\n"
+	     +"If you do not have this plug-in and are\n"
+	     +"connected to the internet, it will automatically\n"
+	     +"download.\n"
+	     +"Continue?");
+	document.cookie = "notRecordingAlert=true";
+	
+	if (!reply) window.location.replace("dptzvid.html");
+    }
+}
+
+function openDptzvid() {
+    
+    
+
+    
+    
+    
+    
+
+    location.replace("dptzvid.html");
+
+    
+    
+}
+
+function openRecorderset() {
+
+    window.open("recorderset.html");
+    
+}
+
+
+
+var pluginCodebase = 
+    "http://java.sun.com/products/plugin/autodl/jinstall-1_4_2_04-windows-i586.cab#Version=1,4,2,01";
+
+
+var pluginsPage = "http://java.sun.com/products/plugin/index.html";
+
+
+
+var appletType = "application/x-java-applet;version=1.4.2"; 
+
+
+var classid = '"clsid:8AD9C840-044E-11D1-B3E9-00805F499D93" ';
+
+
+function writeFooterApplet() {
+    var outString = "";
+    
+    if (needsIframe) {
+        outString +=
+            '<iframe name="commandIframe" id="commandIframe" '
+            + 'frameborder=0 scrolling=no '
+	    
+	    
+	       + 'width=1 height=1 marginwidth=0 marginheight=0 align=top '
+
+	    
+	    
+	    
+	    + 'src=get.oid?2.27></iframe>';
+	document.write(outString);
+    } else { 
+	
+	
+	document.write ('<div id="Footer">Footer</div>');
+	var outString = '<OBJECT '
+	    + 'classid=' + classid
+	    + 'id="sendcomm" width=1 height=1\n'
+	    + 'codebase="' + pluginCodebase + '">\n'
+	    + '<param name="code" value="SendCommand.class">\n'
+	    + '<param name="scriptable" value="true">\n'
+ 	    + '<param name="type" value="' + appletType + '">\n'
+	    + '<comment>\n'
+	    + '<embed name="sendcomm" code=SendCommand.class '
+	    + 'type="' + appletType + '" '
+	    + 'width = 1 height = 1 '
+	    + 'pluginspage="' + pluginsPage + '">'
+	    + '<noembed></comment>'
+	    + 'No Java 1.4.2 applet support</noembed></embed></object>';
+	CreateApplet ("Footer", outString);
+    }
+}
+
+checkBrowserVersion();
+
+</script>
+</head>
+
+
+<body BGCOLOR="#FFFFFF" TEXT="#808080" 
+ LINK="#800000" VLINK="#800000" ALINK="#808080"
+ onLoad="setTimeout('checkDiskUsage()', 5000)">
+
+<noscript>
+  <font color="#FF0000">
+    <b>You must enable Javascript<br>to see an image.</b>
+  </font>
+</noscript>
+
+
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+  <script>
+  writeViewingHeader("playback"); </script> 
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=566></td>
+  <td colspan=2 valign="top" align="left">
+
+<table cellspacing=0 cellpadding=0 class="content">
+
+<tr align="left"> 
+  <td style="padding: 44px 0 4px 3px">
+
+<div id = "Playback">Playback</div>
+<script>
+
+var myIP="$SI";
+var recorderIP = "$O(8.1.1.trigger)";
+var recorderPath = "$O(1.13.4)";
+var useHTTP = false;
+var internalPathRE = "hdisk";
+var removablePathRE = "pccard";
+
+if ((myIP == recorderIP || recorderIP == "127.0.0.1") &&
+    (recorderPath.match(internalPathRE) ||
+     recorderPath.match(removablePathRE))) {
+     
+     useHTTP = true;
+}
+
+
+var path = "$DEF(foo,$O(1.13.4))$RPL(\,/,$V(foo))";
+
+var outString = '<OBJECT classid=' + classid 
+	+ 'id="playbackApplet"\n'
+	+ 'width=790 height=479\n'
+        + 'codebase="' + pluginCodebase + '">\n'
+	+ '<param name=code value=Playback.class>\n'
+	+ '<param name=archive value=Playback.jar>\n'
+        + '<param name="type" value="' + appletType + '">\n'
+	+ '<param name="camname" value="$O(2.4)">\n'
+	+ '<param name="buttonColor" value=$V(COLOR)>\n';
+$IF($V(IQERS), outString += '<param name="iqers" value="true">\n';,)
+if (useHTTP)
+     outString += '<param name="HTTP" value="true">\n'
+	+ '<param name="ftphost" value="' + window.location.host + '/' + path + '">\n'
+else
+     outString += '<param name="ftphost" value="$O(8.1.1.trigger)/' +
+path + '">\n';
+
+
+var altIP = "$O(17.2.1)";
+var altPort = "$O(17.2.2)";
+if (altPort) altIP += ":" + altPort;
+if (altIP) 
+    outString += '<param name="ftpalthost" value="'
+      + altIP + '/' + path + '">\n'
+
+
+var username = "$O(8.1.5.trigger)";
+if (!useHTTP && username && username.toLowerCase() != "anonymous")
+    outString += '<param name="username" value="' + username + '">\n'
+    +'<param name="password" value="$O(1.13.5)">\n';
+
+
+outString += '<comment>\n';
+outString += '<embed '
+    + 'name="Playback" '
+    + 'type="' + appletType + '" '
+    + 'code=Playback.class '
+    + 'archive="Playback.jar" '
+    + 'width=790 height=479 '
+    + 'pluginspage="' + pluginsPage + '" '
+    + 'camname = "$O(2.4)" '
+    + 'buttonColor=$V(COLOR) ';
+$IF($V(IQERS), outString += 'iqers="true" ';,)
+if (useHTTP)  {
+     outString += 'HTTP="true" '
+     + 'ftphost = "' + window.location.host + '/' + path + '" ';
+}
+else {
+     outString += 'ftphost = "$O(8.1.1.trigger)/' + path + '" ';
+     if (username && username.toLowerCase() != "anonymous") 
+	  outString += 'username="' + username + 
+	       '"password="$O(1.13.5)" ';
+}
+if (altIP) 
+    outString += 'ftpalthost="' + altIP + '/' + path + '" '
+outString += '><noembed></comment>'
+    + 'No Java 1.4.2 applet support</noembed></embed></object>';
+
+CreateApplet ("Playback", outString);
+
+</script>
+
+   </td>
+  </tr>
+</table>
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+
+
+<script>
+  writeFooterApplet();</script>
+
+</body>
+</html>
+
+<!--
+notes
+pluginspage="http://java.sun.com/products/plugin/1.3.1/plugin-install.html">
+pluginspage="http://java.sun.com/products/plugin/1.1.2/plugin-install.html">
+codebase="http://java.sun.com/products/plugin/autodl/jinstall-1_4_0-win.cab#Version=1,4,0,0"
+-->
+
+

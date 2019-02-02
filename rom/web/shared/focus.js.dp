@@ -1,0 +1,124 @@
+
+
+if (needsApplet) enableJavaAlert();
+
+var maxWidth = $O(1.2.18.3,B);
+var maxHeight= $O(1.2.18.4,B);
+
+
+var focusHeight = 128;
+var focusWidth = 128;
+var imAttr = "width=" + (2*focusWidth) + " height=" + (2*focusHeight); 
+var imString = '"now.jpg?snap=spush?ds=1?sh=0?ov=0?wx=0?ww=' + focusWidth +
+   '?wy=0?wh=' + focusHeight + '?wm=focus"';
+
+var thermMax = 25; 
+
+function thermBarApplet() {
+    return document.applets["thermBar"]; 
+
+
+}
+
+
+function setBlueTherm(val) {
+    if (needsApplet) {
+	thermBarApplet().setValue(val/100);
+	return;
+    }
+    
+    
+    var end = val*thermMax/100;
+    var i;
+    for (i=0; i<end && i<thermMax; i++) {
+	if (document.images && document.images['bar'+i])
+	    document.images['bar'+i].src  = blueImage.src;
+    }
+    for (; i<thermMax; i++) {
+	if (document.images && document.images['bar'+i])
+	    document.images['bar'+i].src = clearImage.src;
+    }
+    return val;
+}
+
+function writeThermBar() {
+    if (isVAV) return;
+    if (needsApplet) {
+	document.write
+	    ('<applet code="ThermBar.class" name="thermBar" '
+	     + 'width="500" height="20">'
+	     + '<param name="background" ' + 'value="#FFFFFF">\n'
+	     + '<param name="foreground" ' + 'value="#0000FF">\n'
+	     + '</applet>');
+	document.write
+	    ('<img name=end src="1pixgreen.gif" width="20" height="20">');
+	return;
+    }
+    
+    
+    
+    
+    
+    for (var i=0;i<thermMax;i++)
+	document.write('<img name=bar'+i + ' src="1pixclear.gif" width="20">');
+    document.write
+	('<img name=end src="1pixgreen.gif" width="20" height="20">');
+}
+
+
+
+
+
+var focusMax = "$O(1.2.25)" - 0;
+var focusMin = focusMax;
+focusMax = parseInt(1.1 * focusMax);
+focusMin = parseInt(0.9 * focusMin);
+var avg = focusMax;
+
+var INTERVAL = 500;
+
+
+
+if (isNav6) INTERVAL = 2000;
+
+function startTherm() {
+    var therm;
+    var focusVal = getOIDVal("1.2.25")-0;
+
+    avg = avg/2 + focusVal/2;
+    
+    if (focusVal>focusMax) focusMax = focusVal;
+    if (focusVal<focusMin) focusMin = focusVal;
+
+    else { 
+	var range = focusMax-focusMin;
+	focusMax = parseInt(focusMin + 0.98*range);
+	if (focusMax<focusVal) focusMax = focusVal;
+
+	focusMin = parseInt(focusMin + 0.02*range);
+	if (focusMin>focusVal) focusMin = focusVal;
+    }
+
+    if (focusMax==focusMin) { 
+	setBlueTherm(50); 
+	therm = 50;
+    }
+    else {
+	var therm;
+	if (avg<focusMin) therm = 0;
+	else therm = 100*(avg-focusMin)/(focusMax-focusMin);
+	setBlueTherm(therm);
+    }
+    if (document && document.myform && document.myform.focusVal)
+	document.myform.focusVal.value = focusVal;
+    
+    setTimeout("startTherm()", INTERVAL);
+}
+
+
+
+var clearImage = new Image();
+var blueImage = new Image();
+clearImage.src = "1pixclear.gif";
+blueImage.src = "1pixblue.gif";
+

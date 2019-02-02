@@ -1,0 +1,260 @@
+<table>
+<tr><td height="5"><a name="setup-pccard">
+<img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td></tr>
+<tr><td colspan=3><b><font size="+3">PC card setup</font></b>
+ $IF($V(MANUAL),<b>(IQeye3W only)</b></p><p>,)
+  </td></tr>
+<tr><td height="5"></td></tr>
+<tr><td></td><td>
+$IF($V(MANUAL),,his section does not apply to all cameras.)
+
+<p>Use the text input fields and pull-down menus on this page to enter
+your camera's 802.11 PC card settings. 802.11 is a standard for
+wireless Ethernet networking. In the United States, the default 802.11
+settings will probably suffice.  In other countries, users must set
+the Region before 802.11 functionality will be available.  This help
+file assumes that you have basic understanding of 802.11 concepts.  If
+you do not, please refer to the IEEE 802.11 Standard or the
+documentation that came with your PC card or Access Point.
+You must reboot your camera for any changes to these settings
+to take effect.
+
+<a name="pccard-setup"></a>
+<p><b><a name="pccard-state"></a>802.11</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Whether or not your $V(SP) is currently using a pccard to connect
+to a network is indicated by "active" or "inactive" in the heading
+for this field.
+
+Set this field to "enabled" to use your $V(SP) in an 802.11 network. 
+Then your $V(SP) will check for a compatible wireless 
+networking PC card at startup. If a such a card is present, your
+$V(SP) will enable wireless networking and ignore the 10/100BASE-T 
+Ethernet interface. If not, your $V(SP) will 
+use the 10/100BASE-T Ethernet interface.
+
+<p><b><a name="pccard-region"></a>region</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+When using 802.11 networking, you must properly configure the 
+regulatory region under which you will operate your $V(SP). 
+Incorrectly configuring 
+this option may cause your $V(SP) to broadcast on frequencies 
+that are illegal in your area. 
+The default setting is correct for the United States; 
+users in other countries should correct it before attempting 802.11 operation. 
+
+<p><div align='center'> 
+<table border=1 bordercolor='#D3D3D3'  
+cellspacing=1 cellpadding=10 width="80%"> 
+<tr align=center>  
+<td bgcolor='#D3D3D3'><b>Value</b></td> 
+<td bgcolor='#D3D3D3'><b>Region</b></td> 
+<td bgcolor='#D3D3D3'><b>Allowed Channels</b></td> 
+</tr> 
+<tr><td>FCC</td><td>United States<!--(the default)--></td><td>1-11</td></tr> 
+<tr><td>IC</td><td>Canada</td><td>1-11</td></tr> 
+<tr><td>ETSI</td><td>Europe (most countries - check with 
+your local regulatory body whether the entire ETSI frequency 
+range is allowed in your area)</td><td>1-13</td></tr> 
+<tr><td>SPAIN</td><td>Spain</td><td>10-11</td></tr> 
+<tr><td>France</td><td>France</td><td>10-13</td></tr> 
+<tr><td>MKK</td><td>Japan</td><td>14</td></tr> 
+</table></div> 
+
+<p><b><a name="pccard-macaddr"></a>MAC address</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+A MAC address is a unique identifier that distinguishes different 
+devices on a network. It is also known as a hardware address. 
+
+<p>For networking purposes, your $V(SP) can be configured to use either
+the PC card's MAC address 
+or its own internal MAC address<!--(the default)-->.  
+Using your $V(SP)'s MAC address allows for more seamless
+operation when switching between wired and wireless networking.
+
+<p>Some cards do not allow using an alternate MAC address
+and will force this setting to "card" and not accept a change to "camera."
+
+<p><b><a name="pccard-channel"></a>channel</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+The frequency band allocated to 802.11 wireless communications is
+divided into different channels to allow subnetworking.
+Your $V(SP) needs to know which channel it should use for
+communications -- it will be the same as the one being used by the
+local Access Point. Setting the channel to "Any"<!--, the default,-->
+causes your $V(SP) to use the channel used by the strongest
+Access Point with the same ESSID.
+
+<p>Note: Because some of the channels overlap slightly, avoid using 
+adjacent channels within a workgroup area.  Otherwise crosstalk and lower 
+throughput may result. Channel overlap depends on the Region 
+setting -- see your PC card documentation for specific information about 
+which channels are available in your area. 
+
+<p>The channel setting relates to the network type setting. For 
+infrastructure network type, you should set the channel to "Any" 
+so that your $V(SP) can sync with an Access Point. 
+For Ad-Hoc network type, you should 
+set a specific channel number so that your $V(SP) can start a new IBSS 
+if needed. When the channel is set to "Any", your $V(SP) can only join 
+an existing IBSS. 
+
+<p>The current channel value can only be retrieved if the
+$IF($V(MANUAL),status,<a href="#pccard-status">status</a>)
+of this card is "Running".
+
+<p><b><a name="pccard-essid"></a>ESSID</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+An ESS (Extended Service Set) is a network of two or more 
+$IF($V(MANUAL),BSSs,<a href="#pccard-bssid">BSSs</a>).
+
+<p>Whenever there is more than one ESS in a wireless LAN architecture, 
+devices need to be told which ESS they belong to. The ESSID ensures 
+that devices communicate with the right Access Point. 
+
+<p>The exact string you enter for ESSID will be determined by the 
+settings of the Access Point with which you want your $V(SP) 
+to communicate. The maximum length of an ESSID is 32 characters.
+Note that ESSID is case-sensitive.
+
+<p>You can enter "None" or an empty string to associate your $V(SP) 
+with the Access Point that gives the strongest signal.
+
+<p><b><a name="pccard-mode"></a>network type</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+There are two types of 802.11 networks: ad-hoc and infrastructure. In
+an ad-hoc network, devices communicate directly with one another on a
+peer-to-peer basis.  This mode would be used, for example, in an IBSS
+(Independent BSS, a 
+$IF($V(MANUAL),BSS,<a href="#pccard-bssid">BSS</a>).
+with no Access Points).  Not all 802.11 cards
+support ad-hoc mode.  In an infrastructure network<!--(the default)-->,
+several devices communicate with one or more Access Points, and the
+Access Points may or may not be connected to a physical Ethernet
+network.
+
+<a name="pccard-security"></a>
+<p><b><a name="pccard-wepstate"></a>WEP state</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Enables or disables Wired Equivalent Privacy (WEP).
+If enabled, all outgoing communication through this PC card
+will be encrypted with your camera's WEP key, and all
+encrypted incoming communication will be decrypted using this key.  
+
+<p>Note: not all cards support WEP. 
+
+<p><b><a name="pccard-wepkey"></a>WEP key</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the WEP key used to encrypt and decrypt communication with
+this PC card.  The initial display will show whether the current key
+is a 40-bit or 128-bit key.  A 40-bit key takes the form
+XX-XX-XX-XX-XX and a 128 bit key takes the form
+XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX, where each XX is a two digit
+hexadecimal value representing one 8-bit byte of data.
+
+<p><b><a name="pccard-wepindex"></a>WEP index</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the index of the WEP key.  Access points may simultaneously
+use up to four WEP keys.  Your camera can use one WEP key, but may
+assign it any index.  For the keys of two stations to match, both the
+key data and the index must match.
+
+<p><b><a name="pccard-weprx"></a>WEP rx</b>
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies whether this PC card accepts "all" or only "encrypted" data.
+For maximum security, WEP users should set this to "encrypted", but
+this is not feasible in all situations.
+
+
+<p><b><a name="pccard-antenna"></a>receiving antennae</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+List of antennas used to receive data.  Not
+all cards support changing the set of antennas active for receive.
+Possible values are "default" or a comma-separated list of receive
+antenna numbers.
+
+<p><b></a>transmitting antennae</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+List of antennas used to transmit data.  Not
+all cards support changing the set of antennas active for transmit.
+Possible values are "default" or a comma-separated list of transmit
+antenna numbers.
+
+<p><b><a name="pccard-rtsthresh"></a>RTS threshold</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the transmit packet size at which the PC card will
+use RTS/CTS negotiation to assure a clear channel rather than
+transmitting on a possibly contentious channel.  Performance will be
+improved by raising this value on a channel that is experiencing very
+few collisions, and lowering it on a channel that is experiencing many
+collisions.  Valid values are integers from 0 to 3000, inclusive.
+
+<p><b><a name="pccard-fragthresh"></a>fragment threshold</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the transmit packet size at which the PC card will
+break the communication packets into smaller fragments and transmit
+each fragment separately.  This is used in performance tuning, similarly to
+$IF($V(MANUAL),RTS threshold,<a href="#pccard-rtsthresh">RTS threshold</a>)
+Valid values are integers from 256 to 2346, inclusive.
+
+<p><b><a name="pccard-powerlev"></a>power level</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the transmit power level, in milliwatts, at the physical
+transmitter.  Valid values are "default" or an integer power level.
+
+<p>Not all cards support selection of a specific transmit power.
+
+<a name="pccard-status"></a>
+<p><b><a name="pccard-card"></a>current card</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Identifies the card that is currently in the PC card slot.
+
+<p><b><a name="pccard-firmware"></a>card firmware revision</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the version number of the software running on this PC card.
+
+<p><b><a name="pccard-status"></a>status</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+Specifies the status of the 802.11 connection.
+Not all cards support retrieval of this value.
+
+<p>
+Data may pass through the card only in the "Running" state.  
+Possible values are "Error", "Initializing", "Reset", "Connecting",
+"Scanning", "Syncing", "Authenticating", "Associating",
+"Running", "Reassociating", "Unknown", and "N/A".
+Most of these states are transitory and are unlikely to be seen.
+The ones that are more likely are:
+<ul>
+<li>Running: The wireless link is up and operating.
+<li>Error: Unrecoverable error.  The wireless link is down and cannot be
+    brought up until user intervention clears up the cause of the
+    error.  Check the error bits for clues as to what's going on.
+<li>Connecting: The card is operating and it is searching for an AP 
+    or adhoc network. The link will come up automatically as soon as a 
+    suitable AP or adhoc network is found.
+<li>Scanning: (essentially the same as Connecting).
+<li>N/A: There is no supported wireless card installed in your $V(SP).
+</ul>
+
+<p><b><a name="pccard-errors"></a>errors</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+For information about the data in this field, please 
+refer to the appendix of the IQeye
+Reference Manual.
+
+<p><b><a name="pccard-bssid"></a>BSSID</b> 
+$IF($V(MANUAL),<b>(IQeye3W)</b></p><p>,)
+A BSS is a Basic Service Set, or Cell, consisting of one or more Access 
+Points and their associated wireless devices.  
+
+This field specifies the identifier of the BSS wireless network 
+in which this PC card is participating.  The value is given
+as a 47-bit Ethernet MAC address.
+
+<p> This value will be available only if the 
+$IF($V(MANUAL),status,<a href="#pccard-status">status</a>)
+of this card is "Running".
+
+<tr><td height="5"></td></tr>
+</table>

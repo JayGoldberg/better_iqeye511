@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Link</title>
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+
+<script >
+
+function MM_goToURL() { 
+  for (var i=0; i< (MM_goToURL.arguments.length - 1); i+=2) 
+    eval(MM_goToURL.arguments[i]+".location='"+MM_goToURL.arguments[i+1]+"'");
+  document.MM_returnValue = false;
+}
+
+</script>
+</head>
+
+<body onLoad="MM_goToURL('parent','http://$SI');return document.MM_returnValue">
+</body>
+</html>

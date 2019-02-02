@@ -1,0 +1,542 @@
+<!-- Copyright (C) 2007 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Trigger settings</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- internal styles -->
+<style type="text/css">
+
+#email_trigstatus {font: 12px Arial, Verdana, sans-serif; color: red;
+    font-weight: bold; white-space: nowrap;}
+
+
+#ftp_trigstatus {font: 12px Arial, Verdana, sans-serif; color: red;
+    font-weight: bold; white-space: nowrap;}
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+$INC(downsample.js.dp)
+
+if ("$O(1.13.11, R)"=="ENABLED") 
+    location.replace("recordertriggerset.html");
+
+enableJavaAlert();
+
+
+
+var dom = '$O(3.6.4)'; 
+
+var numpretrig = $O(1.3.8.1);  
+var numposttrig = $O(1.3.7.1);  
+
+var triggerAction = '$O(1.3.13,B)';
+triggerAction = triggerAction.toLowerCase();
+
+var maxTriggerImages = 8;
+
+function formatIsValid(field) { 
+    var val = field.value;
+    var name = field.name;
+    if (name == "OidTB3.6.13") {  
+	var pattern = /^\s*none\s*$$/i;
+        if (val == "none") { 
+	    field.value = "None";
+	}
+	if (val.match(pattern)) {
+	    return true;
+	}
+	if (! isAnIPAddress(field)) { 
+	    alert("You must enter `none' or an ip address in the form nnn.nnn.nnn.nnn");
+	    select(field);
+	    return false;
+	}
+	return true;
+    } 
+    if (name == "OidTB1.3.6"  ||  
+	name == "OidTB1.3.7.2" || name == "OidTB1.3.8.2") {
+	if ((isNaN(parseFloat(val))) || (val < 0) || (val > 86399)) {
+	    alert("Please input a number from 0 through 86399.0");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	
+	field.value = val.replace(/\s/g,"");
+	return true;
+    }
+    if (name == "OidTB3.6.4") { 
+	
+	var exp = new RegExp("^(\\S+)$$"); 
+	var arr = val.match(exp);
+	if (arr == null) { 
+	    alert("Please enter a valid domain name");
+	    select(field);
+	    return false;
+	}
+	dom = val;
+	return true;
+    }
+    if (name == "OidTB1.3.3") { 
+	if ((isNaN(parseFloat(val))) || (val < 0) || (val > 3600)) {
+	    alert("Please input a number from 0 through 3600.0");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.3.8.1") { 
+	if ((isNaN(parseInt(val))) || (val < 0) || (val > maxTriggerImages)) {
+	    alert("Please input a number from 0 through " + maxTriggerImages);
+	    field.value = 0;
+	    return false;
+	}
+	numpretrig = parseInt(val);
+	if (numpretrig + numposttrig > maxTriggerImages) {
+	    alert
+             ("The number of pre- and post- trigger images must be "
+	      + maxTriggerImages + " or less");
+	    numpretrig = field.value = 0;
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.3.7.1") { 
+	if ((isNaN(parseInt(val))) || (val < 0) || (val > maxTriggerImages)) {
+	    alert("Please input a number from 0 through " + maxTriggerImages);
+	    field.value = 0;
+	    return false;
+	}
+	numposttrig = parseInt(val);
+	if (numpretrig + numposttrig > maxTriggerImages) {
+	    alert
+             ("The number of pre- and post- trigger images must be "
+	      + maxTriggerImages + " or less");
+	    numposttrig = field.value = 0;
+	    return false;
+	}
+	return true;
+    }
+    
+    if (name.match("OidTB8.1.1") || name.match("OidTB8.1.2") 
+	|| name.match("OidTB9.1.1") 
+	|| name.match("OidTB9.1.3") 
+	) { 
+	if (val.length >31) {
+	    alert("Please input 31 characters or less");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+    if (name.match("OidTB9.1.4")   
+	|| name.match("OidTB9.1.2") 
+	) { 
+	if (val.length >63) {
+	    alert("Please input 63 characters or less");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+
+    
+    if (name.match("OidTB8.1.5")) {
+	if (val.length > 63) {
+	    alert("Please input 63 characters or less");
+	    return false;
+	}
+	return true;
+    }
+    
+    if (name.match("OidTB8.1.6")) {
+	if (val.length > 32) {
+	    alert("Please input 32 characters or less");
+	    return false;
+	}
+	return true;
+    }
+    if (name.match("OidTB9\.1\.")) { 
+	if (! dom) {
+	    alert("domain name must be set");
+	    field.value = "";
+	    select(document.myform["OidTB3.6.4"]); 
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.12.1") { 
+	
+	var exp = /[^\w\.\/\_]/
+	if (val.match(exp)) { 
+	    alert("Please use only alphanumeric characters, '/', '_', and '.'");
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.12.2") { 
+	val = parseInt(val);
+	if (isNaN(val) || val<0 || val > 100) {
+	    alert("Please enter an integer percentage from 0 through 100.");
+	    select(field);
+	    return false;
+	}
+	field.val = val;
+	return true;
+    }
+    return true;
+}
+
+function trig_factory() {
+    var msg =
+	"This will set all trigger" + 
+	" settings to factory default values.\r\nDo you want to continue?";
+    if (confirm(msg)) {
+        submit ("OidCB1.3.2", "ON", "OidCB8.4", "ON", "OidCB9.6", "ON");
+	reloadLater();
+    }
+    return false;
+}
+
+function setTriggerAction(field) {
+     var outval = field.options[field.selectedIndex].value;
+     setEcam2("OidTB1.3.13", escape(outval));
+     triggerAction = outval.toLowerCase();
+}
+
+function checkTriggerActionBoxes() {
+    var triggerStr = '$O(1.3.13,B)';
+    var expr = /email/i;
+    if (triggerStr.match(expr))
+	document.myform.trigEmail.checked=true;
+    expr = /ftp/i;
+    if (triggerStr.match(expr)) {
+	document.myform.trigFTP.checked=true;
+    }
+    expr = /archive/i;
+    if (triggerStr.match(expr) && document.myform.trigArchive)
+	document.myform.trigArchive.checked=true;
+}
+
+function writeTriggerActionSelect() {
+     var triggerStr = '$O(1.3.13,B)';
+     var expr = /email/i;
+     var email = false;
+     var ftp = false;
+     var both = false;
+     var none = false;
+     if (triggerStr.match(expr))
+	  email = true;
+     expr = /ftp/i;
+     if (triggerStr.match(expr))
+	  ftp = true;
+     if (email && ftp) {both=true;none=false;}
+     else if (!email && !ftp) {both=false;none=true;}
+     var outstring = 
+     '<select onchange="setTriggerAction(this);"><option value="ftp"';
+     outstring += (ftp && !both) ? ' selected>' : '>';
+     outstring += 'FTP<option value="email"';
+     outstring += (email && !both) ? ' selected>' : '>';
+     outstring += 'e-mail<option value="ftp email"';
+     outstring += both ? ' selected>' : '>';
+     outstring += 'both<option value="none"';
+     outstring += none ? ' selected>' : '>';
+     outstring += 'none</select>';
+     document.write(outstring);
+}
+
+function setPath(field) {
+    var val = field.value;
+    setEcam2("OidTB8.1.4.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function setPassword(field) {
+    var val = field.value;
+    if (val.length >15) {
+	alert("Please input 15 characters or less");
+	select(field);
+	return false;
+    }
+    var exp = /[^a-zA-Z0-9]/; 
+    if (val.match(exp)) {
+	
+	alert("Please input only letters or numerals\n");
+	select(field);
+	return false;
+    }
+
+    setEcam2("OidTB8.1.6.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function doTestTrigger() {
+     setEcam2("OidCB1.3.10", "ON");
+     if (triggerAction == "none")
+        alert ("No trigger action specified.");
+}
+
+
+var StatUpdating = 0; 
+
+function AjaxDone (result_code, http_status, result_text)
+{
+   if (StatUpdating == 0)
+      updateEmailStat (result_text);
+   else
+      updateFtpStat (result_text);
+   StatUpdating = 1-StatUpdating;
+   if (result_code == 0) {
+      window.setTimeout ('startStatusUpdate();', 5000);
+   }
+}
+
+function updateEmailStat (text)
+{
+    if (!getObject ("email_trigstatus")) return;
+    if (!(text.toLowerCase() != "success" ||
+	  text.toLowerCase() != "none")) text += " error";
+    getObject ("email_trigstatus").innerHTML = text;
+}
+
+function updateFtpStat (text)
+{
+    if (!getObject ("ftp_trigstatus")) return;
+    if (!(text.toLowerCase() != "success" ||
+	  text.toLowerCase() != "none")) text += " error";
+    getObject ("ftp_trigstatus").innerHTML = text;
+}
+
+function startStatusUpdate ()
+{
+   if (StatUpdating) {
+      if (AjaxGetOid ("8.1.9.trigger") == false) 
+         updateFtpStat ("XML error");
+   }
+   else {
+      if (AjaxGetOid ("9.1.5.trigger") == false)
+         updateEmailStat ("XML error");
+   }
+}
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)"'
+    + ' onClick=\'doTestTrigger()\''
+    + ' onMouseOver="window.status=\'trigger camera event now\'; return true;"'
+    + ' onMouseOut="window.status=\'\';">'
+    + 'test trigger</a></li>\n' 
+    + '<li><a href="javascript:void(0)"'
+    + ' onClick=\'return trig_factory()\''
+    + ' onMouseOver=\'window.status="restore factory trigger defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'factory defaults</a></li>\n';
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+
+<form name="myform" method="post">
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+<table class="main" cellspacing=0 cellpadding=0 width=820>
+<script>
+  writeSettingsHeader("trigger"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=780>
+    <tr>
+      <!-- the image area -->
+      <td width=330 height=330 style="padding: 44px 18px 4px 38px;
+         background: url(gray.gif) no-repeat;" 
+         valign="top" align="left">
+        <script>
+          
+          writeCroppedImage();
+          
+	  
+	  
+       </script></td>
+      <td rowspan=2 valign="bottom" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">        <tr>		    
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle">Trigger Settings
+             <script>
+              writeHelpIcon("trig-gen");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">actions
+            <script>
+              writeTriggerActionSelect();     
+            </script>
+
+          </td></tr>
+          <script>
+          if (hasMotionSupport) {
+  	    document.write('<tr><td class="left">&nbsp;</td>'
+		   + '<td class="input">motion $O(1.3.19,JSB)</td></tr>');
+        
+	  }  
+     	</script>
+        $IF($V(IQEYE5),<!--,)
+        $IF($V(IQEYE7),-->,)
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input">external input $O(1.3.4,JSB)</td></tr> 
+        $IF($V(IQEYE7),<!--,)
+        $IF($V(IQEYE5),-->,)
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input"> 
+            time lapse period</font>
+            $O(1.3.6,JTB8)</td></tr>
+<!--
+              Setting this greater than 0
+              will cause your $SP to trigger periodically.</p>
+-->
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">image size
+            <script>
+              writeDownSampleSelect();     
+            </script></td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input">forced idletime(sec) $O(1.3.3,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input"># pre-trigger images $O(1.3.8.1,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">pre-trigger interval (sec) $O(1.3.8.2,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input"># post-trigger images $O(1.3.7.1,JTB) </td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub">post-trigger interval (sec) $O(1.3.7.2,JTB)</td></tr>
+
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle">E-mail
+             <script>
+              writeHelpIcon("trig-email");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">from$O(9.1.3.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">subject$O(9.1.2.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub">recipient(s) $O(9.1.4.trigger,JTB22)</td></tr>
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle">FTP
+             <script>
+              writeHelpIcon("trig-ftp");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">FTP hostname $O(8.1.1.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">username $O(8.1.5.trigger,JTB10)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">password <!--$O(8.1.6.trigger,JPB) -->
+            <input type="password" name="password" id="password" 
+             value="******" size="10" 
+             onChange="setPassword(this)">
+            </td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">file name $O(8.1.3.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub">file path
+            <input name="recorderpath" value="$O(8.1.4.trigger)" size="20" 
+             onChange="setPath(this)"></td></tr>
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left">
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle">Status
+             <script>
+              writeHelpIcon("trig-status");</script></td></tr>
+        <tr> 
+          <td class="startsubleftg">&nbsp;</td>
+	      <td class="startsubg" align="left">e-mail status:
+            <script>
+              document.write ('<span id="email_trigstatus">&nbsp</span>');
+	    </script>
+          </td>
+	</tr>
+        <tr> 
+          <td class="endsubleftg">&nbsp;</td>
+	      <td class="endsubg" align="left">FTP status:
+            <script>
+              document.write ('<span id="ftp_trigstatus">&nbsp</span>');
+	    </script>
+	  </td>
+	</tr>
+        </table>
+      </td></tr> <!-- end bottom left content -->
+  </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<script>
+  writeFooter('myDefaults');
+  startStatusUpdate ();
+</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>
