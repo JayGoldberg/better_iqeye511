@@ -15,12 +15,12 @@ $IF($V(VAV),var isVAV = true;,var isVAV = false;)
 
 $INC(oeminfo.js.dp)
 
-var isPTZ =  "$O(1.4.7,B)"; 
+var isPTZ =  "$O(1.4.7,B)";
 isPTZ =  (isPTZ == "YES" || isPTZ == "yes" || isPTZ == "Yes") ? true:false;
 
 var prodID = "$O(2.21)";
 
-var isIQeye2 = prodID.match("1"); 
+var isIQeye2 = prodID.match("1");
 
 var isIQeye3 = (prodID == "2a") || (prodID == "2f") || (prodID == "29");
 var isIQevent = (prodID == "2f");
@@ -35,16 +35,16 @@ var isIQeye500 = (prodID=="3c");
 var isIQeye6 = (prodID=="2d") || (prodID=="3c") || (prodID=="3b") || (prodID=="4d");
 
 var hasNightModeSupport = !isIQeye2;
-var hasHotSpotSupport = isIQeye2; 
-var hasPCCardSupport = $O(2.40.1); 
+var hasHotSpotSupport = isIQeye2;
+var hasPCCardSupport = $O(2.40.1);
 hasPCCardSupport = (hasPCCardSupport > 0) ? true:false;
-var hasAudioSupport = "$O(2.40.2)"; 
+var hasAudioSupport = "$O(2.40.2)";
 hasAudioSupport = (hasAudioSupport>0) ? true:false;
-var hasIrisConnector = "$O(2.40.3)"; 
+var hasIrisConnector = "$O(2.40.3)";
 hasIrisConnector = (hasIrisConnector > 0) ? true:false;
-var hasMotionSupport = "$O(1.11.5)"; 
+var hasMotionSupport = "$O(1.11.5)";
 hasMotionSupport = (! hasMotionSupport.match("Err::Unknown OID"));
-var hasColorSupport = "$O(1.2.20.2)"; 
+var hasColorSupport = "$O(1.2.20.2)";
 hasColorSupport = (hasColorSupport!=0) ? true:false;
 var hasPrivacySupport = (isIQeye5 || !isIQeye6) ? true:false;
 var hasExposureSupport = (isIQeye5 || !isIQeye6) ? true:false;
@@ -67,7 +67,7 @@ else {
      }
 }
 
-var authMode = "$O(7.6)"; 
+var authMode = "$O(7.6)";
 authMode = authMode.toLowerCase();
 
 
@@ -90,27 +90,27 @@ var serverNameString = "$SN";
 
 
 
-var settings = new Object();     
-var viewing = new Object();      
-var cameo = new Object();      
+var settings = new Object();
+var viewing = new Object();
+var cameo = new Object();
 
 
 
 
 function linkAction(link) {
-    if (document.images) 
+    if (document.images)
     return "javascript:self.location.replace('" + link + "')";
     else return link;
 }
 
-var livevidhref = '<a href="' + linkAction("/") 
+var livevidhref = '<a href="' + linkAction("/")
                 + '"><font color=#FFFFCC><b>LIVE</b></font></a>';
 
-var playbackhref = '<a href="' + linkAction("playback.html") 
+var playbackhref = '<a href="' + linkAction("playback.html")
                  + '"><font color=#FFFFCC><b>PLAYBACK</b></font></a>';
 
 if (isVAV) {
-   livevidhref = '<a href="' + linkAction("/") 
+   livevidhref = '<a href="' + linkAction("/")
                 + '"><font color=#FFFFCC><b>ALARM</b></font></a>';
    playbackhref="";
 }
@@ -123,25 +123,25 @@ function initSettingsNavBar() {
     if (isVAV) livetext = "alarm";
     else livetext = "live";
 
-    navbar.columns = 0; 
+    navbar.columns = 0;
     navbar.tabwidth = 50;
     navbar.names = new Array();
     navbar.title = "settings"
     navbar.text = new Array();
-    navbar.tabtext = new Array(); 
+    navbar.tabtext = new Array();
     navbar.values = new Array();
     navbar.tabheight = 13;
 
     navbar.columns += 4;
     navbar.names[i] = livetext;
     navbar.values[i] = "/";
-    navbar.tabtext[i] = livetext;    
+    navbar.tabtext[i] = livetext;
     navbar.text[i++] = livetext;
 
     if (hasRecorderSupport) {
        navbar.columns += 4;
        navbar.names[i] = "playback";
-       navbar.tabtext[i] = "playback";    
+       navbar.tabtext[i] = "playback";
        navbar.values[i] = "playback.html";
        navbar.text[i++] = "playback";
     }
@@ -149,37 +149,37 @@ function initSettingsNavBar() {
     navbar.columns += 4;
     navbar.names[i] = "image";
     navbar.values[i] = "imageset.html";
-    navbar.tabtext[i] = "image";    
+    navbar.tabtext[i] = "image";
     navbar.text[i++] = "image settings";
 
     navbar.columns += 4;
     navbar.names[i] = "window";
-    if (isVAV) {   
+    if (isVAV) {
         navbar.values[i] = "exposure.html";
     }
     else {
         navbar.values[i] = "cropset.html";
     }
-    navbar.tabtext[i] = "window";    
+    navbar.tabtext[i] = "window";
     navbar.text[i++] = "window settings";
 
     navbar.columns += 4;
-    navbar.names[i] = "server";   
+    navbar.names[i] = "server";
     navbar.values[i] = "serverset.html";
-    navbar.tabtext[i] = "network";    
+    navbar.tabtext[i] = "network";
     navbar.text[i++] = "network settings";
 
     navbar.columns += 4;
-    navbar.names[i] = "access";   
+    navbar.names[i] = "access";
     navbar.values[i] = "accessset.html";
-    navbar.tabtext[i] = "security";    
+    navbar.tabtext[i] = "security";
     navbar.text[i++] = "security settings";
 
     if (!isIQevent && !isVAV) {
       navbar.columns += 4;
-      navbar.names[i] = "trigger";  
+      navbar.names[i] = "trigger";
       navbar.values[i] = "triggerset.html";
-      navbar.tabtext[i] = "trigger";    
+      navbar.tabtext[i] = "trigger";
       navbar.text[i++] = "trigger settings";
     }
 
@@ -187,22 +187,22 @@ function initSettingsNavBar() {
       navbar.columns += 4;
       navbar.names[i] = "io";
       navbar.values[i] = "ioset.html";
-      navbar.tabtext[i] = "i/o";    
+      navbar.tabtext[i] = "i/o";
       navbar.text[i++] = "i/o settings";
     }
 
     if (!isVAV && !isIQevent && hasPCCardSupport && isIQeye3) {
         navbar.columns += 4;
-        navbar.names[i] = "pccard";    
+        navbar.names[i] = "pccard";
         navbar.values[i] = "pccardset.html";
-        navbar.tabtext[i] = "wi-fi";    
+        navbar.tabtext[i] = "wi-fi";
         navbar.text[i++] = "wi-fi settings";
-    } 
+    }
 
     if (!isVAV) {
         navbar.columns += 4;
-        navbar.names[i] = "recorder";  
-        navbar.tabtext[i] = "IQrecorder";    
+        navbar.names[i] = "recorder";
+        navbar.tabtext[i] = "IQrecorder";
         if (hasRecorderSupport) {
            navbar.values[i] = "recorderset.html";
         }
@@ -216,7 +216,7 @@ function initSettingsNavBar() {
         navbar.columns += 4;
         navbar.names[i] = "multiview";
         navbar.values[i] = "multiviewset.html";
-        navbar.tabtext[i] = "multiview";    
+        navbar.tabtext[i] = "multiview";
         navbar.text[i++] = "multiview settings";
     }
 
@@ -233,33 +233,33 @@ function initViewingNavBar() {
     if (isVAV) livetext = "alarm";
     else livetext = "live";
 
-    navbar.columns = 0; 
+    navbar.columns = 0;
     navbar.tabwidth = 50;
     navbar.names = new Array();
     navbar.title = "viewing"
     navbar.text = new Array();
-    navbar.tabtext = new Array(); 
+    navbar.tabtext = new Array();
     navbar.values = new Array();
     navbar.tabheight = 13;
 
     navbar.columns += 4;
     navbar.names[i] = livetext;
     navbar.values[i] = "/";
-    navbar.tabtext[i] = livetext;    
+    navbar.tabtext[i] = livetext;
     navbar.text[i++] = livetext;
 
     if (hasRecorderSupport) {
       navbar.columns += 4;
       navbar.names[i] = "playback";
       navbar.values[i] = "playback.html";
-      navbar.tabtext[i] = "playback";    
+      navbar.tabtext[i] = "playback";
       navbar.text[i++] = "playback";
     }
 
     navbar.columns += 4;
     navbar.names[i] = "image";
     navbar.values[i] = "imageset.html";
-    navbar.tabtext[i] = "settings";    
+    navbar.tabtext[i] = "settings";
     navbar.text[i++] = "settings";
 
 $INC(oemmenu.js.dp)
@@ -273,31 +273,31 @@ function initCameoNavBar() {
     if (isVAV) livetext = "alarm";
     else livetext = "live";
 
-    navbar.columns = 0; 
+    navbar.columns = 0;
     navbar.tabwidth = 50;
     navbar.names = new Array();
     navbar.title = "cameo"
     navbar.text = new Array();
-    navbar.tabtext = new Array(); 
+    navbar.tabtext = new Array();
     navbar.values = new Array();
     navbar.tabheight = 13;
 
     navbar.columns += 4;
     navbar.names[i] = livetext;
     navbar.values[i] = "/";
-    navbar.tabtext[i] = livetext;    
+    navbar.tabtext[i] = livetext;
     navbar.text[i++] = livetext;
 
     navbar.columns += 4;
     navbar.names[i] = "cameo";
     navbar.values[i] = "cameo.html";
-    navbar.tabtext[i] = "cameo view";    
+    navbar.tabtext[i] = "cameo view";
     navbar.text[i++] = "cameo";
 
     navbar.columns += 4;
     navbar.names[i] = "cameo config";
     navbar.values[i] = "cameoset.html";
-    navbar.tabtext[i] = "cameo config";    
+    navbar.tabtext[i] = "cameo config";
     navbar.text[i++] = "cameo config";
 
 $INC(oemmenu.js.dp)
@@ -319,60 +319,60 @@ function initNavbar(navbar) {
 
 function writeCroppedImage() {
 
-    
 
-    
-    
-    
+
+
+
+
     var ds = $O(1.2.2);
-    var maxWidth = "$O(1.2.20.5)"; 
+    var maxWidth = "$O(1.2.20.5)";
     var maxHeight= "$O(1.2.20.6)";
-    
+
     if (isIQeye6) {
-    maxWidth = "$O(1.2.18.3)"; 
+    maxWidth = "$O(1.2.18.3)";
     maxHeight= "$O(1.2.18.4)";
     }
-    
-    
+
+
     var ds_necessary = Math.max(Math.ceil(maxWidth/322),
                 Math.ceil(maxHeight/322));
 
-    
+
     var ds_float = Math.max (maxWidth/322, maxHeight/322);
 
     var dsfactor = Math.max(ds,ds_necessary);
 
-    
+
     var dsreq = ds_necessary;
-    
-    
+
+
     if (isIQeye6) {
     if (dsreq == 3) dsreq = 4;
     }
     if (isIQeye6 || isIQeye7) {
-    
-    
+
+
     if (dsreq > 4) dsreq = 4;
     }
     if (isIQeye500) {
-    
+
     if (dsreq > 2) dsreq = 2;
     }
-    
+
     var dsstring = "?ds=" + dsreq;
-    
+
     var imWidth =  Math.floor(maxWidth/dsfactor);
     var imHeight = Math.floor(maxHeight/dsfactor);
-    
-    
+
+
     if (isIQeye6 && !isIQeye5) dsstring = "";
-    
-    
+
+
     var orient = "$O(1.2.4)";
     orient = (orient.match("90") || orient.match("270") ||
           orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
-    
-    if (orient=="portrait") { 
+
+    if (orient=="portrait") {
     var tmp;
     tmp = imWidth; imWidth = imHeight; imHeight = tmp;
     tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
@@ -381,46 +381,46 @@ function writeCroppedImage() {
 
     if (UseActiveX()) {
 
-    
-    
-    
+
+
+
     imWidth = Math.floor($O(1.2.6.2)/ds_float);
     imHeight = Math.floor($O(1.2.6.3)/ds_float);
     var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
-    
-    
-    
-    
+
+
+
+
     off_x = (isIQeye6) ? $O(1.2.6.4)/ds_float:$O(1.2.18.6)/ds_float;
     off_y = (isIQeye6) ? $O(1.2.6.1)/ds_float:$O(1.2.18.5)/ds_float;
     off_x = Math.floor (off_x);
     off_y = Math.floor (off_y);
-    
+
     var divstr = '<div id="mainfeed" style="padding-left: ' +
     off_x + 'px; padding-top: ' + off_y + 'px">ActiveX Control</div>';
 
     var url = 'now.jpg?snap=spush0.2' + dsstring;
     if (!isIQeye6) url += '?ov=0';
 
-    
-    
-    
-    
+
+
+
+
 
     rv += '<param name="InternalDptz" value="0">';
     rv += '<param name="StreamDptz" value="0">';
     document.write (divstr);
-    CreateControl ("mainfeed", imAttr, "", rv, 
-               isIQeye6, isIQeye7 || isIQeye5, url);    
-    
-    
-    
+    CreateControl ("mainfeed", imAttr, "", rv,
+               isIQeye6, isIQeye7 || isIQeye5, url);
+
+
+
     }
     else {
     var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
-    
+
     var rv = '<div id="mainfeed">'
-        +'<applet code="WindowSet.class" name="spapplet" ' 
+        +'<applet code="WindowSet.class" name="spapplet" '
         + imAttr + '>'
         + '<param name="url1" value="1pixgray.gif">'
         + '<param name="offsetx" value="';
@@ -429,11 +429,11 @@ function writeCroppedImage() {
     rv       += (isIQeye6) ? $O(1.2.6.1)/dsfactor:$O(1.2.18.5)/dsfactor;
     rv       += '">' + '<param name="url2" value="';
     rv       += 'now.jpg?snap=spush0.2';
-    
+
     if (!isIQeye6) rv += '?ov=0';
     rv       += dsstring;
     rv       += '">'
-        
+
         + '<param name="dsfactor" value="' + dsfactor + '">'
         + '<param name="numWindows" value="0">';
     if (isIQeye6) {
@@ -447,31 +447,31 @@ function writeCroppedImage() {
 
 
 function spAppletDivs(source, imAttr) {
-    var outString = '<div id="mainfeed">'; 
+    var outString = '<div id="mainfeed">';
     if (!needsApplet) {
     outString  += "<img src='" + source + "' name='now' " + imAttr + ">\n";
     }
-    
+
     outString += "</div>\n";
-    
+
     if (needsApplet) {
-    outString += 
+    outString +=
         '<div id=spushDiv>\n'
-        
-        + '<applet code="ShowServerPush.class" name="spapplet" ' 
+
+        + '<applet code="ShowServerPush.class" name="spapplet" '
         + imAttr + '>\n'
         + '<param name="url" value="' + source + '">\n'
         + '</applet>'
-        
-        
+
+
         + '</div>';
     }
-    
+
     return outString;
 }
 
 function theApplet() {
-    return document.applets["spapplet"]; 
+    return document.applets["spapplet"];
 
 
 
@@ -508,7 +508,7 @@ function writeHelpIcon(loc) {
 }
 
 function writeTrickIcon(loc) {
-    document.write 
+    document.write
     ('<font size="-6">'
      + '<a href="javascript:void(0)" '
      + 'onClick="return helpMe(\'' + loc + '\')"'
@@ -532,21 +532,21 @@ function setupViewingTabs() {
 
 
 function jumpMenu2String() {
-    initNavbar(settings);   
+    initNavbar(settings);
 
     var i, targ, text;
 
-    var onChangeStr = 
+    var onChangeStr =
     'onChange="self.location=this.options[this.selectedIndex].value"';
-        
+
     var outString = '<td align=right>\n'
-        + '<form name="goto"><select class="formselect" name="whereto"' 
+        + '<form name="goto"><select class="formselect" name="whereto"'
         + onChangeStr + '>\n'
     + '<option value="javascript:void(0)">Quick Jump To ...</option>\n';
 
     if ((authMode == "error403") &&
-        (document.cookie.length==0 
-        || document.cookie.indexOf("SrvrCreds") == -1)) { 
+        (document.cookie.length==0
+        || document.cookie.indexOf("SrvrCreds") == -1)) {
     targ = settings.values[0];
     outString += '<option value="' + targ + '">log in</option>\n';
     } else {
@@ -556,18 +556,18 @@ function jumpMenu2String() {
         outString += '<option value="'+ targ +'">' + text + '</option>\n';
           }
     }
-    outString += 
+    outString +=
     '<option value="javascript:void(0)">-----------</option>\n'
     + WEBSITE_OPTION
     + '</select></form></td>\n';
-    return outString;   
+    return outString;
 }
 
 function writeJumpMenu2Table() {
     document.write("<table width=\"100%\"><tr>"
     + errorGifTD()
-        + jumpMenu2String() 
-        + "</tr></table>"); 
+        + jumpMenu2String()
+        + "</tr></table>");
 }
 
 
@@ -600,15 +600,15 @@ function writeTitleBar() {
     ('<table width=\"100%\" border=0 cellpadding=0 cellspacing=0><tr>\n'
      + '<td bgcolor=' + oemcolor + '>\n'
      + '<img src="1pixclear.gif" width=154 height=22 border=0></td>\n'
-         + '<td bgcolor=' + oemcolor + ' align=right>' 
-         + livevidhref 
+         + '<td bgcolor=' + oemcolor + ' align=right>'
+         + livevidhref
          + '<image src="1pixclear.gif" width=10 alt="">'
          + '</td></tr></table>\n');
 }
 
 function textTab(name, desc, link, onoff) {
     var outString = (onoff) ? '<li id="current">' : '<li>';
-    return outString 
+    return outString
     + '<a href="' + linkAction(link) + '"'
         + ' onMouseOver=\'window.status="' + desc + '"; return true;\''
     + ' onMouseOut=\'window.status=""\'>'
@@ -644,12 +644,12 @@ function writeHeader(navbar, onItem) {
     var i, itemNo=0;
 
     initNavbar(navbar);
- 
+
     for (i=0; i<navbar.names.length; i++) {
     if (navbar.names[i]==onItem) itemNo=i;
     }
 
-    var out = 
+    var out =
     '<tr><td class="tl"><img src="1pixclear.gif" width=11 height=42></td>'
 
     if(navbar == viewing || navbar == cameo){
@@ -657,16 +657,16 @@ function writeHeader(navbar, onItem) {
     }
         else {
             out += '<td class="topmenu" colspan=2 width=';
-        if (0) out += '780>'; 
+        if (0) out += '780>';
         else out += '760>';
     }
-    
-    out += '<h1><font color="666666"><img src="1pixclear.gif" width=4 height=1>$SP </font>' 
+
+    out += '<h1><font color="666666"><img src="1pixclear.gif" width=4 height=1>$SP </font>'
         + '$SN' + '</h1>'
     +'<img src="1pixclear.gif" width=4 height=1>' + '<ul id="nav">';
 
     for (i=0; i<navbar.names.length; i++) {
-    out += textTab(navbar.tabtext[i], navbar.text[i], navbar.values[i], 
+    out += textTab(navbar.tabtext[i], navbar.text[i], navbar.values[i],
           (navbar.names[i]==onItem));
     }
 
@@ -685,7 +685,7 @@ function writeHeader(navbar, onItem) {
 }
 
 var logoutHref =
-    '<li><a href="javascript:void(0)" onClick="logout(); return false"' 
+    '<li><a href="javascript:void(0)" onClick="logout(); return false"'
     + ' onMouseOver=\'window.status="Logout of session"; return true;\''
     + ' onMouseOut=\'window.status=""\'>'
     + 'logout session</a></li>\n';
@@ -704,18 +704,18 @@ function sendCommandAppletString() {
         outString +=
             '<iframe name="commandIframe" id="commandIframe" '
             + 'frameborder=0 scrolling=no '
-        
-        
+
+
         + 'width=1 height=1 marginwidth=0 marginheight=0 align=top '
 
-        
-        
-        
+
+
+
         + 'src=get.oid?2.27></iframe>';
-    } else { 
-    
+    } else {
+
     }
-    return outString;  
+    return outString;
 }
 
 
@@ -725,7 +725,7 @@ function sendCommandAppletString() {
 
 function writeFooter() {
     var logoutOK = (authMode == "basic") ? false:true;
-    
+
 
     var outString = '<tr>'
     + '<td class="l"><img src="1pixclear.gif" width=1 height=1></td>'
@@ -750,10 +750,10 @@ function writeFooter() {
 
 
 function writeBareFooter() {
-    var outString = 
+    var outString =
     '<table width="100%"><tr>'
     + '<td align="right">'
-    + '<font face="Arial, Helvetica, sans-serif"><b>' 
+    + '<font face="Arial, Helvetica, sans-serif"><b>'
     + '$SN' + '</b><br></font></td></tr>\n'
     + '<tr><td align=center height=2 bgcolor=' + oemcolor + '>'
     + '<img src="1pixclear.gif" height=3 border=0></td></tr></table>\n';
