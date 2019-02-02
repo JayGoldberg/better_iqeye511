@@ -1,37 +1,24 @@
+var ds = $O(1.2 .2);
 
 
-
-var ds = $O(1.2.2);
-
-
-var raw_width =  $O(1.2.6.2); 
-var raw_height =  $O(1.2.6.3); 
-var ds_necessary = Math.max(Math.ceil(raw_width/322),
-			    Math.ceil(raw_height/322));
+var raw_width = $O(1.2 .6 .2);
+var raw_height = $O(1.2 .6 .3);
+var ds_necessary = Math.max(Math.ceil(raw_width / 322),
+    Math.ceil(raw_height / 322));
 
 
-$IF($CMP($O(2.21),2d), $IF($CMP($O(2.21),2c),,) ,)
+$IF($CMP($O(2.21), 2 d), $IF($CMP($O(2.21), 2 c), , ), )
 
 var dsfactor = Math.max(ds, ds_necessary);
-var dsstring = (dsfactor > 1) ? ("?ds=" + dsfactor) : ""; 
+var dsstring = (dsfactor > 1) ? ("?ds=" + dsfactor) : "";
 
 
-var imWidth  = (dsfactor > 1) ? Math.floor(raw_width /dsfactor):$O(1.2.6.9);
-var imHeight = (dsfactor > 1) ? Math.floor(raw_height/dsfactor):$O(1.2.6.10);
-var imAttr =  ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+var imWidth = (dsfactor > 1) ? Math.floor(raw_width / dsfactor) : $O(1.2 .6 .9);
+var imHeight = (dsfactor > 1) ? Math.floor(raw_height / dsfactor) : $O(1.2 .6 .10);
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
 
 var lastEmailTriggerFail = "$O(9.1.5.trigger,R)";
 var lastFTPTriggerFail = "$O(8.1.9.trigger,R)";
 
 
-$IF($CMP($O(2.21),2d), $IF($CMP($O(2.21),2c),,) ,)
-
-
-
-
-
-
-
-
-
-
+$IF($CMP($O(2.21), 2 d), $IF($CMP($O(2.21), 2 c), , ), )
