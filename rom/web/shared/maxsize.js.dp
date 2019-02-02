@@ -1,109 +1,128 @@
-var maxsize = new Object();
-if (isIQeye6) {
 
-    maxsize.width = $O(1.2 .6 .2);
-    maxsize.height = $O(1.2 .6 .3);
-} else {
-    maxsize.width = $O(1.2 .18 .7);
-    maxsize.height = $O(1.2 .18 .8);
+
+
+
+
+
+
+
+
+var maxsize = new Object(); 
+if (isIQeye6) {
+     
+     maxsize.width = $O(1.2.6.2);
+     maxsize.height = $O(1.2.6.3);
+}
+else {
+     maxsize.width = $O(1.2.18.7);  
+     maxsize.height = $O(1.2.18.8); 
 }
 
 if (isIQeye5) {
-    maxsize.widthArray = new Array("2560", "2048", "1920", "1600", "1280", "1280", "1024", "800", "704", "704",
-        "640",
-        "$O(1.2.20.5)");
-} else {
-    maxsize.widthArray = new Array("2560", "2048", "1920", "1600", "1280", "1280", "1024", "800", "704", "704",
-        "640", "352", "352", "320", "176", "176", "160",
-        "$O(1.2.20.5)");
+maxsize.widthArray = new Array
+	("2560", "2048", "1920", "1600",  "1280", "1280",  "1024",  "800",   "704",   "704",  
+ 	  "640",  
+	 "$O(1.2.20.5)");
+}
+else {
+maxsize.widthArray = new Array
+	("2560", "2048", "1920", "1600",  "1280", "1280",  "1024",  "800",   "704",   "704",  
+ 	  "640",  "352",   "352",  "320",   "176",  "176",   "160",
+	 "$O(1.2.20.5)");
 }
 
 
 if (isIQeye6) maxsize.widthArray[maxsize.widthArray.length] =
-    "$O(1.2.6.2)";
+"$O(1.2.6.2)";
 else maxsize.widthArray[maxsize.widthArray.length] =
-    "$O(1.2.18.3)";
+"$O(1.2.18.3)";
 
 if (isIQeye5) {
-    maxsize.heightArray = new Array("1920", "1536", "1080", "1200", "1024", "720", "768", "600", "576", "480",
-        "480",
-        "$O(1.2.20.6)");
-} else {
-    maxsize.heightArray = new Array("1920", "1536", "1080", "1200", "1024", "720", "768", "600", "576", "480",
-        "480", "288", "240", "240", "144", "120", "120",
-        "$O(1.2.20.6)");
+maxsize.heightArray = new Array
+	( "1920", "1536", "1080", "1200", "1024",  "720",   "768",  "600",   "576",   "480",
+           "480",  
+	  "$O(1.2.20.6)");
+}
+else {
+maxsize.heightArray = new Array
+	( "1920", "1536", "1080", "1200", "1024",  "720",   "768",  "600",   "576",   "480",
+           "480",  "288",  "240",  "240",   "144",  "120",   "120",
+	  "$O(1.2.20.6)");
 }
 
 
 if (isIQeye6) maxsize.heightArray[maxsize.heightArray.length] =
-    "$O(1.2.6.3)";
+"$O(1.2.6.3)";
 else maxsize.heightArray[maxsize.heightArray.length] =
-    "$O(1.2.18.4)";
+"$O(1.2.18.4)";
 
 if (isIQeye5) {
-    maxsize.descArray = new Array("(5mpix)", "(QXGA)", "(1080p)", "(UXGA)", "(SXGA)", "(HDTV)", "(XGA)", "(SVGA)", "(PAL)",
-        "(NTSC)", "(VGA)",
-        "(max)", "");
-} else {
-    maxsize.descArray = new Array("(5mpix)", "(QXGA)", "(1080p)", "(UXGA)", "(SXGA)", "(HDTV)", "(XGA)", "(SVGA)", "(PAL)",
-        "(NTSC)", "(VGA)", "(CIF)", "(SIF)", "(QVGA)", "(QCIF)", "(QSIF)", "(QQVGA)",
-        "(max)", "");
+maxsize.descArray = new Array
+	("(5mpix)", "(QXGA)", "(1080p)", "(UXGA)", "(SXGA)","(HDTV)","(XGA)","(SVGA)","(PAL)",
+         "(NTSC)","(VGA)",
+	 "(max)","");
+}
+else {
+maxsize.descArray = new Array
+	("(5mpix)", "(QXGA)", "(1080p)", "(UXGA)", "(SXGA)","(HDTV)","(XGA)","(SVGA)","(PAL)",
+         "(NTSC)","(VGA)","(CIF)","(SIF)","(QVGA)","(QCIF)","(QSIF)","(QQVGA)",
+	 "(max)","");
 }
 
-maxsize.selected = 0;
+maxsize.selected = 0;	
 
 
-while (maxsize.widthArray[0] > $O(1.2 .20 .5)) {
+while (maxsize.widthArray[0] > $O(1.2.20.5)) { 
     maxsize.widthArray.shift();
     maxsize.heightArray.shift();
     maxsize.descArray.shift();
 }
 
 
-while (maxsize.heightArray[0] > $O(1.2 .20 .6)) {
+while (maxsize.heightArray[0] > $O(1.2.20.6)) { 
     maxsize.widthArray.shift();
     maxsize.heightArray.shift();
     maxsize.descArray.shift();
 }
 
-var iqviewWarningGiven = false;
+var iqviewWarningGiven = false; 
 
 function setMaxSize(field) {
-
-    if (!iqviewWarningGiven && "$O(1.13.11)" == "ENABLED") {
-        var reply = confirm("Your camera is currently archiving images.\n" +
-            "Changing the crop\n" +
-            "may change the size of the archived images.\n" +
-            "Are you sure you want to continue?");
-        iqviewWarningGiven = true;
-        if (!reply) {
-            resetMaxSizeSelect();
-            return;
-        }
+    
+    if (!iqviewWarningGiven && "$O(1.13.11)" == "ENABLED") { 
+	var reply = confirm("Your camera is currently archiving images.\n"
+			    +"Changing the crop\n"
+			    +"may change the size of the archived images.\n"
+			    +"Are you sure you want to continue?");
+	iqviewWarningGiven = true;
+	if (!reply) { 
+	    resetMaxSizeSelect();
+	    return;
+	}
     }
 
     var newWidth = maxsize.widthArray[field.selectedIndex];
     var newHeight = maxsize.heightArray[field.selectedIndex];
 
     if (maxsize.width != newWidth || maxsize.height != newHeight) {
-        submit("OidTB1.2.18.3", newWidth, "OidTB1.2.18.4", newHeight,
-            "OidCB1.2.6.6", "ON");
-        maxsize.width = newWidth;
-        maxsize.height = newHeight;
+	submit("OidTB1.2.18.3", newWidth, "OidTB1.2.18.4", newHeight,
+		"OidCB1.2.6.6", "ON"); 
+	maxsize.width = newWidth;
+	maxsize.height = newHeight;
     }
-    reloadLater();
+    reloadLater();  
     return false;
 }
 
 
 function setMaxSizeSelectTo(width, height) {
     var end = maxsize.widthArray.length;
-    for (var i = 0; i < end; i++) {
-        if (maxsize.width == maxsize.widthArray[i] &&
-            maxsize.height == maxsize.heightArray[i]) {
-            selected = i;
-            break;
-        }
+    for (var i=0; i<end; i++) {
+	if (maxsize.width==maxsize.widthArray[i] && 
+	    maxsize.height==maxsize.heightArray[i]) {
+	    selected = i;
+	    break;
+	}
     }
     document.myform.maxSizeSelect.selectedIndex = selected;
 }
@@ -121,37 +140,45 @@ function resetMaxSizeSelect() {
 }
 
 function setMaxSizeSelectToClearedCrop() {
-    document.myform.maxSizeSelect.selectedIndex = maxsize.widthArray.length - 2;
+    document.myform.maxSizeSelect.selectedIndex = maxsize.widthArray.length-2;
 }
 
 function writeMaxSizeSelect() {
-    var outstring = '<select name="maxSizeSelect" onChange="setMaxSize(this);">';
+    var outstring 
+	=  '<select name="maxSizeSelect" onChange="setMaxSize(this);">';
     var end = maxsize.widthArray.length;
 
     var maxSizeArray = new Array(end);
 
-    for (var i = 0; i < end; i++) {
-        maxSizeArray[i] = maxsize.widthArray[i] + "x" + maxsize.heightArray[i];
-        if (maxsize.descArray[i])
-            maxSizeArray[i] += " " + maxsize.descArray[i];
+    for (var i=0;i<end; i++) {
+	maxSizeArray[i] = maxsize.widthArray[i] + "x" + maxsize.heightArray[i];
+	if (maxsize.descArray[i]) 
+	    maxSizeArray[i] += " " + maxsize.descArray[i];
     }
-    for (var i = 0; i < end; i++) {
-        if (maxsize.width == maxsize.widthArray[i] &&
-            maxsize.height == maxsize.heightArray[i]) {
-            maxsize.selected = i;
-            break;
-        }
-    }
-
-
-    if (maxsize.selected < end - 1) {
-        end--;
+    for (var i=0; i<end; i++) {
+	if (maxsize.width==maxsize.widthArray[i] && 
+	    maxsize.height==maxsize.heightArray[i]) {
+	    maxsize.selected = i;
+	    break;
+	}
     }
 
-    for (var i = 0; i < end; i++) {
-        outstring += (maxsize.selected == i) ? '<option selected ' : '<option ';
-        outstring += 'value="' + i + '">' + maxSizeArray[i] + '</option>';
+    
+    if (maxsize.selected < end-1) {
+	end--; 
+    }
+
+    for (var i=0; i < end; i++) {
+	outstring += (maxsize.selected == i) ? '<option selected ':'<option ';
+	outstring += 'value="' + i + '">' + maxSizeArray[i] + '</option>';
     }
     outstring += '</select>';
     document.write(outstring);
 }
+
+
+
+
+
+
+

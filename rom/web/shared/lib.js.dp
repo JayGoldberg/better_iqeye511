@@ -39,8 +39,8 @@ if (isNav) {
     NavVers = parseFloat(navigator.userAgent.substring(start+8));
     if (NavVers>=5.0) { 
         start = navigator.userAgent.indexOf("Netscape/");
-     if (start<0) isMozilla = true;
-     else NavVers = parseFloat(navigator.userAgent.substring(start+9));
+	if (start<0) isMozilla = true;
+	else NavVers = parseFloat(navigator.userAgent.substring(start+9));
     }
 }
 
@@ -52,14 +52,14 @@ var offsetLeft = 0, offsetTop = 0;
 if (isIE) {  
     
     if (isMac) {
-     
-     offsetLeft = 20; offsetTop = 10;
-     if (IEVers > 4.5) {
-         offsetLeft = 10; offsetTop = 80;
-     }
+	
+	offsetLeft = 20; offsetTop = 10;
+	if (IEVers > 4.5) {
+	    offsetLeft = 10; offsetTop = 80;
+	}
     } else { 
-     offsetLeft = 30; 
-     offsetTop = 75;  
+	offsetLeft = 30; 
+	offsetTop = 75;  
     }
 } 
 
@@ -91,22 +91,22 @@ function propsAlert(arg, freq) {
     arg = getObject(arg);
     for (i in arg) {
         if (i=="innerHTML") str += i+ ":[deleted to save output]\n";
-     else str += i + ":" + arg[i] + "\n";
-     if (i == "style") {
-         for (var j in arg.style) {
-          str += "style " + j + ":" + arg.style[j] + "\n";
-          count++;
-          if (count%freq == 0) {
-              alert(str);
-              str="";
-          }
-         }
-     }
-     count++;
-     if (count%freq == 0) {
-         alert(str);
-         str="";
-     }
+	else str += i + ":" + arg[i] + "\n";
+	if (i == "style") {
+	    for (var j in arg.style) {
+		str += "style " + j + ":" + arg.style[j] + "\n";
+		count++;
+		if (count%freq == 0) {
+		    alert(str);
+		    str="";
+		}
+	    }
+	}
+	count++;
+	if (count%freq == 0) {
+	    alert(str);
+	    str="";
+	}
     }
     alert(str);
 }
@@ -150,12 +150,12 @@ function isATime2(field) {
     var exp = new RegExp("(\\d\\d):(\\d\\d)$$");
     var arr = field.value.match(exp);
     if (arr == null) {
-     exp = new RegExp("(\\d):(\\d\\d)$$");
-     arr = field.value.match(exp);
-     if (arr) { 
-         field.value = "0" + arr[1] + ":" + arr[2];
-     }
-     else return false; 
+	exp = new RegExp("(\\d):(\\d\\d)$$");
+	arr = field.value.match(exp);
+	if (arr) { 
+	    field.value = "0" + arr[1] + ":" + arr[2];
+	}
+	else return false; 
     }
     if ((arr[1]<0) || (arr[2]<0) || (arr[1]>24) || (arr[2]>60)) return false;
     return true;
@@ -194,8 +194,8 @@ function getObject(obj) {
     var theObj = null;
     if (typeof obj=="object") return obj;
     if (typeof obj=="string") {
-     var str = (document.all) ? "document.all." + obj:"document." + obj;
-     if (eval(str)) theObj = eval(str);
+	var str = (document.all) ? "document.all." + obj:"document." + obj;
+	if (eval(str)) theObj = eval(str);
     }
     if (isW3C && !theObj) return document.getElementById(obj);
     return theObj;
@@ -245,7 +245,7 @@ function showSending() {
 function showWaiting() {
     if (!theSendState()) return;
     if (theSendState().innerHTML == "SENDING") {
-     theSendState().innerHTML = "WAITING";
+	theSendState().innerHTML = "WAITING";
     }
 }
 
@@ -261,8 +261,8 @@ function showCompleted() {
 function scheduleEmptySendState() {
     if (!theSendState()) return;
     if (!(theSendState().innerHTML == "SENDING")) {
-     showEmptySendState();
-     status = "";
+	showEmptySendState();
+	status = "";
     } else setTimeout("scheduleEmptySendState()",100);
 }
 
@@ -281,7 +281,7 @@ function getObjectLeft(obj) {
     if (!theObj) return 0;
     
     if (theObj.style && theObj.style.pixelLeft != null) 
-     return theObj.style.pixelLeft+ offsetLeft; 
+	return theObj.style.pixelLeft+ offsetLeft; 
 
     var rv = theObj.offsetLeft; 
     if (rv) return rv - 0 + offsetLeft;
@@ -294,7 +294,7 @@ function getObjectTop(obj) {
     if (!theObj) return;
 
     if (theObj.style && theObj.style.pixelTop != null) 
-     return theObj.style.pixelTop + offsetTop; 
+	return theObj.style.pixelTop + offsetTop; 
     var rv = theObj.offsetTop; 
     if (rv) return  rv - 0 + offsetTop;
     return theObj.y; 
@@ -318,7 +318,7 @@ function isHiding(obj) {
 function getClickX(evt) {
     if (evt.pageX) return evt.pageX + offsetLeft; 
     if (isMacIE) {
-     return window.event.offsetX + offsetLeft + document.body.scrollLeft;
+	return window.event.offsetX + offsetLeft + document.body.scrollLeft;
     }
     return window.event.offsetX + offsetLeft;
 }
@@ -327,7 +327,7 @@ function getClickX(evt) {
 function getClickY(evt) {
     if (evt.pageY) return evt.pageY + offsetTop; 
     if (isMacIE)
-     return window.event.offsetY + offsetTop + document.body.scrollTop;
+	return window.event.offsetY + offsetTop + document.body.scrollTop;
     return window.event.offsetY + offsetTop;
 }
 
@@ -360,7 +360,7 @@ function reboot() {
     setEcam2("OidCB2.11","ON");
     setTimeout('loadIndexPage()',30000);
     alert("Your camera is being rebooted.\n" +
-       "The main webpage will load after the reboot is completed.");
+	  "The main webpage will load after the reboot is completed.");
     return false;
 }
 
@@ -384,7 +384,7 @@ function logoutLater() {
    status = "waiting for commands to complete before logging out";
    if (transferCompleted()) {
         status = "";
-     logout();
+	logout();
    }
    else setTimeout("logoutLater();", 100);
 }
@@ -399,15 +399,15 @@ function reloadLater() {
        var start = oldhref.indexOf("?dummy");
        var newhref;
        if (start>=0) {
-        var newver = oldhref.substring(start+7)-0+1;
-        newhref = oldhref.substring(0,start)+"?dummy=" + newver;
+	   var newver = oldhref.substring(start+7)-0+1;
+	   newhref = oldhref.substring(0,start)+"?dummy=" + newver;
        } else {
-        newhref = oldhref+"?dummy=0";
+	   newhref = oldhref+"?dummy=0";
        }
        if (document.images) {
-        
-        
-        window.location.replace(newhref);
+	   
+	   
+	   window.location.replace(newhref);
        } else window.location.href = newhref;
        status = "";
    }
@@ -420,9 +420,9 @@ function loadLater(loc) {
    status = "waiting for commands to complete before reloading page";
    if (transferCompleted()) {
        if (document.images) {
-        
-        
-        window.location.replace(loc);
+	   
+	   
+	   window.location.replace(loc);
        } else window.location.href = loc;
        status = "";
    }
@@ -443,11 +443,11 @@ function checkTransfer() {
 
 function factory(setting, value, phrase) {
     var msg =
-     "This will set all " + phrase + 
-     " settings to factory default values.\r\nDo you want to continue?";
+	"This will set all " + phrase + 
+	" settings to factory default values.\r\nDo you want to continue?";
     if (confirm(msg)) {
-     setEcam2(setting, value);
-     reloadLater();
+	setEcam2(setting, value);
+	reloadLater();
     }
     return false;
 }
@@ -457,11 +457,11 @@ var helpwin = null;
 
 function helpMe(section) {
     if (!helpwin || helpwin.closed) { 
-     helpwin = window.open("help.html#" + section, "helpwin",
-                     "height=600,width=600,scrollbars");
+	helpwin = window.open("help.html#" + section, "helpwin",
+			      "height=600,width=600,scrollbars");
     } else {
-     helpwin.location.hash = section;
-     helpwin.focus();
+	helpwin.location.hash = section;
+	helpwin.focus();
     }
     return false;
 }
@@ -529,13 +529,13 @@ function getReplyFromIframe(ind) {
     if (!window.commandIframe) return;
     var newhref = window.commandIframe.location.href;
     if (newhref.indexOf("cmd_done") > -1) {
-     commandBuffer[ind].output = iframeText();
+	commandBuffer[ind].output = iframeText();
 
-     
-     
-     setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+	
+	
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
     } else if (newhref.indexOf(commandBuffer[ind].name) > -1) {
-     commandBuffer[ind].output = iframeText();
+	commandBuffer[ind].output = iframeText();
     } 
 
     
@@ -543,11 +543,11 @@ function getReplyFromIframe(ind) {
     
     
     else if (newhref.indexOf(window.location.href) > -1) {
-     setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
 
-     
-     
-     commandBuffer[ind].output = 'netscape7 bug'; 
+	
+	
+	commandBuffer[ind].output = 'netscape7 bug'; 
     }
     else setTimeout("getReplyFromIframe(" + ind + ")", 100);
 }
@@ -557,12 +557,12 @@ function getReplyFromIframe(ind) {
 function getOIDFromIframe(name) {
     if (!window.commandIframe) return null;
     if (window.commandIframe.location.href) {
-     if (window.commandIframe.location.href.indexOf("get.oid?" + name) > -1)
-         return iframeText();
-     
-     
-     if (window.commandIframe.location.href.indexOf(window.location.href) > -1)
-         return null;
+	if (window.commandIframe.location.href.indexOf("get.oid?" + name) > -1)
+	    return iframeText();
+	
+	
+	if (window.commandIframe.location.href.indexOf(window.location.href) > -1)
+	    return null;
     }
 
     setTimeout("getOIDFromIframe('" + name + "')",100);
@@ -574,22 +574,22 @@ function sendCommand(ind) {
     var val  = commandBuffer[ind].val;
     commandBuffer[ind].output = null;
     if (needsIframe) {
-     
-     if (!window.commandIframe) return;
-     var name = commandBuffer[ind].name;
-     var val = commandBuffer[ind].val;
-     var href = "now.oid?" + name + "=" + val;
-     window.status = "setting " + href;
-     
-     window.commandIframe.location.href = href;
-     
-     
-     getReplyFromIframe(ind);  
+	
+	if (!window.commandIframe) return;
+	var name = commandBuffer[ind].name;
+	var val = commandBuffer[ind].val;
+	var href = "now.oid?" + name + "=" + val;
+	window.status = "setting " + href;
+	
+	window.commandIframe.location.href = href;
+	
+	
+	getReplyFromIframe(ind);  
     } 
     else { 
-     
-     
-     AjaxSetOid (name, val, ind);
+	
+	
+	AjaxSetOid (name, val, ind);
     }
     getCommandOutput(ind);
 }
@@ -599,45 +599,45 @@ function sendCommand(ind) {
 function getCommandOutput(ind) {
     var output = commandBuffer[ind].output;
     if (output != null) { 
-          
-     var start = output.indexOf("%");
-     if (start != -1) {
-         var stop = output.toLowerCase().indexOf("</pre>");
-         var msg = output.substring(start, stop);
-         if (msg.indexOf("%Info") != -1) {
-          
-          
-          window.status = msg;
-         } 
-         else alert(msg);
-     }
-     showCompleted();
-     commandBuffer[ind].name = null; 
+		
+	var start = output.indexOf("%");
+	if (start != -1) {
+	    var stop = output.toLowerCase().indexOf("</pre>");
+	    var msg = output.substring(start, stop);
+	    if (msg.indexOf("%Info") != -1) {
+		
+		
+		window.status = msg;
+	    } 
+	    else alert(msg);
+	}
+	showCompleted();
+	commandBuffer[ind].name = null; 
     } else if (needsIframe) 
-     setTimeout("getCommandOutput(" + ind + ")", 100);
+	setTimeout("getCommandOutput(" + ind + ")", 100);
 }
 
 
 function getOIDVal(oidnum) {
-    var output;     
+    var output;	
     if (needsIframe) {
-     if (!window.commandIframe) return null;
-     window.commandIframe.location.href = "get.oid?" + oidnum;
-     output = getOIDFromIframe(oidnum);
+	if (!window.commandIframe) return null;
+	window.commandIframe.location.href = "get.oid?" + oidnum;
+	output = getOIDFromIframe(oidnum);
 
-     
-     
-     output = null;
+	
+	
+	output = null;
     }
     else {
-     
-     
-     output = AjaxGetOidValSync (oidnum);
+	
+	
+	output = AjaxGetOidValSync (oidnum);
     }
     if (output == null) return "";
 
     
-    var loutput = output.toLowerCase();     
+    var loutput = output.toLowerCase();	
     var start = loutput.indexOf("<xmp>");
     if (start == -1) return "";
     var stop = loutput.indexOf("</xmp>");
@@ -650,9 +650,9 @@ function getOIDVal(oidnum) {
 function setEcam2(name, val) { 
     
     if (theSendState()) {
-     showSending();
-     status = "sending command to camera";
-     setTimeout("showWaiting()", 250);
+	showSending();
+	status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
     }
       
     
@@ -673,20 +673,18 @@ function submit(n0,v0) {
     if (arguments.length<=2) return setEcam2(n0,v0); 
     var val=v0;
     for (var n=2;n<arguments.length; n+=2) {
-     val +=  "&" + arguments[n] + "=" + arguments[n+1];
+	val +=  "&" + arguments[n] + "=" + arguments[n+1];
     }
     setEcam2(n0,val);
 }
 
 function enableJavaAlert() {
-    /*
     if(!isIE) { 
-     
-     if (!navigator.javaEnabled()) {
-         alert("You must enable java for this page to work correctly.");
-     }
+	
+	if (!navigator.javaEnabled()) {
+	    alert("You must enable java for this page to work correctly.");
+	}
     }
-*/
 }
 
 function spushImgString(args) {
@@ -715,17 +713,17 @@ function AjaxInitAsync ()
 {
     var rv = true;
     try {
-     AjaxAsyncRequest = new XMLHttpRequest();
+	AjaxAsyncRequest = new XMLHttpRequest();
     } catch (trymicrosoft) {
         try {
-         AjaxAsyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+	    AjaxAsyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
         } catch (othermicrosoft) {
-         try {
-          AjaxAsyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
-         } catch (failed) {
-          AjaxAsyncRequest = false;
-          rv = false;
-         }
+	    try {
+		AjaxAsyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxAsyncRequest = false;
+		rv = false;
+	    }
         }
     }
     return rv;
@@ -735,17 +733,17 @@ function AjaxInitSync ()
 {
     var rv = true;
     try {
-     AjaxSyncRequest = new XMLHttpRequest();
+	AjaxSyncRequest = new XMLHttpRequest();
     } catch (trymicrosoft) {
         try {
-         AjaxSyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+	    AjaxSyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
         } catch (othermicrosoft) {
-         try {
-          AjaxSyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
-         } catch (failed) {
-          AjaxSyncRequest = false;
-          rv = false;
-         }
+	    try {
+		AjaxSyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxSyncRequest = false;
+		rv = false;
+	    }
         }
     }
     return rv;
@@ -762,7 +760,7 @@ function AjaxParseResponse ()
     var stop  = str.indexOf ("</xmp>");
     
     if (start > 0 && (stop > start)) {
-     result = str.substring (start+5, stop);
+	result = str.substring (start+5, stop);
     }
     return result;
 }
@@ -813,33 +811,33 @@ function AjaxCheckReady ()
 
     
     if (AjaxAsyncRequest.readyState == 4) {
-     
-     if (AjaxAsyncRequest.status == 200) {
-         var result;
-         result = AjaxParseResponse ();
-         if (result) {
-          code = 0; text = result;
-         }
-         else {
-          code = 1; text = "Unable to parse response";
-         }
-     }
-     else if (AjaxAsyncRequest.status == 404) {
-         code = 2; text = "Request URL does not exist";
-     }
-     else {
-         if (AjaxAsyncRequest.status == 12029) {
-          code = 4; text = "Request timeout";
-         }
-         else {
-          code = 5; 
-          text = "XML Error: status code is " + AjaxAsyncRequest.status; 
-          if (AjaxErrs[AjaxAsyncRequest.status] != undefined)
-              text += ": " + AjaxErrs[AjaxAsyncRequest.status]; 
-         }
-     }
-     
-     AjaxDone (code, AjaxAsyncRequest.status, text);
+	
+	if (AjaxAsyncRequest.status == 200) {
+	    var result;
+	    result = AjaxParseResponse ();
+	    if (result) {
+		code = 0; text = result;
+	    }
+	    else {
+		code = 1; text = "Unable to parse response";
+	    }
+	}
+	else if (AjaxAsyncRequest.status == 404) {
+	    code = 2; text = "Request URL does not exist";
+	}
+	else {
+	    if (AjaxAsyncRequest.status == 12029) {
+		code = 4; text = "Request timeout";
+	    }
+	    else {
+		code = 5; 
+		text = "XML Error: status code is " + AjaxAsyncRequest.status; 
+		if (AjaxErrs[AjaxAsyncRequest.status] != undefined)
+		    text += ": " + AjaxErrs[AjaxAsyncRequest.status]; 
+	    }
+	}
+	
+	AjaxDone (code, AjaxAsyncRequest.status, text);
     }
 }
 
@@ -848,7 +846,7 @@ function AjaxCheckReady ()
 function AjaxGetOid (oid) 
 {
     if (!AjaxAsyncRequest) {
-     if (AjaxInitAsync () == false) return false;
+	if (AjaxInitAsync () == false) return false;
     }
     var url = "get.oid?" + oid;
     AjaxAsyncRequest.open ("GET", url, true);
@@ -866,7 +864,7 @@ function AjaxDone (result_code, http_status, result_text) {}
 function AjaxGetOidValSync (oid) 
 {
     if (!AjaxSyncRequest) {
-     if (AjaxInitSync () == false) return false;
+	if (AjaxInitSync () == false) return false;
     }
 
     var url = "get.oid?" + oid;
@@ -875,8 +873,8 @@ function AjaxGetOidValSync (oid)
     AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
     AjaxSyncRequest.send(null);
     if (AjaxSyncRequest.readyState == 4 &&
-     AjaxSyncRequest.status == 200) {
-     return AjaxSyncRequest.responseText;
+	AjaxSyncRequest.status == 200) {
+	return AjaxSyncRequest.responseText;
     }
     return null;
 }
@@ -885,7 +883,7 @@ function AjaxGetOidValSync (oid)
 function AjaxSetOid (oid, val, ind)
 {
     if (!AjaxSyncRequest) {
-     if (AjaxInitSync () == false) return false;
+	if (AjaxInitSync () == false) return false;
     }
     var url = "set.oid?" + oid + "=" + val;
     
@@ -894,9 +892,9 @@ function AjaxSetOid (oid, val, ind)
     AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
     AjaxSyncRequest.send(null);
     if (AjaxSyncRequest.readyState == 4) {
-     if (AjaxSyncRequest.status == 200) {
-         commandBuffer[ind].output = AjaxSyncRequest.responseText;
-     }
+	if (AjaxSyncRequest.status == 200) {
+	    commandBuffer[ind].output = AjaxSyncRequest.responseText;
+	}
     }
     return true;
 }
@@ -941,28 +939,28 @@ var UsingActiveX = -1;
 
 function UseActiveX () {
     if (UsingActiveX >= 0) {
-     return UsingActiveX;
+	return UsingActiveX;
     }
     if (isIE && isWin) { 
-     var val = getCookie("activex");
-     if (val == null) { 
-         var now = new Date();
-         
-         now.setTime(now.getTime() + 1000*60*60*24*365*1000);
-         
-         if (isIE
-          
-          ){
-          SetCookie("activex","1",now);
-          UsingActiveX = 1;
-         } else {
-          SetCookie("activex","0",now);
-          UsingActiveX = 0;
-         }
-     } else {
-         if (val) UsingActiveX = 1;
-         else UsingActiveX = 0;
-     }
+	var val = getCookie("activex");
+	if (val == null) { 
+	    var now = new Date();
+	    
+	    now.setTime(now.getTime() + 1000*60*60*24*365*1000);
+	    
+	    if (isIE
+		
+		){
+		SetCookie("activex","1",now);
+		UsingActiveX = 1;
+	    } else {
+		SetCookie("activex","0",now);
+		UsingActiveX = 0;
+	    }
+	} else {
+	    if (val) UsingActiveX = 1;
+	    else UsingActiveX = 0;
+	}
     }
     else UsingActiveX = 0;
     return UsingActiveX;
@@ -976,61 +974,61 @@ function CreateApplet (DivID, app_string) {
 
 
 function CreateControl (DivID, imAttr, logging, streamDptzParam,
-               isIQeye6, isIQeye7, imageString) {
+			isIQeye6, isIQeye7, imageString) {
     
     var outString
-     = '<object id="Iqeye1" ' + imAttr 
-     + ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+	= '<object id="Iqeye1" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
         + ' CODEBASE="iqweb.ocx#Version=1,0,3,7"'
         + ' standby="ActiveX control is loading">\n'
-     + '<param name="_Version" value="65536">\n'
-     + '<param name="_ExtentX" value="11289">\n'
-     + '<param name="_ExtentY" value="8467">\n'
-     + '<param name="_StockProps" value="0">\n'
-     + logging
-     + streamDptzParam;
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
+	+ logging
+	+ streamDptzParam;
     outString += (isIQeye6 && !isIQeye7) ? 
-     '<param name="URL" value="/now.jpg?snap=spush">\n' :
-     '<param name="URL" value="/' + imageString + '">\n';
+	'<param name="URL" value="/now.jpg?snap=spush">\n' :
+	'<param name="URL" value="/' + imageString + '">\n';
     outString += '<br><b>ActiveX Camera Control</b>'
         + '<font color="#FF5555">'
-     + '<br><b>Error</b>'
-     + '<br>The ActiveX Control did not load'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
         + '<br><a href=appletvid.html>Click here</a>'
-     + ' to display with a Java Applet instead.'
+	+ ' to display with a Java Applet instead.'
         + '</font></object>\n';
     var d = document.getElementById(DivID);
     if (d)
-     d.innerHTML = outString; 
+	d.innerHTML = outString; 
 }
 
 function CreateCameoControl (DivID, imAttr) {
     
     var outString
-     = '<object id="Iqeye1_m" ' + imAttr 
-     + ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+	= '<object id="Iqeye1_m" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
         + ' CODEBASE="iqweb.ocx#Version=1,0,3,7"'
         + ' standby="ActiveX control is loading">\n'
         + '<param name="StreamDptz" value="0">\n'
         + '<param name="InternalDptz" value="0">\n'
         + '<param name="Display" value="0">\n'
-     + '<param name="_Version" value="65536">\n'
-     + '<param name="_ExtentX" value="11289">\n'
-     + '<param name="_ExtentY" value="8467">\n'
-     + '<param name="_StockProps" value="0">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
         + '<param name="Windowless" value="1">\n'
         + '<parm name="Smoothing" value="1">\n'
-     + '<param name="URL" value="/now.jpg?snap=spush?ds=1">\n';
+	+ '<param name="URL" value="/now.jpg?snap=spush?ds=1">\n';
     outString += '<br><b>ActiveX Cameo Camera Control</b>'
         + '<font color="#FF5555">'
-     + '<br><b>Error</b>'
-     + '<br>The ActiveX Control did not load'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
         + '<br><a href=appletvid.html>Click here</a>'
-     + ' to display with a Java Applet instead.'
+	+ ' to display with a Java Applet instead.'
         + '</font></object>\n';
     var d = document.getElementById(DivID);
     if (d)
-     d.innerHTML = outString; 
+	d.innerHTML = outString; 
 }
 
 
@@ -1042,9 +1040,9 @@ function GetElementPosition (id)
     var top  = 0;
     
     while (e.offsetParent){
-     left += e.offsetLeft;
-     top  += e.offsetTop;
-     e     = e.offsetParent;
+	left += e.offsetLeft;
+	top  += e.offsetTop;
+	e     = e.offsetParent;
     }
     
     left += e.offsetLeft;
@@ -1060,12 +1058,12 @@ function MouseCoords (ev)
 {
     
     if (ev.pageX || ev.pageY){
-     return {x:ev.pageX, y:ev.pageY};
+	return {x:ev.pageX, y:ev.pageY};
     }
     
     return {
-     x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
-     y:ev.clientY + document.body.scrollTop  - document.body.clientTop
+	x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
+	y:ev.clientY + document.body.scrollTop  - document.body.clientTop
     };
 }
 
