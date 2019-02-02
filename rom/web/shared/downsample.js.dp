@@ -37,25 +37,25 @@ function setDownSample(field) {
     var recorderRunning = ("$O(1.13.11,R)"=="ENABLED") ? true:false;
 
     if (oldval != newval) {
-	if (recorderRunning && isIQeye6) { 
-	    var reply = confirm
-		("Your camera is recording images.\n"
-		 +"Changing image size will change\n"
-		 + "the resolution of the recorded images.\n"
-		 + "Do you really want to do this?\n");
-	    recorderRunningGiven = true;
-	    if (!reply) {
-		
-		for (var i=0; i<dsArray.length; i++) {
-		    if (oldval == dsArray[i]) {
-			field.selectedIndex = i;
-			break;
-		    }
-		}
+    if (recorderRunning && isIQeye6) { 
+        var reply = confirm
+        ("Your camera is recording images.\n"
+         +"Changing image size will change\n"
+         + "the resolution of the recorded images.\n"
+         + "Do you really want to do this?\n");
+        recorderRunningGiven = true;
+        if (!reply) {
+        
+        for (var i=0; i<dsArray.length; i++) {
+            if (oldval == dsArray[i]) {
+            field.selectedIndex = i;
+            break;
+            }
+        }
 
-		return false;
-	    }
-	}
+        return false;
+        }
+    }
 
         
         ds = newval;
@@ -73,20 +73,20 @@ function setDownSample(field) {
 
 
         if (isIQeye6)
-	  submit("OidTB1.2.2", newval);
+      submit("OidTB1.2.2", newval);
         else
-	  submit("OidTB1.2.2", newval,
-	         "OidCB1.2.6.5", "ON");	
+      submit("OidTB1.2.2", newval,
+             "OidCB1.2.6.5", "ON"); 
 
 
-	adjustDispDSSelect();
+    adjustDispDSSelect();
         if (oldval <= ds_necessary && newval <= ds_necessary)
             return false; 
 
-	if (isIQeye6 && recorderRunning)
-	    return false;  
+    if (isIQeye6 && recorderRunning)
+        return false;  
 
-	reloadLater(); 
+    reloadLater(); 
     }
     return false;
 }
@@ -133,7 +133,7 @@ function adjustDSSelect(width, height) {
     var text = "";
     for (i=0; i < dsArray.length; i++) {
         text = ((dsArray[i]==1) ?dsArray[i] : "1/" + dsArray[i])
-	    if (dsArray[i]==1) text += "  ";
+        if (dsArray[i]==1) text += "  ";
         if (dsArray[i]<10) text += " ";
         text += " (" + widthArray[i] + "x" + heightArray[i] + ")";
         opts[i].text = text;
@@ -175,10 +175,10 @@ function writeDisplayDSSelect() {
         if (dsArray[i]<10) outstring += "&nbsp;";
         outstring += "&nbsp;(" 
 
-	    + Math.floor(cropwidth/dsArray[i])
-	    + "x" 
-	    + Math.floor(cropheight/dsArray[i])
-	    + ")";
+        + Math.floor(cropwidth/dsArray[i])
+        + "x" 
+        + Math.floor(cropheight/dsArray[i])
+        + ")";
         outstring += "</option>";
     }
     outstring += '</select>\n';
@@ -194,14 +194,14 @@ function adjustDispDSSelect() {
     var text = "";
     for (i=0; i < dsArray.length; i++) {
         text = ((dsArray[i]==1) ?dsArray[i] : "1/" + dsArray[i])
-	    if (dsArray[i]==1) text += "  ";
+        if (dsArray[i]==1) text += "  ";
         if (dsArray[i]<10) text += " ";
         text += " (" 
 
-	    + Math.floor(cropwidth/dsArray[i])
-	    + "x" 
-	    + Math.floor(cropheight/dsArray[i])
-	    + ")";
+        + Math.floor(cropwidth/dsArray[i])
+        + "x" 
+        + Math.floor(cropheight/dsArray[i])
+        + ")";
         opts[i].text = text;
     }
 }
