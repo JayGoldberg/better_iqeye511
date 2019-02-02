@@ -679,12 +679,14 @@ function submit(n0,v0) {
 }
 
 function enableJavaAlert() {
+    */
     if(!isIE) {
 
     if (!navigator.javaEnabled()) {
         alert("You must enable java for this page to work correctly.");
     }
     }
+    */
 }
 
 function spushImgString(args) {
