@@ -7,7 +7,7 @@ var ds = $O(1.2.2);
 var raw_width =  $O(1.2.6.2); 
 var raw_height =  $O(1.2.6.3); 
 var ds_necessary = Math.max(Math.ceil(raw_width/322),
-			    Math.ceil(raw_height/322));
+                Math.ceil(raw_height/322));
 
 
 $IF($CMP($O(2.21),2d), $IF($CMP($O(2.21),2c),,) ,)
