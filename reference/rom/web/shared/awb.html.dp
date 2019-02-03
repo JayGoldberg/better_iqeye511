@@ -1,0 +1,645 @@
+<!-- Copyright (C) 2006 - 2010 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(awbset)</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="boxes.js"></script>
+<script>
+
+window.scrollTo(0,0);
+
+enableJavaAlert();
+
+var PageTitle = "$RSTR(awbset)";
+var PageHelp = "$RSTR(awbset_help)";
+
+
+
+var drawBoxes = (UseActiveX() || canSpush);
+
+var has264Support = "$O(2.40.7.2)";
+if (has264Support == "1") has264Support = 1;
+else has264Support = 0;
+
+var ds = $O(1.2.2);
+
+var camOffsetLeft = 0; 
+var camOffsetTop = 0;  
+
+var HelperShown = '$O(1.2.12.8.6)';
+HelperShown = HelperShown.toLowerCase();
+if (HelperShown == "enabled") HelperShown = true;
+else HelperShown = false;
+
+var AwbTop    = '$O(1.2.12.8.2)';
+var AwbLeft   = '$O(1.2.12.8.1)';
+var AwbWidth  = '$O(1.2.12.8.3)';
+var AwbHeight = '$O(1.2.12.8.4)';
+
+$IF($V(IQEYE6),
+    var maxWidth = $O(1.2.18.3); 
+    var maxHeight= $O(1.2.18.4); 
+,
+    var maxWidth = $O(1.2.20.5); 
+    var maxHeight= $O(1.2.20.6);
+)
+
+
+var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+			    Math.ceil(maxHeight/322));
+
+var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+
+
+var dsfactor = Math.max(ds,ds_necessary);
+
+
+var dsreq = ds_necessary;
+
+
+if (isIQeye6) {
+     if (dsreq == 3) dsreq = 4;
+}
+if (isIQeye6 || isIQeye7) {
+    
+    if (dsreq > 4) dsreq = 4;
+}
+if (isIQeye500) {
+     
+    if (dsreq > 2) dsreq = 2;
+}	  
+
+var dsstring = "?ds=" + dsreq;
+
+
+
+var imWidth =  Math.floor(maxWidth/ds_float);
+var imHeight = Math.floor(maxHeight/ds_float);
+
+
+if (isIQeye6 && !isIQeye5 && !isIQeye7) dsstring = "";
+
+
+var CROP = 0;
+
+var iqviewWarningGiven = false; 
+
+
+var orient = "$O(1.2.4)";
+orient = (orient.match("90") || orient.match("270") ||
+  orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+
+var suspendUpdate = false; 
+
+
+var unloading = false;
+
+var initX = AwbLeft;
+var initY = AwbTop;
+var initW = AwbWidth;
+var initH = AwbHeight;
+
+
+var orient = "$O(1.2.4)";
+orient = (orient.match("90") || orient.match("270") ||
+  orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+var initXcrop = $IF($V(IQEYE6),$O(1.2.6.4),$O(1.2.18.6));
+var initYcrop = $IF($V(IQEYE6),$O(1.2.6.1),$O(1.2.18.5));
+
+
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)" onClick="return setFactory();"'
+    + ' onMouseOver=\'window.status="restore crop defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resdef)</a></li>\n';
+
+if (canSpush) {
+    
+    imWidth = Math.floor($O(1.2.6.2)/ds_float);
+    imHeight = Math.floor($O(1.2.6.3)/ds_float);
+}
+
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+
+
+
+var lastX = initX;
+var lastY = initY;
+var lastW = initW;
+var lastH = initH;
+
+function InitBoxes ()
+{
+    if (!drawBoxes) return;
+    var x, y, w, h;
+
+    var url;
+
+    url = 'now.jpg?snap=spush0.2?wm=wbgrid' + dsstring; 
+
+    if (!isIQeye6) {
+           
+	url += '?ov=0';
+    }
+
+    x = Math.floor (initXcrop/ds_float);
+    y = Math.floor (initYcrop/ds_float);
+    w = Math.floor ($O(1.2.6.2)/ds_float);
+    h = Math.floor ($O(1.2.6.3)/ds_float);
+
+    if (canSpush) {
+	
+	imAttr += ' style="margin-left: '+x+'px; margin-top: '+y+'px;" ';
+    }
+
+    CreateControl ("live", 
+		   imAttr, 
+		   "", 
+		   '<param name="InternalDptz" value="0">' +
+		   '<param name="StreamDptz" value="0">' +
+		   '<param name="Windowless" value="1">' + 
+		   '<param name="OffsetX" value="' + x + '">' + 
+		   '<param name="OffsetY" value="' + y + '">' +
+		   '<param name="DisplayWidth" value="' + w + ' ">' + '<param name="DisplayHeight" value="' + h + '">'
+		   ,isIQeye6, isIQeye7 || isIQeye5,
+		    url);
+
+
+    var x_shift, y_shift;
+    if (isIQeye6 && !isIQeye7 && !isIQeye5) {
+	x_shift = -'$O(1.2.6.4)';
+	y_shift = -'$O(1.2.6.1)';
+    }
+    else {
+	x_shift = -'$O(1.2.18.6)';
+	y_shift = -'$O(1.2.18.5)';
+    }
+
+    BoxInit ('live', 'boxes', 320, 255, 1, 0, ds_float);
+    BoxSetXshift (x_shift);
+    BoxSetYshift (y_shift);
+
+    x = AwbLeft;
+    y = AwbTop;
+    w = AwbWidth;
+    h = AwbHeight;
+
+    BoxSetDim (0, x, y, w, h);
+    BoxSetColor (0, 'green');
+    DrawBoxes ();
+}
+
+
+
+function resetToInitialVals() {
+    if (drawBoxes) {
+	BoxSetDim (CROP, initX, initY, initW, initH);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (!app) return false;
+	app.setX(CROP,initX);
+	app.setY(CROP,initY);
+	app.setW(CROP,initW);
+	app.setH(CROP,initH);
+	app.paint();
+    }
+    return false;
+}
+
+function setFactory ()
+{
+    var msg = "$RSTR(warnawbfact)";
+    if (confirm(msg)) {
+	submitNoThread ("OidTB1.2.12.8.4", "ENABLED",
+		"OidTB1.2.12.2", "ENABLED",
+		"OidTB1.2.12.5", "SPOT",
+		"OidTB1.2.12.8.7", "ENABLED");
+    }
+    reloadLater();
+    return false;
+}
+
+
+
+
+function submitNoThread(n0,v0) {
+    var name = n0, val = v0;
+    if (arguments.length>2) {
+        for (var n=2;n<arguments.length; n+=2) {
+            val +=  "&" + arguments[n] + "=" + arguments[n+1];
+        }
+    }
+
+    
+    if (theSendState()) {
+	showSending();
+        
+        status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    sendCommand(ind);
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+function beforeUnloadHandler() {
+    
+
+    var boxnum= CROP;
+    var left, top, width, height;
+
+    if (drawBoxes) {
+	var dims = BoxGetDim (boxnum);
+	left = dims.left;
+	top = dims.top;
+	width = dims.width;
+	height = dims.height;
+    }
+    else {
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    window.onbeforeunload=""; 
+
+    var str=null;
+    if (cropChanged(left, top, width, height)){
+	return str = "$RSTR(applywarn)";
+    }
+}
+
+function unloadHandler() {
+    
+    suspendUpdate = true;
+    unloading = true;
+
+    window.status="";
+    
+    
+    return true;
+}
+
+function cropChanged(left, top, width, height) {
+    if (Math.abs(left - lastX)  > dsfactor) return true;
+    if (Math.abs(top - lastY)   > dsfactor) return true;
+    if (Math.abs(width - lastW) > dsfactor)  return true;
+    if (Math.abs(height - lastH)> dsfactor) return true;
+    return false;
+}
+
+
+function restartFunction() 
+{
+    submit ("OidTR1.2.12.7", "ENABLED");
+    return false;
+}
+
+function submitFunction() {
+    suspendUpdate = true;
+
+    var boxnum= CROP;
+    var left, top, width, height;
+    var do_reboot= 0;
+
+    if (drawBoxes) {
+	var dims = BoxGetDim (boxnum);
+	
+	left   = dims.left;
+	top    = dims.top;
+	width  = dims.width;
+	height = dims.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) return;
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    if (orient=="portrait") { 
+	var tmp = width;
+	width = height;
+	height = tmp;
+    }
+
+    if (cropChanged(left, top, width, height)) {
+	
+	lastX = left;
+	lastY = top;
+	lastW = width;
+	lastH = height;
+
+	
+	window.status="setting crop window before moving to next page...";
+	submitNoThread(
+	    "OidTB1.2.12.8.3",  width,    
+	    "OidTB1.2.12.8.4",  height,
+	    "OidTB1.2.12.8.1",  left,
+	    "OidTB1.2.12.8.2",  top,
+	    
+	    "OidTR1.2.12.7", "ENABLED");
+    }
+
+    reloadLater();
+    return false; 
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+
+function WriteLive ()
+{
+    document.write ('<td id="livetd"');
+    document.write (' width=330 height=330 valign="top" align="left">');
+
+    if (drawBoxes) {
+	document.write ('<div id="live"></div>');
+	document.write ('<span id="boxes">boxes</span>');
+	return;
+    }
+    document.write ('<div id="Applet_Div">Applet</div>');
+    var rv = 
+	'<applet code="WindowSet.class" name="spapplet" ' + imAttr + '>' 
+	+ '<param name="url1" value="1pixgray.gif">'
+	+ '<param name="offsetx" value="' 
+	+   initX/dsfactor + '">'
+	+ '<param name="offsety" value="' 
+	+   initY/dsfactor + '">'
+	+ '<param name="url2" value="'
+	+ 'now.jpg?snap=spush0.2?wm=wbgrid';
+    
+    if (!isIQeye6) rv += '?ov=0';
+    rv += dsstring
+	+ '">'
+	
+	+ '<param name="dsfactor" value="' + dsfactor + '">';
+    
+    if (orient=="portrait") { 
+	rv += '<param name="h0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7)) + '">'
+	    + '<param name="w0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8)) + '">'
+	    + '<param name="hOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.2,OidTR1.2.18.7)">'
+	    + '<param name="wOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.3,OidTR1.2.18.8)">';
+    } else {
+	rv += '<param name="w0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7)) + '">'
+	    + '<param name="h0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8)) + '">'
+	    + '<param name="wOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.2,OidTR1.2.18.7)">'
+	    + '<param name="hOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.3,OidTR1.2.18.8)">';
+    }
+    rv += '<param name="x0" value="' + initX + '">';
+    rv += '<param name="y0" value="' + initY + '">';
+    $IF($V(IQEYE6),rv += '<param name="hw" value="' + $O(1.2.6.2)/dsfactor + '">';
+	rv += '<param name="hh" value="' + $O(1.2.6.3)/dsfactor + '">';,)
+	rv += '<param name="numWindows" value="1">';
+    rv += '<param name="xOid0" value="$IF($V(IQEYE6),OidTR1.2.6.4,OidTR1.2.18.6)">';
+    rv += '<param name="yOid0" value="$IF($V(IQEYE6),OidTR1.2.6.1,OidTR1.2.18.5)">';
+    rv += '<param name="saveOid0" value="OidCR1.2.16">';
+    rv += '<param name="color0" value="#00FF00">';
+    rv += '</applet>';
+    CreateApplet ("Applet_Div", rv);
+    document.write ('</td>');
+}
+
+var AWBMeth = '$O(1.2.12.5)';
+AWBMeth = AWBMeth.toLowerCase();
+var AWBon = '$O(1.2.12.2)';
+AWBon = AWBon.toLowerCase();
+
+function setAWBmeth (field)
+{
+    var val = field.options[field.selectedIndex].value;
+
+    if (val == "SPOT" || val == "WORLD") {
+	submit ("OidTB1.2.12.5", val, 
+		"OidTB1.2.12.2", "ENABLED",
+		"OidTR1.2.12.7", "ENABLED");
+	if (val == "SPOT")
+	    AWBMeth = "spot";
+	else 
+	    AWBMeth = "world";
+	AWBon = "enabled";
+    }
+    else {
+	
+	submit ("OidTR1.2.12.2", "DISABLED",  
+		"OidTR1.2.16", "ENABLED");    
+	AWBon = "disabled";
+    }
+    CheckHlprButton ();
+}
+
+function writeAWBSelect()
+{
+    var out;
+    out = '<select name="awbsel" id="awbsel" onChange="setAWBmeth(this);">';
+    out += '<option ';
+    if (AWBMeth == "spot" && AWBon == "enabled")
+	out += 'selected';
+    out += ' value="SPOT">$RSTR(autospot)';
+    out += '<option ';
+    if (AWBMeth == "world" && AWBon == "enabled")
+	out += 'selected';
+    out += ' value="WORLD">$RSTR(autoworld)';
+    out += '<option ';
+    if (AWBon == "disabled")
+	out += 'selected';
+    out += ' value="locked">$RSTR(locked)';
+    out += '</select>';
+    document.write (out);    
+}
+
+function toggleHelper()
+{
+    if (HelperShown) {
+	HelperShown = false;
+	submit ("OidTB1.2.12.8.6", "DISABLED"); 
+    }
+    else {
+	HelperShown = true;
+	submit ("OidTB1.2.12.8.6", "ENABLED"); 
+    }
+    CheckHlprButton ();
+    return false;
+}
+
+function CheckHlprButton ()
+{
+    if (AWBMeth == "spot" &&
+	AWBon == "enabled") {
+	if (HelperShown)
+	    de("hlpr_text").innerHTML = "$RSTR(hlproff)";
+	else
+	    de("hlpr_text").innerHTML = "$RSTR(hlpron)";
+	de("hlpr_button").style.visibility = "visible";
+    }
+    else {
+	de("hlpr_button").style.visibility = "hidden";
+    }
+}
+
+function loadHandler()
+{
+    
+    CheckHlprButton ();
+}
+
+</script>
+</head>
+
+<body onLoad="loadHandler()" onUnload="unloadHandler()">
+
+<noscript>
+  <font color="#FF0000">
+    <!-- fixme: translate this next message -->
+
+    <b>You must enable JavaScript to use this page.</b></font></noscript>
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("window"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=850>
+<tr>
+	 <script>WriteLive();</script>
+  <td rowspan=2  valign="top" align="right" style="padding-top: 18px">
+
+<form name="myform" method="post">
+<table class="input" cellspacing=0  cellpadding=0 width=420 style="margin-right: 10px;">
+<tr>
+  <td class="subtitleleft">&nbsp;</td>
+  <td height=20 class="subtitleleft">
+    <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+  <script>
+      if (!isVAV)
+          document.write('<li><a href="cropset.html">$RSTR(crop)</a></li>');
+      if (hasExposureSupport)
+	  document.write('<li><a href="exposure.html">$RSTR(exposure)</a></li>');
+      if (hasAWBSupport)
+          document.write('<li id="current"><a href="awb.html">$RSTR(awb)</a></li>');
+      if (hasPrivacySupport)
+	  document.write('<li><a href="privacy.html">$RSTR(privacy)</a></li>');
+      if (hasMotionSupport)
+	  document.write('<li><a href="motionset.html">$RSTR(motion)</a></li></li>');
+      if (hasCameo)
+	  document.write('<li><a href="vcamset.html">$RSTR(vcam)</a></li></li>');
+  </script> 
+  </ul></td>
+</tr>
+<tr><td class="startsubleft">&nbsp; </td>
+<td class="startsubw">$RSTR(awbtitle)<script>writeHelpIcon("AWBWin");</script></a></td>
+</tr>
+<tr><td class="left" height=22>&nbsp;</td>
+  <td class="input">$RSTR(awbmeth)
+    <script>
+      writeAWBSelect();</script></td></tr>
+<tr><td class="left" height=20>&nbsp; </td>
+  <td class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+  <td class="input">&nbsp; </td.>
+</tr>
+<tr> <td class="left">&nbsp; </td>
+  <td class="input" align="center">
+    <ul id="buttonp">
+      <li><a href=""
+        onClick="return restartFunction()" 
+	onMouseOver="window.status='$RSTR(rstawb)'; return true;" 
+        onMouseOut="window.status=''">$RSTR(rstawb)</a></li>
+      <li><a href=""
+        onClick="return submitFunction()" 
+	onMouseOver="window.status='$RSTR(subcur)'; return true;" 
+        onMouseOut="window.status=''">$RSTR(apply)</a></li>
+      <li><a href=""
+        onClick="return resetToInitialVals();"
+        onMouseOver="window.status='$RSTR(resinit)'; return true;"
+        onMouseOut="window.status='';">$RSTR(cancel)</a></li>
+    </ul>
+  </td>
+</tr>
+<tr><td class="endsubleft">&nbsp;</td>
+  <td class="endsub">&nbsp;</td>
+</tr>
+</table></form>
+  </td>
+</tr>
+<tr>
+<!--
+  <td valign="bottom"  align="center" height=60>&nbsp; </td>
+-->
+
+      <td id="hlpr_button" name="hlpr_button" style="visibility: hidden;" valign="bottom"  align="right" width=320>
+        <ul id="buttonm" style="padding-left: 290px">
+	  <li class="menu"><a id="hlpr_text" name="hlpr_text" class="menu" href=""
+	       onClick="return toggleHelper()" 
+	       onMouseOver="window.status='toggle helper grid'; return true;" 
+               onMouseOut="window.status=''">helper</a></li>
+        </ul>
+      </td>
+</tr>
+</table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+
+<script>
+  writeFooter('myDefaults');
+</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td class="b" colspan=2><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif"></td>
+</tr>
+</table>
+
+
+<script>
+if (drawBoxes) InitBoxes ();
+</script>
+</body>
+</html>

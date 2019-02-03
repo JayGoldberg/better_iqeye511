@@ -1,0 +1,634 @@
+<!-- Copyright (C) 2007 - 2010 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(TrigSet)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- internal styles -->
+<style type="text/css">
+
+#email_trigstatus {font: 12px Arial, Verdana, sans-serif; color: red;
+    font-weight: bold; white-space: nowrap;}
+
+
+#ftp_trigstatus {font: 12px Arial, Verdana, sans-serif; color: red;
+    font-weight: bold; white-space: nowrap;}
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+$INC(downsample.js.dp)
+
+if ("$O(1.13.11, R)"=="ENABLED") 
+    location.replace("recordertriggerset."+Culture+".html");
+
+enableJavaAlert();
+
+
+
+var PageTitle = "$RSTR(TrigSet)";
+var PageHelp = "$RSTR(TrigSet_help)";
+
+var dom = '$O(3.6.4)'; 
+
+var numpretrig = parseInt('$O(1.3.8.1)');  
+var numposttrig = parseInt('$O(1.3.7.1)');  
+
+var triggerAction = '$O(1.3.13,B)';
+triggerAction = triggerAction.toLowerCase();
+
+var maxTriggerImages = 8;
+
+function formatIsValid(field) { 
+    var val = field.value;
+    var name = field.name;
+    if (name == "OidTB3.6.13") {  
+	var pattern = /^\s*none\s*$$/i;
+        if (val == "none") { 
+	    field.value = "None";
+	}
+	if (val.match(pattern)) {
+	    return true;
+	}
+	if (! isAnIPAddress(field)) { 
+	    alert("You must enter `none' or an ip address in the form nnn.nnn.nnn.nnn");
+	    select(field);
+	    return false;
+	}
+	return true;
+    } 
+    if (name == "OidTB1.3.6"  ||  
+	name == "OidTB1.3.7.2" || name == "OidTB1.3.8.2") {
+	if ((isNaN(parseFloat(val))) || (val < 0) || (val > 86399)) {
+	    alert("Please input a number from 0 through 86399.0");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	
+	field.value = val.replace(/\s/g,"");
+	return true;
+    }
+    if (name == "OidTB3.6.4") { 
+	
+	var exp = new RegExp("^(\\S+)$$"); 
+	var arr = val.match(exp);
+	if (arr == null) { 
+	    alert("Please enter a valid domain name");
+	    select(field);
+	    return false;
+	}
+	dom = val;
+	return true;
+    }
+    if (name == "OidTB1.3.3") { 
+	if ((isNaN(parseFloat(val))) || (val < 0) || (val > 3600)) {
+	    alert("Please input a number from 0 through 3600.0");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.3.8.1") { 
+	if ((isNaN(parseInt(val))) || (val < 0) || (val > maxTriggerImages)) {
+	    alert("Please input a number from 0 through " + maxTriggerImages);
+	    field.value = 0;
+	    return false;
+	}
+	numpretrig = parseInt(val);
+	if ((numpretrig + numposttrig) > maxTriggerImages) {
+	    alert
+             ("The number of pre- and post- trigger images must be "
+	      + maxTriggerImages + " or less");
+	    numpretrig = field.value = 0;
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.3.7.1") { 
+	if ((isNaN(parseInt(val))) || (val < 0) || (val > maxTriggerImages)) {
+	    alert("Please input a number from 0 through " + maxTriggerImages);
+	    field.value = 0;
+	    return false;
+	}
+	numposttrig = parseInt(val);
+	if ((numpretrig + numposttrig) > maxTriggerImages) {
+	    alert
+             ("The number of pre- and post- trigger images must be "
+	      + maxTriggerImages + " or less");
+	    numposttrig = field.value = 0;
+	    return false;
+	}
+	return true;
+    }
+    
+    if (name.match("OidTB8.1.1") || name.match("OidTB8.1.2") 
+	|| name.match("OidTB9.1.1") 
+	|| name.match("OidTB9.1.3") 
+	) { 
+	if (val.length >31) {
+	    alert("Please input 31 characters or less");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+    if (name.match("OidTB9.1.4")   
+	|| name.match("OidTB9.1.2") 
+	) { 
+	if (val.length >63) {
+	    alert("Please input 63 characters or less");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+
+    
+    if (name.match("OidTB8.1.5")) {
+	if (val.length > 63) {
+	    alert("Please input 63 characters or less");
+	    return false;
+	}
+	return true;
+    }
+    
+    if (name.match("OidTB8.1.6")) {
+	if (val.length > 32) {
+	    alert("Please input 32 characters or less");
+	    return false;
+	}
+	return true;
+    }
+    if (name.match("OidTB9\.1\.")) { 
+	if (! dom) {
+	    alert("domain name must be set");
+	    field.value = "";
+	    select(document.myform["OidTB3.6.4"]); 
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.12.1") { 
+	
+	var exp = /[^\w\.\/\_]/
+	if (val.match(exp)) { 
+	    alert("Please use only alphanumeric characters, '/', '_', and '.'");
+	    select(field);
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.12.2") { 
+	val = parseInt(val);
+	if (isNaN(val) || val<0 || val > 100) {
+	    alert("Please enter an integer percentage from 0 through 100.");
+	    select(field);
+	    return false;
+	}
+	field.val = val;
+	return true;
+    }
+    return true;
+}
+
+function trig_factory() {
+    var msg = '$RSTR(trigfwarn)';
+    if (confirm(msg)) {
+	if (isFalcon) 
+	    submit ("OidCB1.3.2", "ON");
+	else
+	    submit ("OidCB1.3.2", "ON", "OidCB8.4", "ON", "OidCB9.6", "ON");
+	reloadLater();
+    }
+    return false;
+}
+
+function setTriggerAction(field) {
+     var outval = field.options[field.selectedIndex].value;
+     setEcam2("OidTB1.3.13", escape(outval));
+     triggerAction = outval.toLowerCase();
+}
+
+function checkTriggerActionBoxes() {
+    var triggerStr = '$O(1.3.13,B)';
+    var expr = /email/i;
+    if (triggerStr.match(expr))
+	document.myform.trigEmail.checked=true;
+    expr = /ftp/i;
+    if (triggerStr.match(expr)) {
+	document.myform.trigFTP.checked=true;
+    }
+    expr = /archive/i;
+    if (triggerStr.match(expr) && document.myform.trigArchive)
+	document.myform.trigArchive.checked=true;
+}
+
+function writeTriggerActionSelect() {
+     if (isMole) {
+	 writeTriggerActionSelect400 ();
+     }
+     else {
+	 writeTriggerActionSelectNo400 ();
+     }
+}
+
+function writeTriggerActionSelectNo400 () {
+     var triggerStr = '$O(1.3.13,B)';
+     var expr = /email/i;
+     var email = false;
+     var ftp = false;
+     var both = false;
+     var none = false;
+     if (triggerStr.match(expr))
+	  email = true;
+     expr = /ftp/i;
+     if (triggerStr.match(expr))
+	  ftp = true;
+     if (email && ftp) {both=true;none=false;}
+     else if (!email && !ftp) {both=false;none=true;}
+     var outstring = 
+     '<select id="trigact" onchange="setTriggerAction(this);"><option value="ftp"';
+     outstring += (ftp && !both) ? ' selected>' : '>';
+     outstring += 'FTP<option value="email"';
+     outstring += (email && !both) ? ' selected>' : '>';
+     outstring += '$RSTR(email)<option value="ftp email"';
+     outstring += both ? ' selected>' : '>';
+     outstring += '$RSTR(both)<option value="none"';
+     outstring += none ? ' selected>' : '>';
+     outstring += '$RSTR(none)</select>';
+     document.write(outstring);
+}
+
+function writeTriggerActionSelect400 () {
+     var triggerStr = '$O(1.3.13,B)';
+     var expr = /email/i;
+     var email = false;
+     var samba = false;
+     var both = false;
+     var none = false;
+     if (triggerStr.match(expr))
+	  email = true;
+     expr = /samba/i;
+     if (triggerStr.match(expr))
+	  samba = true;
+     if (email && samba) {both=true;none=false;}
+     else if (!email && !samba) {both=false;none=true;}
+     var outstring = 
+     '<select id="trigact" onchange="setTriggerAction(this);"><option value="samba"';
+     outstring += (samba && !both) ? ' selected>' : '>';
+     outstring += 'samba<option value="email"';
+     outstring += (email && !both) ? ' selected>' : '>';
+     outstring += 'e-mail<option value="samba email"';
+     outstring += both ? ' selected>' : '>';
+     outstring += 'both<option value="none"';
+     outstring += none ? ' selected>' : '>';
+     outstring += 'none</select>';
+     document.write(outstring);
+}
+
+function setSambaPath(field) {
+    var val = field.value;
+    setEcam2("OidTB20.1.6.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function setSambaPassword(field) {
+    setEcam2("OidTB20.1.3.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function setPath(field) {
+    var val = field.value;
+    setEcam2("OidTB8.1.4.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function setPassword(field) {
+    var val = field.value;
+    if (! isAPassword(field)) {
+	
+	alert("Please enter 1 to 32 characters.\n" +
+		"Do not include white space characters.\n\n" +
+		"Password not changed.");
+	select(field);
+	return false;
+    }
+
+    setEcam2("OidTB8.1.6.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+function doTestTrigger() {
+     setEcam2("OidCB1.3.10", "ON");
+     if (triggerAction == "none")
+        alert ("$RSTR(trignoact)");
+}
+
+
+var StatUpdating = 0; 
+
+function AjaxDone (result_code, http_status, result_text)
+{
+    
+    if (!(result_code == 0 && http_status == 200))
+	result_text = "unknown - error getting status";
+    if (StatUpdating == 0)
+	updateEmailStat (result_text.trim());
+    else
+	updateFtpStat (result_text.trim());
+    if (!isMole)
+	StatUpdating = 1-StatUpdating;
+    window.setTimeout ('startStatusUpdate();', 5000);
+}
+
+function updateEmailStat (text)
+{
+    if (!getObject ("email_trigstatus")) return;
+    if (!(text.toLowerCase() != "success" ||
+	  text.toLowerCase() != "none")) text += " error";
+    getObject ("email_trigstatus").innerHTML = text;
+}
+
+function updateFtpStat (text)
+{
+    if (!getObject ("ftp_trigstatus")) return;
+    if (!(text.toLowerCase() != "success" ||
+	  text.toLowerCase() != "none")) text += " error";
+    getObject ("ftp_trigstatus").innerHTML = text;
+}
+
+function startStatusUpdate ()
+{
+   if (StatUpdating) {
+      if (AjaxGetOid ("8.1.9.trigger") == false) 
+         updateFtpStat ("XML error");
+   }
+   else {
+      if (AjaxGetOid ("9.1.5.trigger") == false)
+         updateEmailStat ("XML error");
+   }
+}
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)"'
+    + ' onClick=\'doTestTrigger()\''
+    + ' onMouseOver="window.status=\'trigger camera event now\'; return true;"'
+    + ' onMouseOut="window.status=\'\';">'
+    + '$RSTR(ttrig)</a></li>\n' 
+    + '<li><a href="javascript:void(0)"'
+    + ' onClick=\'return trig_factory()\''
+    + ' onMouseOver=\'window.status="restore factory trigger defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resfacdflt)</a></li>\n';
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+
+<form name="myform" method="post">
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("trigger"); 
+</script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+          writeCroppedImage();
+       </script>
+      $IF($V(IQ06),<td rowspan=2 valign="top" align="right">,<td rowspan=2 valign="bottom" align="right">)
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">        <tr>		    
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle" helpsub="$RSTR(TrigSet)" helpanchor="trig-gen">$RSTR(TrigSet)
+             <script>
+              writeHelpIcon("trig-gen");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="$RSTR(actions)" myhelp="$RSTR(actions_help)">$RSTR(actions)
+            <script>
+              writeTriggerActionSelect();     
+            </script>
+
+          </td></tr>
+          <script>
+          if (hasMotionSupport) {
+  	    document.write('<tr><td class="left">&nbsp;</td>'
+		   + '<td class="input" helpbold="$RSTR(motion)" myhelp="$RSTR(trigmot_help)">$RSTR(motion) $O(1.3.19,JSB)</td></tr>');
+        
+	  }  
+     	</script>
+        $IF($V(IQEYE5),<!--,)
+        $IF($V(IQEYE7),-->,)
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(extinp)" myhelp="$RSTR(trigextinp_help)">$RSTR(extinp) $O(1.3.4,JSB)</td></tr> 
+        $IF($V(IQEYE7),<!--,)
+        $IF($V(IQEYE5),-->,)
+        $IF($V(IQ06),<!--,)
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(tmlapse)" myhelp="$RSTR(tmlapse_help)"> 
+            $RSTR(tmlapse)</font>
+            $O(1.3.6,JTB8)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(imsize)" myhelp="$RSTR(imsize_help)">$RSTR(imsize)
+            <script>
+              writeDownSampleSelect();     
+            </script></td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(foidle)" myhelp="$RSTR(foidle_help)">$RSTR(foidle) $O(1.3.3,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(numpre)" myhelp="$RSTR(numpre_help)">$RSTR(numpre) $O(1.3.8.1,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(preint)" myhelp="$RSTR(preint_help)">$RSTR(preint) $O(1.3.8.2,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(numpost)" myhelp="$RSTR(numpost_help)">$RSTR(numpost) $O(1.3.7.1,JTB) </td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(postint)" myhelp="$RSTR(postint_help)">$RSTR(postint) $O(1.3.7.2,JTB)</td></tr>
+        $IF($V(IQ06),-->,)
+
+        $IF($V(IQ06),,<!--)
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub"></td></tr>
+        $IF($V(IQ06),,-->)
+
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle" helpsub="$RSTR(Email)"
+myhelp="$RSTR(Email_help)" helpanchor="trig-email">$RSTR(Email)
+             <script>
+              writeHelpIcon("trig-email");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="$RSTR(from)" myhelp="$RSTR(from_help)">$RSTR(from) $O(9.1.3.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(subject)" myhelp="$RSTR(subject_help)">$RSTR(subject) $O(9.1.2.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(rcpts)" myhelp="$RSTR(rcpts_help)">$RSTR(rcpts) $O(9.1.4.trigger,JTB22)</td></tr>
+
+        $IF($V(IQ06),<!--,)
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle" helpsub="FTP" helpanchor="trig-ftp">FTP
+             <script>
+              writeHelpIcon("trig-ftp");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="$RSTR(hostname)" myhelp="$RSTR(hostname_help)">$RSTR(hostname) $O(8.1.1.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(username)" myhelp="$RSTR(ftpusername_help)">$RSTR(username) $O(8.1.5.trigger,JTB10)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(password)" myhelp="$RSTR(ftppassword_help)">$RSTR(password) 
+            <input type="password" name="password" id="password" 
+             value="******" size="10" 
+             onChange="setPassword(this)">
+            </td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(filename)" myhelp="$RSTR(ftpfilename_help)">$RSTR(filename) $O(8.1.3.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(filepath)" myhelp="$RSTR(ftpfilepath_help)">$RSTR(filepath)
+            <input name="recorderpath" value="$O(8.1.4.trigger)" size="20" 
+             onChange="setPath(this)"></td></tr>
+        $IF($V(IQ06),-->,)
+
+
+        <!--
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle">Samba
+             <script>
+              writeHelpIcon("trig-samba");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub">host name$O(20.1.7.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">host IP $O(20.1.8.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">share name $O(20.1.4.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">workgroup $O(20.1.1.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">username $O(20.1.2.trigger,JTB10)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input">password 
+            <input type="password" name="password" id="password" 
+             value="******" size="10" 
+             onChange="setSambaPassword(this)">
+            </td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR()" myhelp="$RSTR()">file name $O(20.1.5.trigger,JTB)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR()" myhelp="$RSTR()">file path
+            <input name="sambapath" value="$O(20.1.6.trigger)" size="20" 
+             onChange="setSambaPath(this)"></td></tr>
+        -->
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left">
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle" helpsub="$RSTR(Status)"
+myhelp="$RSTR(trigstatus_help)" helpanchor="trig-status">$RSTR(Status)
+             <script>
+              writeHelpIcon("trig-status");</script></td></tr>
+        <tr> 
+          <td class="startsubleftg">&nbsp;</td>
+	      <td class="startsubg" align="left">$RSTR(estat):
+            <script>
+              document.write ('<span id="email_trigstatus">&nbsp</span>');
+	    </script>
+          </td>
+	</tr>
+        <tr> 
+     <!-- sneak the dynamic print help in here -->
+          <td class="endsubleftg" helpbold="$RSTR(dynamic_print)" myhelp="$RSTR(dpr_help)">&nbsp;</td>
+	      <td class="endsubg" align="left">$IF($V(IQ06),<!--,)$RSTR(fstat):
+            <script>
+              document.write ('<span id="ftp_trigstatus">&nbsp</span>');
+	    </script>$IF($V(IQ06),-->,)
+	  </td>
+	</tr>
+        </table>
+      </td></tr> <!-- end bottom left content -->
+  </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<script>
+  writeFooter('myDefaults');
+  startStatusUpdate ();
+</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

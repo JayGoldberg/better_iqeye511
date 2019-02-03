@@ -1,0 +1,1469 @@
+<!-- Copyright (C) 2006 - 2014 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Live/Replay Images Digital Pan Tilt Zoom
+</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="Cache-Control" content="no-cache">
+
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="luna.css" />
+<style type="text/css">
+
+<!-- style sheet overrides -->
+
+html, body {
+  color: #333;
+  font-style: bold;}
+
+#mousecontrols {position: absolute; top: 96px; left: 117px; visibility: hidden;}
+
+#main {background: white;
+  margin: 0; padding: 0; margin-left: 12px; 
+  top: 76px;  left: 0;}
+
+li.menu  {background: #399 url(buttonm.gif) 0 0 no-repeat;}
+a.menu  {background: #399 url(buttonm.gif) 100% 0 no-repeat;}
+
+li.menu2  {background: #399 url(buttong.gif) 0 0 no-repeat;}
+a.menu2  {background: #399 url(buttong.gif) 100% 0 no-repeat;}
+
+
+table.content {
+  clear: left;
+  }
+
+
+table.dptz a {padding: 0px 8px 1px 6px; margin-left: 0px;
+  text-decoration: none;  font-weight: 600; font-size: 16px; line-height: 18px;
+  color: white;
+  width:  .1em;}
+html>body a.dptz {width: auto;}    
+
+a.dptz {float: none;}            
+
+td.dptz {background: #EEE url(rose.gif) 0 100% no-repeat; padding: 1px 0 0 2px;}
+
+table.replay a {padding: 0px 0px 0px 0px; margin-left: 0px;
+  text-decoration: none;  font-weight: 600; font-size: 16px; line-height: 22px;
+  color: white;}
+html>body a.replay {width: auto;}    
+
+a.replay {float: none;}            
+
+td.replay {background: #EEE url(rose.gif) 0 100% no-repeat; padding: 0px 0px 0px 0px; margin: 0px 0px 0px 0px; height: 22px}
+
+td.help a {padding: 0px 3px 0px 2px;
+  font-weight: 600; font-size: 10px; line-height: 12px;
+  background: #EEE url(helpt.gif) 100% 0 no-repeat;}
+html>body #help a {width: auto;}    
+
+td.subtitle a {float: none;}            
+td.subtitle a:hover {color: #FC6;}
+
+
+
+
+a.replay_left {background: white url(replay.gif) -1px 0px no-repeat; width: 7px; height: 22px; text-decoration: none;}
+
+
+a.replay_right {background: white url(replay.gif) -90px 0px no-repeat; width: 7px; height: 22px; text-decoration: none;}
+
+
+a.rewind {background: white url(replay.gif) -58px 0px no-repeat; width: 12px; height: 22px; text-decoration: none;}
+
+
+a.forward {background: white url(replay.gif) -74px 0px no-repeat; width: 13px; height: 22px; text-decoration: none;}
+
+
+a.pause {background: white url(replay.gif) -102px 0px no-repeat; width: 13px; height: 22px; text-decoration: none;}
+
+#slider-1 {
+	margin:	10px;
+	width:	auto;
+	background-color: #ffffff;
+}
+
+</style>
+
+<script  src="lib.js" ></script> 
+<script  src="gui.js" ></script>
+<script  src="vid.js" ></script>
+<script type="text/javascript" src="range.js"></script>
+<script type="text/javascript" src="timer.js"></script>
+<script type="text/javascript" src="slider.js"></script>
+<script>
+
+var RW_HI = '-26px';   
+var RW_NOHI = '-58px'; 
+
+var FF_HI = '-42px';   
+var FF_NOHI = '-74px'; 
+
+var PAUSE_HI = '-118px';   
+var PAUSE_NOHI = '-102px'; 
+
+var playImage = "url(play.gif)";
+
+var FPS = false;
+var streamDptzParam = '<param name="StreamDptz" value="1"><param name="InternalDptz" value="1">\n';
+var logging = '<param name="Logging" value="0">\n';
+
+if (isIQeye6) {
+    
+    streamDptzParam = '<param name="StreamDptz" value="0">\n';
+}
+
+
+streamDptzParam += '<param name="Smoothing" value="0">\n';
+
+streamDptzParam += '<param name="Windowless" value="0">\n';
+
+
+var FirstZoom = false;  
+
+var sizeFactor = 2;
+var streaming = true;       
+var recording = false;      
+var record_seconds = 0;     
+var record_stoptime = 0;    
+var BlinkIsOn = false;
+var initialRequest = "";    
+
+
+var replayURIMod = "";      
+var replayStepMod = "";     
+var currentSeq = 0;         
+var oldestSeq = 0;          
+var newestSeq = 0;          
+var rewinding = false;      
+var ffing = false;          
+var paused = false;         
+var replaying = false;      
+var replayCookies = false;  
+var pendingStep = 0;        
+var currentStep = 0;        
+var replayVisArray;         
+var pauseToggle = true;    
+var canReplay = 0;
+
+
+var TimeSlider;             
+var SliderSizeTimer;        
+var SliderPosTimer;         
+var SliderUserTimer;        
+var IgnoreSliderChange = false; 
+var SliderPos;              
+
+var PageLoaded = false;     
+var FirstUpdate = false;    
+var UserIsSliding = false;  
+var AjaxPending = false;    
+
+var isIE = (!isNav && (navigator.appVersion.indexOf("MSIE") != -1));
+
+var FactorSfx = "x"; 
+
+
+var CameraTZOffset = parseInt('$O(2.46)');
+var LocalTime = new Date ();
+var LocalTZOffset = LocalTime.getTimezoneOffset ();
+var TZDiff = (LocalTZOffset - CameraTZOffset) * 60 * 1000;
+
+if (isIQeye7) {
+     var replay_state = '$O(1.15.1,R)';
+     if (replay_state.toLowerCase() == 'enabled') canReplay = 1;
+     
+     var replay_rate = '$O(1.15.3,R)';
+     if (replay_rate.toLowerCase() == 'motion') FactorSfx = "";
+}
+
+function theOCX() {
+    if (!isIE) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1");
+}
+
+
+function showError(string) {
+    window.status = string;
+    setTimeout('window.status=""',1000);
+}
+
+
+function handleError(errorText) {
+    if (errorText=="center") showError("already centered");
+    else if (errorText=="maxsize") {
+	
+	
+	sizeDown (4);
+    }
+    else if (errorText=="minsize") {
+	
+	sizeUp (4);
+    }
+    else if (errorText=="maxzoom") showError("at maximum zoom");
+    else if (errorText=="minzoom") showError("at minimum zoom");
+    else if (errorText=="maxdownsample") showError("at maximum downsample");
+    else if (errorText=="maxFOV") showError("at maximum field of view");
+    else if (errorText=="topboundary") showError("at top edge");
+    else if (errorText=="bottomboundary") showError("at bottom edge");
+    else if (errorText=="leftboundary") showError("at left edge");
+    else if (errorText=="rightboundary") showError("at right edge");
+}
+
+
+
+
+function loadNewPage() {
+    setDS();
+    var newurl = myURL();
+    if (replaying) {
+	saveReplayState ();
+	
+    }
+    self.location = newurl;
+    return false;
+}
+
+function launchHelpPage() {
+    window.open("replayvidhelp.html","dptzhelp",
+		"height=600,width=640,scrollbars");
+    return false;
+}
+
+
+function doFirstZoom (first) {
+    
+    if (!streaming || recording || canReplay) return;
+    FirstZoom = first;
+    if (isIQeye7) {
+	stopDownload();
+	startDownload();
+    }
+}
+
+
+function zoomOutMax() {
+    doFirstZoom (false);
+    if (theOCX()) theOCX().ZoomTo(1.0);
+    return false;
+}
+
+function saveAs() {
+    var streamingTemp = streaming;
+    if (streaming) stopDownload(); 
+    if (isIQeye7) {
+	
+	if (!replaying) {
+	    theOCX().URL = "/now.jpg?snap=pre?ds=1";
+	}
+    }
+    if (theOCX()) theOCX().SaveAs();
+    if (streamingTemp) startDownload();  
+    return false;
+}
+
+function startRecord () {
+     if (theOCX()) {
+        var rv;
+        var args = new Array;
+        var record_string;
+
+        
+        zoomOutMax ();
+
+        
+      
+        theOCX().StopDownload ();
+
+	if (replaying) {
+	    
+	    args[0] = 0;
+	    args[1] = 0;
+	}
+	else {
+	    
+	    rv = window.showModalDialog ("record_dlg.html", args,
+					 "status:false;dialogWidth:300px;dialogHeight:200px;unadorned:1;help:0;");
+	    
+	    if (rv == 0) {
+		theOCX().StartDownload ();
+		return false; 
+	    }
+	    
+	    if (isNaN(args[0])) {
+		alert ("Invalid framerate " + args[0]);
+		theOCX().StartDownload ();
+		return false;
+	    }
+	    
+	    if (isNaN(args[1])) {
+		alert ("Invalid duration " + args[1]);
+		theOCX().StartDownload ();
+		return false;
+	    }
+	}
+
+        record_string = "/now.jpg?snap=spush";
+        if (args[0] != 0) {
+           var delay = 1.0/args[0];
+	   record_string += delay;
+	}
+	if (replaying) {
+	    record_string += "?seq=" + getCurSeq();
+	}
+
+        document.alinkColor=$V(COLOR);
+
+        getObject("sizeUpGif").style.visibility="hidden";
+        getObject("save_button").style.visibility="hidden";
+        getObject("vidclip").style.visibility="hidden";
+	setVis (replayVisArray, 'hidden');
+
+	if (pauseToggle) {
+	    showPlayState ();
+	    paused = false;
+	}
+
+        theOCX().URL = record_string;
+        var rv = theOCX().StartRecording('', 0);
+        if (rv != 0) {
+          var err_str;
+	  if (rv == -1) err_str = 'already recording';
+	  else if (rv == -2) err_str = 'unable to create temp file';
+	  else if (rv == -3) err_str = 'unable to open file for writing';
+	  else if (rv == -4) err_str = 'unable to create the avi stream in the file';
+	  else if (rv == -5) err_str = 'unable to set the MJPEG stream format in the file';
+	  alert ("Recording error: " + err_str);
+          if (rv != -1) stopRecord ();
+        }
+        else {
+	   recording = true;
+	   record_seconds = 0;
+	   if (args[1]) record_stoptime = args[1];
+           else record_stoptime = 0;
+	   setTimeout ("recordStats()", 1000);
+	   blinkerThread ();
+        }
+     }
+     return false;
+}
+
+function stopRecord () {
+
+     recording = false;
+     getObject("rec_blink").style.visibility="hidden";
+     BlinkIsOn = false;
+
+     
+     theOCX().StopDownload();
+     theOCX().StopRecording();
+
+     window.status = "";
+     getObject("controls").style.visibility="visible";
+     getObject("save_button").style.visibility="visible";
+     setVis (replayVisArray, 'visible');
+
+     if (replaying) playClick();
+     else startDownload ();
+
+     return false;
+}
+
+function recordStats() {
+     if (!recording) return;
+     record_seconds++;
+     if ((theOCX().Recording() == 0) || 
+         ((record_stoptime > 0) &&
+         (record_seconds > record_stoptime))) {
+        stopRecord ();
+	return;
+     }
+     var frames = theOCX().FramesRecorded();
+     var bytes = theOCX().BytesRecorded();
+     var free_left = theOCX().AvailableRecordingSpace();
+     var fps = frames / record_seconds;
+     fps = Math.floor (fps);
+     bytes = Math.ceil (bytes/1000000);
+     free_left = Math.ceil (free_left/1000000);
+     window.status = "Recorded " + Math.ceil(frames) + " Frames, " + bytes +
+" Megs at " + fps + " fps (" + free_left + " Megs Free)";
+     setTimeout ("recordStats()", 1000);
+}
+
+function blinkerThread ()
+{
+   if (!recording) {
+       getObject("rec_blink").style.visibility="hidden";
+       BlinkIsOn = false;
+       return;
+   }
+   if (BlinkIsOn) {
+      getObject("rec_blink").style.visibility="hidden";
+      setTimeout ("blinkerThread()", 500);
+      BlinkIsOn = false;
+   }
+   else {
+      getObject("rec_blink").style.visibility="visible";
+      setTimeout ("blinkerThread()", 1000);
+      BlinkIsOn = true;
+   }
+}
+
+function statLive () {
+    getObject("live_vs_rec").innerHTML = replaying ? "replay" : "live";
+}
+
+function stopStart (forceStart) {
+    theOCX().Reconnect = true;
+    paused = false;
+    rewinding = false;
+    ffing = false;
+    rewindSpeed = REWIND_MIN_SPEED;
+    ffSpeed = FF_MIN_SPEED;
+    replayURIMod = "";
+    replaying = false;
+    statLive (replaying);
+    if (forceStart) {
+        return startDownload();
+    }
+    else return stopDownload();
+}
+
+function stopDownload() {
+    streaming = false;
+    document.alinkColor=$V(COLOR);
+
+    if (theOCX()) theOCX().StopDownload();
+    return false;
+}
+
+function startDownload() {
+    var fullspeed;
+
+    streaming = true;
+    document.alinkColor=$V(COLOR);
+
+    getObject("sizeUpGif").style.visibility="visible";
+    getObject("vidclip").style.visibility="visible";
+
+    if (theOCX()) {
+       
+	if (isIQeye7) {
+	    
+	    if (FirstZoom) fullspeed = "/now.jpg?snap=spush?ds=1";
+	    else fullspeed = "/" + imageString();
+	    fullspeed += replayURIMod;
+	}
+	else if (isIQeye6) 
+	   fullspeed = "/now.jpg?snap=spush";
+	else fullspeed = "/" + imageString();
+	theOCX().URL = fullspeed;
+    }
+    return false;
+}
+
+
+
+
+
+
+var REWIND_MIN_SPEED = -10;
+
+var REWIND_INC = -40;
+
+var REWIND_MAX_SPEED = REWIND_MIN_SPEED + (2 * REWIND_INC);
+
+var REWIND_SPEED_1 = REWIND_MIN_SPEED;
+var REWIND_SPEED_2 = REWIND_SPEED_1 + REWIND_INC;
+var REWIND_SPEED_3 = REWIND_SPEED_2 + REWIND_INC;
+
+
+var FF_MIN_SPEED = 10;
+var FF_INC = 40;
+var FF_MAX_SPEED = FF_MIN_SPEED + (2 * FF_INC);
+
+var FF_SPEED_1 = FF_MIN_SPEED;
+var FF_SPEED_2 = FF_SPEED_1 + FF_INC;
+var FF_SPEED_3 = FF_SPEED_2 + FF_INC;
+
+
+var rewindSpeed = REWIND_MIN_SPEED;
+var ffSpeed = FF_MIN_SPEED;
+
+
+var rewindArrow = 0;
+var ffArrow = 0;
+
+
+function rewindClick() 
+{
+    if (paused) {
+	
+	if (currentSeq > 0)
+	    currentSeq--; 
+	
+	var url = '/' + stillImageString() + '?step=-1?seq=' + currentSeq;
+	theOCX().URL = url;
+	var seq = getCurSeq();
+	if (seq < currentSeq) currentSeq = seq;
+	return false;
+    }
+    clearFF ();
+    clearPlay();
+    clearPause();
+    paused = false;
+    ffing = false;
+    rewinding = true;
+    theOCX().Reconnect = false;
+
+    replaying = true;
+    statLive (replaying);
+    currentStep = rewindSpeed;
+    replayStepMod = replayURIMod = "?step="+currentStep+FactorSfx;
+    rewindSpeed += REWIND_INC;
+    
+    if (rewindSpeed < REWIND_MAX_SPEED)
+	rewindSpeed = REWIND_MIN_SPEED;
+
+    currentSeq = getCurSeq();
+    if (currentSeq > 0) replayURIMod += "?seq=" + currentSeq;
+    startDownload ();
+
+    rewindArrow++;
+    if (rewindArrow == 4) {
+	clearRewind ();
+	rewindArrow = 1;
+    }
+    showRewind(rewindArrow);
+    return false;
+}
+
+
+function ffClick() 
+{
+    if (paused) {
+	
+	currentSeq++; 
+	
+	var url = '/' + stillImageString() + '?step=1?seq=' + currentSeq;
+	theOCX().URL = url;
+	var seq = getCurSeq();
+	if (seq > currentSeq) currentSeq = seq;
+	return false;
+    }
+    clearRewind ();
+    clearPlay();
+    clearPause();
+    paused = false;
+    rewinding = false;
+    ffing = true;
+    theOCX().Reconnect = false;
+
+    currentStep = ffSpeed;
+    replayStepMod = replayURIMod = "?step="+currentStep+FactorSfx;
+    ffSpeed += FF_INC;
+    
+    if (ffSpeed > FF_MAX_SPEED) 
+	ffSpeed = FF_MIN_SPEED;
+
+    replaying = true;
+    statLive (replaying);
+    currentSeq = getCurSeq();
+    if (currentSeq > 0) replayURIMod += "?seq=" + currentSeq;
+    startDownload ();
+
+    ffArrow++;
+    if (ffArrow == 4) {
+	clearFF ();
+	ffArrow = 1;
+    }
+    showFF(ffArrow);
+    return false;
+}
+
+
+function clearRewind ()
+{
+    setStyleById ('rewind_a1', 'backgroundPositionX', RW_NOHI);
+    setStyleById ('rewind_a2', 'backgroundPositionX', RW_NOHI);
+    setStyleById ('rewind_a3', 'backgroundPositionX', RW_NOHI);
+    rewinding = false;
+    rewindSpeed = REWIND_MIN_SPEED;
+    rewindArrow = 0;
+}
+
+
+function showRewind (speed)
+{
+    var id = 'rewind_a' + speed;
+    setStyleById (id, 'backgroundPositionX', RW_HI);
+}
+
+
+function clearFF ()
+{
+    setStyleById ('ff_a1', 'backgroundPositionX', FF_NOHI);
+    setStyleById ('ff_a2', 'backgroundPositionX', FF_NOHI);
+    setStyleById ('ff_a3', 'backgroundPositionX', FF_NOHI);
+    ffSpeed = FF_MIN_SPEED;
+    ffArrow = 0;
+}
+
+
+function showFF (speed)
+{
+    var id = 'ff_a' + speed;
+    setStyleById (id, 'backgroundPositionX', FF_HI);
+}
+
+
+
+function pauseClick() 
+{
+    if (pauseToggle) {
+	if (paused) playClick();
+	else doPause ();
+    }
+    else doPause ();
+    return false;
+}
+
+function doPause ()
+{
+    if (recording) stopRecord ();
+    
+    if (canReplay) {
+	clearFF();
+	clearRewind();
+    }
+
+    clearPlay();
+    if (!pauseToggle) 
+	setStyleById ('pause_a', 'backgroundPositionX', PAUSE_HI);
+
+    ffing = false;
+    rewinding = false;
+    replaying = true;
+    statLive (replaying);
+    theOCX().Reconnect = true;
+
+    paused = true;
+    stopDownload();
+    currentSeq = getCurSeq();
+    currentStep = 0;
+
+    return false;
+}
+
+function clearPause ()
+{
+    setStyleById ('pause_a', 'backgroundPositionX', PAUSE_NOHI);
+}
+
+
+function playClick ()
+{
+    currentSeq = getCurSeq();
+    playFrom (currentSeq);
+    return false;
+}
+
+function playFrom (seq)
+{
+    if (canReplay) {
+	clearFF();
+	clearRewind();
+    }
+    showPlayState ();
+    if (!pauseToggle)
+	clearPause();
+
+    ffing = false;
+    rewinding = false;
+    paused = false;
+    theOCX().Reconnect = true;
+
+    if (canReplay) {
+	currentStep = 1;
+	replayStepMod = replayURIMod = "?step=" + currentStep+FactorSfx;
+	replaying = true;
+	statLive (replaying);
+	if (seq > 0) replayURIMod += "?seq=" + seq;
+	currentSeq = getCurSeq();
+    }
+    startDownload ();	
+    return false;
+}
+
+
+
+function showPlayState ()
+{
+    if (pauseToggle) {
+	
+	setStyleById ('pause_a', 'backgroundPositionX', PAUSE_NOHI);
+    }
+    else {
+	
+	setStyleById ('play_a', 'backgroundPositionX', FF_HI);
+    }
+}
+
+function clearPlay ()
+{
+    if (pauseToggle) {
+	
+	setStyleById ('pause_a', 'backgroundPositionX', FF_NOHI);
+    }
+    else
+	setStyleById ('play_a', 'backgroundPositionX', FF_NOHI);
+}
+
+
+function handlePendingStep ()
+{
+    if (!replayCookies) return;
+
+    currentStep = pendingStep;
+    if (pendingStep == 0) {
+	replaying = true;
+	statLive ();
+	paused = true;
+	setStyleById ('pause_a', 'backgroundPositionX', PAUSE_HI);
+	
+    }
+    else if (pendingStep < 0) {
+	rewindSpeed = pendingStep + REWIND_INC;
+	
+	if (rewindSpeed < REWIND_MAX_SPEED)
+	    rewindSpeed = REWIND_MIN_SPEED;
+	if (pendingStep <= REWIND_SPEED_1) {
+	    showRewind (1);
+	    rewindArrow++;
+	}
+	if (pendingStep <= REWIND_SPEED_2) {
+	    showRewind (2);
+	    rewindArrow++;
+	}
+	if (pendingStep <= REWIND_SPEED_3) {
+	    showRewind (3);
+	    rewindArrow++;
+	}
+	theOCX().Reconnect = false;
+    }
+    else if (pendingStep == 1) {
+	showPlayState ();
+    }
+    else if (pendingStep > 1) {
+	ffSpeed = pendingStep + FF_INC;
+	
+	if (ffSpeed > FF_MAX_SPEED)
+	    ffSpeed = FF_MIN_SPEED;
+	if (pendingStep >= FF_SPEED_1) {
+	    showFF (1);
+	    ffArrow++;
+	}
+	if (pendingStep >= FF_SPEED_2) {
+	    showFF (2);
+	    ffArrow++;
+	}
+	if (pendingStep >= FF_SPEED_3) {
+	    showFF (3);
+	    ffArrow++;
+	}	
+	theOCX().Reconnect = false;
+    }
+}
+
+
+function setStepFromSaved (step)
+{
+    replaying = true;
+    paused = false;
+
+    if (step != 0) {
+	replayStepMod = '?step=' + step + FactorSfx;
+	replayURIMod += replayStepMod;
+    }
+
+    
+    pendingStep = parseInt(step);
+}
+
+
+function setSeqFromSaved (seq)
+{
+    replaying = true;
+    replayURIMod += '?seq=' + seq;
+}
+
+
+
+
+
+
+function onConnectionBroken ()
+{
+    if (replaying) {
+	if (rewinding) {
+	    
+	    
+	    
+	    pauseClick ();
+	}
+	else if (ffing) {
+	    
+	    clearFF ();
+	    stopStart (true);
+	}
+    }
+}
+
+
+function onNewImage ()
+{
+    
+    if (!FirstUpdate) {
+	if (canReplay) startSliderUpdate ();
+	FirstUpdate = true;
+    }
+
+    if (replaying && !UserIsSliding) {
+	IgnoreSliderChange = true;
+	if (TimeSlider) TimeSlider.setValue (getCurSeq());
+	IgnoreSliderChange = false;
+    }
+}
+
+
+function saveReplayState ()
+{
+    var now = new Date();
+    
+    now.setTime(now.getTime() + 1000 * 5);
+    SetCookie ("seq", getCurSeq(), now);
+    SetCookie ("step", currentStep, now); 
+}
+
+
+function restoreReplayState ()
+{
+    var step, seq;
+
+    step = getCookie ("step");
+    if (step != null) {
+	replayCookies = true;
+	setStepFromSaved (step);
+	deleteCookie ("step");
+    }
+    seq = getCookie ("seq");
+    if (seq != null) {
+	replayCookies = true;
+	setSeqFromSaved (seq);
+	deleteCookie ("seq");
+    }
+    if (replayCookies) {
+	if (step == 0) {
+	    initialRequest = stillImageString() + replayURIMod;
+	}
+	else {
+	    initialRequest += replayURIMod;
+	}
+    }
+}
+
+
+function AjaxDone (result_code, http_status, result_text)
+{
+    if (result_code == 0 &&
+	http_status == 200) {
+	var newestTime = "";        
+	var oldestTime = "";        
+	
+	var re = /\n/;
+	var i;
+	
+	var string_list = result_text.split(re);
+	
+	for (i = 0; i < string_list.length; i++) {
+	    var re2 = /\=/;
+	    
+	    var pieces = string_list[i].split(re2);
+	    
+	    var value = pieces[1].substring(0,pieces[1].length-1);
+	    if (pieces[0] == "1.15.2.6")
+		oldestSeq = parseInt(value);
+	    else if (pieces[0] == "1.15.2.7")
+		newestSeq = parseInt(value);
+	    else if (pieces[0] == "1.15.2.3")
+		oldestTime = parseInt(value);
+	    else if (pieces[0] == "1.15.2.4")
+		newestTime = parseInt(value);
+	}
+	if (PageLoaded == true) {
+	    setSliderTimes (oldestTime, newestTime);
+	    currentSeq = getCurSeq();
+	    if (newestSeq &&
+		newestSeq > oldestSeq) {
+		IgnoreSliderChange = true;
+		TimeSlider.setMaximum (newestSeq);
+		TimeSlider.setMinimum (oldestSeq);
+		TimeSlider.setValue (currentSeq);
+		IgnoreSliderChange = false;
+	    }
+	}
+	SliderSizeTimer = setTimeout ('startSliderUpdate()', 5000);
+    }
+    AjaxPending = false;
+}
+
+
+
+function startSliderUpdate ()
+{
+    if (!AjaxPending) {
+	AjaxPending = true;
+	AjaxGetOid ("1.15.2.6&1.15.2.7&1.15.2.3&1.15.2.4");
+    }
+}
+
+function sliderPosUpdate ()
+{
+    IgnoreSliderChange = true;
+    TimeSlider.setValue (getCurSeq());
+    IgnoreSliderChange = false;    
+    SliderPosTimer = setTimeout ('sliderPosUpdate()', 500);
+}
+
+
+
+
+function sliderUserUpdate ()
+{    
+    if (paused) {
+	doPause();
+	theOCX().URL = "/now.jpg?seq=" + TimeSlider.getValue();
+    }
+    else {
+	playFrom (TimeSlider.getValue());
+    }
+    
+    UserIsSliding = false;
+}
+
+
+
+
+var HMSre = /(\d\d:\d\d)(:\d\d)/;
+
+
+
+
+
+function setSliderTimes (oldest, newest)
+{
+    getObject ("s_stime").innerHTML = EpochMSToHMS(oldest, false);
+    getObject ("s_etime").innerHTML = EpochMSToHMS(newest, false);
+}
+
+
+function getCurSeq ()
+{
+    if (!PageLoaded) return 0;
+    var seq;
+    var ctl = theOCX();
+    if (ctl) seq = theOCX().CurrentSequence();
+    if (seq < 0) seq = 0;
+
+    return seq;
+}
+
+
+function EpochMSToHMS (epoch_ms, do_seconds)
+{
+    
+    epoch_ms += TZDiff;
+    var time = new Date (epoch_ms);
+    var hours = time.getHours();
+    var minutes = time.getMinutes();
+    var seconds = time.getSeconds();
+
+    if (hours < 10) hours = '0' + hours;
+    if (minutes < 10) minutes = '0' + minutes;
+    if (seconds < 10) seconds = '0' + seconds;
+
+    var rv = hours + ':' + minutes + (do_seconds ? ':' + seconds : ''); 
+    return rv;
+}
+
+function getFrameTime ()
+{
+    var json_text = theOCX().JsonObject ();
+    var myObject = eval('(' + json_text + ')');
+    return EpochMSToHMS (myObject.IQimage.time, true);
+}
+
+
+
+
+
+
+
+
+
+
+var ie = (document.all) ? true : false;
+
+function setStyleByClass(t,c,p,v){
+    var elements;
+    if(t == '*') {
+	
+	elements = (ie) ? document.all : document.getElementsByTagName('*');
+    } else {
+	elements = document.getElementsByTagName(t);
+    }
+    for(var i = 0; i < elements.length; i++){
+	var node = elements.item(i);
+	for(var j = 0; j < node.attributes.length; j++) {
+	    if(node.attributes.item(j).nodeName == 'class') {
+		if(node.attributes.item(j).nodeValue == c) {
+		    eval('node.style.' + p + " = '" +v + "'");
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+
+
+
+
+function setStyleById(i, p, v) {
+    var n = document.getElementById(i);
+    n.style[p] = v;
+}
+
+
+
+function setVisibility(objectID,state) {
+    var object = document.getElementById
+      (objectID);
+    object.style.visibility = state;
+}
+
+var FramesLastPeriod = 0;
+var FpsPeriod = 3000;
+var FpsSecs = 3;
+function updateFPS() {
+     if (FPS && !recording && theOCX()) {
+	  var frames = theOCX().FramesDisplayed();
+	  var fps = Math.ceil((frames-FramesLastPeriod) / FpsSecs);
+	  getObject("live_vs_rec").innerHTML = "Displaying " + fps + " fps";
+	  window.status = "Displaying " + fps + " fps";
+	  FramesLastPeriod = frames;
+          setTimeout ("updateFPS()", FpsPeriod);
+     }
+}
+
+getArgs();			
+
+initialRequest = imageString();
+
+
+if (canReplay) restoreReplayState();
+
+function workaround()
+{
+    
+
+    window.document.all.item("Iqeye1").style.display = "none";
+    window.document.all.item("Iqeye1").style.display = "";
+}
+
+var replayOff;
+
+function replay_ctl (tid, aid, classname, fn, help)
+{
+    
+    var out = '<td '
+	
+	+ 'style="position: relative; right:'+replayOff+'px" rowspan=1 align="left"'
+	+  '> <a id="' + aid + '" class="' + classname + '" href="" '
+	+  'onClick="return ' + fn + ';"'
+	+  'onMouseOver="window.status=\'' + help + '\'; return true;"'
+	+  'onmouseOut="window.status=\'\';"'
+	+  '>&nbsp</a>'
+	+  '</td>';
+    replayOff += 2;
+    return out;
+}
+
+function WriteReplayCtrls()
+{
+    var out = "";
+    replayOff = 0;
+
+    if (canReplay) {
+	if (pauseToggle) {
+	    replayVisArray = new Array (
+		'rl', 'rr',
+		'rewind_a3', 'rewind_a2', 'rewind_a1',
+		'rr',
+		
+		'fl', 'fr',
+		'ff_a3', 'ff_a2', 'ff_a1',
+		'rr'
+		);
+	}
+	else {
+	    replayVisArray = new Array (
+		'rl', 'rr',
+		'rewind_a3', 'rewind_a2', 'rewind_a1',
+		'rr',
+		'pll', 'play_a', 'plr',
+		'fl', 'fr',
+		'ff_a3', 'ff_a2', 'ff_a1',
+		'rr'
+		);
+	}
+	
+	
+	out += replay_ctl ('rewind_left', 'rl', 'replay_left', 'rewindClick()', 'rewind');
+	out += replay_ctl ('rewind_button3', 'rewind_a3', 'rewind', 'rewindClick()', 'rewind');
+	out += replay_ctl ('rewind_button2', 'rewind_a2', 'rewind', 'rewindClick()', 'rewind');
+	out += replay_ctl ('rewind_button1', 'rewind_a1', 'rewind', 'rewindClick()', 'rewind');
+	out += replay_ctl ('rewind_right', 'rr', 'replay_right', 'rewindClick()', 'rewind');
+    }
+    else {
+	if (pauseToggle) {
+	    replayVisArray = new Array ();
+	}
+	else {
+	    replayVisArray = new Array (
+		'pll', 'play_a', 'plr'
+		);
+	}
+    }
+
+    var pausehelp;
+    if (pauseToggle) pausehelp = 'pause/play';
+    else pausehelp = 'pause';
+    
+    out += replay_ctl ('pause_left', 'pl', 'replay_left', 'pauseClick()', pausehelp);
+    out += replay_ctl ('pause_button', 'pause_a', 'pause', 'pauseClick()', pausehelp);
+    out += replay_ctl ('pause_right', 'pr', 'replay_right', 'pauseClick()', pausehelp);
+
+    
+    if (!pauseToggle) {
+	out += replay_ctl ('play_left', 'pll', 'replay_left', 'playClick()', 'play');
+	out += replay_ctl ('play_button', 'play_a', 'forward', 'playClick()', 'play');
+	out += replay_ctl ('play_right', 'plr', 'replay_right', 'playClick()', 'play');
+    }
+
+    if (canReplay) {
+	
+	out += replay_ctl ('ff_left', 'fl', 'replay_left', 'ffClick()', 'fast forward');
+	out += replay_ctl ('ff_button1', 'ff_a1', 'forward', 'ffClick()', 'fast forward');
+	out += replay_ctl ('ff_button2', 'ff_a2', 'forward', 'ffClick()', 'fast forward');
+	out += replay_ctl ('ff_button3', 'ff_a3', 'forward', 'ffClick()', 'fast forward');
+	out += replay_ctl ('ff_right', 'fr', 'replay_right', 'ffClick()', 'fast forward');
+    }
+    document.write (out);    
+}
+
+function WriteSlider ()
+{
+    if (!canReplay) return;
+
+    
+
+    var out = '<div class="slider" id="slider-1" style="width:'+(image.width-10)+'px"><input class="slider-input" id="slider-input-1"/></div>';
+
+    document.write (out);
+
+    TimeSlider = new Slider (document.getElementById("slider-1"), document.getElementById("slider-input-1"));
+    TimeSlider.setBlockIncrement (100);
+    TimeSlider.onchange = function () {
+	if (IgnoreSliderChange == false) {
+	    clearTimeout (SliderSizeTimer);
+	    clearTimeout (SliderPosTimer);
+	    clearTimeout (SliderUserTimer);
+	    UserIsSliding = true;
+	    SliderUserTimer = setTimeout ('sliderUserUpdate()', 500);
+	}
+	
+	var pos = this.getPos();
+	
+	pos.x += SliderPos.x;
+	pos.y += SliderPos.y;
+	var ctime = getObject ("s_ctime");
+	
+	ctime.innerHTML = getFrameTime();
+	
+	pos.x -= 20;
+	ctime.style.left = pos.x + 'px';
+	
+	pos.y += 20;
+	ctime.style.top = pos.y + 'px';
+    };
+    out = '<span id="s_stime" style="font-size: 10px"></span>';
+    var end = image.width-45;
+    out += '<span id="s_etime" style="font-size: 10px; padding-left:'+end+'px"></span>';
+    out += '<span id="s_ctime" style="font-size: 10px; position: absolute;"></span>';
+    document.write (out);
+    
+}
+
+
+function enumerateStyles (id) {
+  var el = 
+    document.all ? document.all[id] :
+    document.getElementById(id);
+  var r = '';
+  for (var s in el.style)
+    r += 'element.style.' + s + ': ' + el.style[s] + '\n';
+  if (document.all)
+    document.body.insertAdjacentHTML('beforeEnd',
+      '<PRE>' + r + '<\/PRE>');
+  else {
+    var pre = document.createElement('PRE');
+    pre.appendChild(document.createTextNode(r));
+    document.body.appendChild(pre);
+  }
+}
+
+function setVis (ids, val)
+{
+    var i;
+
+    for (i = 0; i < ids.length; i++) {
+	getObject(ids[i]).style.visibility = val;
+    }
+}
+
+
+function OnloadHandler ()
+{
+    if (canReplay) {
+	SliderPos = GetElementPosition ("slider-1");
+	
+	handlePendingStep ();
+	
+	
+	statLive();
+    }
+
+    
+    var pos = GetElementPosition ('sizeUpGif');
+    
+    pos.y -= 10;
+    var out =
+	'<span id="rec_blink" style="position:absolute; color:red; visibility:hidden; z-index:2;font-size:24px;left:' + pos.x + 'px; top:' + pos.y + 'px;">Recording...</span>';
+    getObject ("rectext").innerHTML = out;
+
+    PageLoaded = true;
+}
+
+</script>
+</head>
+
+<body onload="OnloadHandler();" onscroll="workaround();">
+
+
+<form name="myform" action="">
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+  <script>
+  writeViewingHeader("live"); 
+  
+  function textTab(name, desc, link, onoff) {
+       var outString = (onoff) ? '<li id="current">' : '<li>';
+       return outString 
+	+ '<a href="' + linkAction(link) + '"'
+	+ ' onClick="stopDownload();return true;" '
+        + ' onMouseOver=\'window.status="' + desc + '"; return true;\''
+	+ ' onMouseOut=\'window.status=""\'>'
+	+ name + '</a></li>';
+  }
+  </script> 
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=566></td>
+  <td colspan=2 valign="top" align="left">
+
+<table id="controls" cellspacing=0 cellpadding=0 class="content">
+<tr valign="left"> 
+  <td>
+
+<table class="menu" style="margin-top: 11px">
+<tr>
+
+      <script>WriteReplayCtrls();</script>
+
+  <span id="rectext"></span>
+
+  <td style="padding-bottom: 2px"  name="sizeUpGif" id="sizeUpGif">
+    <ul id="buttonh"><li class="sizep">
+      <a href="" class="sizep" 
+       onClick="return sizeUp(sizeFactor);"
+       onMouseOver="window.status='increase image size'; return true;" 
+       onMouseOut="window.status=''">&nbsp;</a></li></ul></td>
+
+  <td style="padding-bottom: 2px" id="save_button">
+    <ul id="buttonh"><li class="menu">
+      <a style="padding-left: 5px; padding-right: 10px; " href="" class="menu"
+      onClick='return saveAs();'
+      onMouseOver='window.status="save image to a file"; return true;' 
+      onMouseOut='window.status="";'>SNAPSHOT</a></li></ul></td>
+
+  <td valign="top" style="padding-bottom: 2px" id="vidclip" rowspan=2>
+    <ul id="buttonh"><li class="menu">
+      <a style="padding-right: 8px;" href="" class="menu"
+      onClick='return startRecord();'
+      onMouseOver='window.status="start recording"; return true;' 
+      onMouseOut='window.status="";'>VIDEO CLIP</a></li></ul></td>
+
+<script>
+
+var out;
+$IF($O(17.1.1.1.1)$O(17.1.1.1.2)$O(17.1.1.1.3)$O(17.1.1.1.4),
+    out = 
+    '<td rowspan=2 style="padding-bottom: 5px">' +
+    '<ul id="buttonm"><li class="menu">' +
+    '<a href="multiview.html" class="menu"' +
+    'onMouseOver=\'window.status="view several cameras at once"; return true;\'' +
+    'onMouseOut=\'window.status=""\'>MULTIVIEW</a></li></ul></td>';
+    document.write(out);
+,)
+
+</script>
+
+$IF($O(17.3.1),
+  <td rowspan=2 style="padding-bottom: 5px">
+    <ul id="buttonm"><li class="menu">
+    <a href="" class="menu" onClick="return activate()">
+      $IF($O(17.3.2),$O(17.3.2),RELAY)</li></ul></td>
+,)
+
+  <td rowspan=2 class="help" style="padding-right: 6px"><a href="" onClick='return launchHelpPage();'
+      onMouseOver="window.status='open help for this page'; return true;" 
+      onMouseOut="window.status=''">?</a></td>
+
+  <td><span id="live_vs_rec" style="color: red">live</span></td>
+</tr>
+<tr>
+
+<script>
+      if (0) {
+	  $IF($O(17.1.1.1.1)$O(17.1.1.1.2)$O(17.1.1.1.3)$O(17.1.1.1.4),
+	      out = 
+	      '<td valign="top" style="padding-top:2px" rowspan=2>' +
+	      '<ul id="buttonh"><li class="menu">' +
+	      '<a style="padding-left: 1px; padding-right: 8px" href="multiview.html" class="menu"' +
+	      'onMouseOver=\'window.status="view several cameras at once"; return true;\'' +
+	      'onMouseOut=\'window.status=""\'>MULTIVIEW</a></li></ul></td>';
+	      document.write(out);
+	      ,)
+      }
+
+</script>
+
+</tr>
+</table>
+</td>
+</tr>
+	  
+</table>
+
+<table border="0" width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td> 
+      <noscript><font color="#FF0000">
+        <b>You must enable Javascript to see an image.</b></font></noscript>
+     <!-- comment>
+       <font color="#FF0000">
+        You must use Internet Explorer to view this page</font></comment -->
+    </td>
+  <tr><td style="padding-left: 4px; padding-bottom: 4px">
+    <div id="CtlDiv">ActiveX Control</div>
+    <script language="JScript"> 
+	 CreateControl ("CtlDiv", imAttr, logging, streamDptzParam,
+			isIQeye6, isIQeye7, initialRequest);
+    </script>
+    <!-- wacky IE extension for ActiveX events -->
+    <script language=JScript for=Iqeye1 event="click">
+    if (FirstZoom == false)
+	doFirstZoom(true)
+    </script>
+    <script language=JScript for=Iqeye1 event="ConnectionBroken">
+	onConnectionBroken ();
+    </script>
+<!--
+    <script language=JScript for=Iqeye1 event="ConnectionEstablished">
+	onConnectionEstablished ();
+    </script>
+-->
+    <script language=JScript for=Iqeye1 event="NewImage">
+	onNewImage ();
+    </script>
+<!--
+    <script language=JScript for=Iqeye1 event="ErrorMessage(message)">
+	function Iqeye1::ErrorMessage(message)
+        {
+	    if (!replaying) 
+	       alert ("Error from ActiveX control: " + message);
+	}
+    </script>
+-->
+   </td>
+  </tr>
+</table>
+
+  <script>WriteSlider();</script>
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+
+
+</form>
+
+
+
+<!--    </div>   -->
+
+<div id="mousecontrols">
+          <font face="Arial, Helvetica, sans-serif" size="-2" color="#999999">
+          left click: zoom in
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          right click: zoom out
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          middle click: recenter
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          click and drag: pan tilt</font>
+  </div>
+
+<script> 
+  document.write(sendCommandAppletString());
+  if (FPS) setTimeout ("updateFPS()", FpsPeriod);
+
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,336 @@
+<!-- Copyright (C) 2008 - 2011 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(IOSet)</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+var PageTitle = "$RSTR(IOSet)";
+var PageHelp = "$RSTR(IOSet_help)";
+
+enableJavaAlert();
+
+function formatIsValid(field) {
+    if (field.name == "OidTB1.3.3") { 
+	var val = field.value;
+	if ((isNaN(parseFloat(val))) || (val < 0) || (val > 3600)) {
+	    alert("Please input a number from 0 through 3600.0");
+	    field.value = "";
+	    select(field);
+	    return false;
+	}
+    }
+    return true;
+}
+
+function activate() {
+    setEcam2("OidCB1.3.11","ON");
+    return false;
+}
+
+var activateSetting="$O(17.3.1)".toLowerCase();
+if (activateSetting!="enabled") activateSetting="disabled";
+function writeLiveSelect() {
+    var out = '<select id="liveSelect" name="liveSelect" '
+	+ 'onChange="setLive(this);">';
+    if (activateSetting=="enabled") {
+	out += '<option selected value="enabled">$RSTR(enabled)</option>'
+	    + '<option value="">$RSTR(disabled)</option>';
+    } else {
+	out += '<option value="enabled">$RSTR(enabled)</option>'
+	    + '<option selected value="">$RSTR(disabled)</option>';
+    }
+    out += '</select>\n';
+    document.write(out);
+}
+
+function setLive(field) {
+    setEcam2("OidTB17.3.1", 
+	     field.options[field.selectedIndex].value);
+    return false;
+}
+
+var relayState = "$O(1.3.5.1)".toLowerCase();
+function writeRelayStateSelect() {
+    var out = '<select id="relayStateSelect" name="liveSelect" '
+	+ 'onChange="setRelayState(this);">';
+
+    out += "<option ";
+    if 	(relayState == "open" || relayState == "disabled") out += "selected ";
+    out += "value='open'>$RSTR(normop)</option>";
+
+    out += "<option ";
+    if 	(relayState == "closed") out += "selected ";
+    out += "value='closed'>$RSTR(normcl)</option>";
+
+    out += '</select>\n';
+    document.write(out);
+}
+
+function setRelayState(field) {
+    setEcam2("OidSB1.3.5.1", 
+	     field.options[field.selectedIndex].value);
+    return false;
+}
+
+var activationTime = "$O(1.3.5.2)";
+function writeDurationSelect() {
+    var out = '<select id="durationSelect" name="ledSelect" '
+	+ 'onChange="setDuration(this);">';
+
+    var isNum = (! isNaN(activationTime));
+    var t = activationTime.toLowerCase();
+    var inList = false;
+
+    out += "<option ";
+    if 	(t == "momentary") {
+	out += "selected ";
+	inList = true;
+    }
+    if 	(t == 0) {
+	out += "selected ";
+	inList = true;
+    }
+    out += "value='momentary'>$RSTR(momen)</option>";
+
+    out += "<option ";
+    if 	(isNum && t==1) {
+	out += "selected ";
+	inList = true;
+    }
+    out += "value='1'>1 $RSTR(sec)</option>";
+
+    out += "<option ";
+    if 	(isNum && t==5) {
+	out += "selected ";
+	inList = true;
+    }
+    out += "value='5'>5 $RSTR(secs)</option>";
+
+    out += "<option ";
+    if 	(isNum && t==10) {
+	out += "selected ";
+	inList = true;
+    }
+    out += "value='10'>10 $RSTR(secs)</option>";
+
+    out += "<option ";
+    if 	(isNum && t==30) {
+	out += "selected ";
+	inList = true;
+    }
+    out += "value='30'>30 $RSTR(secs)</option>";
+
+    if (isNum && !inList) {
+	out += '<option selected value="' + t + '" >' +t+ ' seconds</option>';
+    }
+
+    out += "<option ";
+    if (t == "toggle") out += "selected ";
+
+    out += "value='toggle'>$RSTR(toggle)</option>";
+    out += '</select>\n';
+    document.write(out);
+}
+
+function setDuration(field) {
+    setEcam2("OidSB1.3.5.2", 
+	     field.options[field.selectedIndex].value);
+    return false;
+}
+
+var ledState = "$O(1.2.17)".toLowerCase();
+function writeLEDSelect() {
+    var out = '<select id="ledSelect" name="ledSelect" '
+        + 'onChange="setLED(this);">';
+    var state = ledState;
+
+    out += "<option ";
+    if  (state == "on") out += "selected ";
+    out += "value='on'>always on</option>";
+   
+    out += "<option ";
+    if  (state == "off") out += "selected ";
+    out += "value='off'>always off</option>";
+
+    out += "<option ";
+    if (state == "activity") out += "selected ";
+    out += "value='activity'>activity</option>";
+    out += '</select>\n';
+    document.write(out);
+}
+
+function setLED(field) {
+    setEcam2("OidSB1.2.17",
+             field.options[field.selectedIndex].value);
+    return false;
+}
+
+
+
+
+
+
+function setRelayButtonText(field) {
+	
+
+	var foo=field.value; 
+
+	
+	
+	
+
+	field.value=Encoder.htmlEncode(field.value,true);
+	getObject('relayButton').innerHTML=field.value; 
+	setEcam(field);  
+	field.value=foo; 
+}
+
+var myDefaultsHref = 
+  '<ul id="button"><li><a name="relayButton" id="relayButton" '
+    + ' onMouseOver=\'window.status="Activate relay"; return true;\''
+    + ' onMouseOut=\'window.status=""\''
+    + ' href="javascript:void(0)" onClick="return activate()" >'
+    + '$IF($O(17.3.2),$O(17.3.2),$RSTR(relay))</a></li></ul>';
+
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+<form name="myform" method="post">
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("io"); </script>
+
+        <!--    help text tbd
+           These settings control the behavior of
+           the external relay and LED.  The external relay might be used,
+           for example, to trigger an alarm panel or turn on a warning light.
+        -->
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+          writeCroppedImage();
+        </script>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+        <tr>
+          <td class="subtitleleft"> 
+             <img src="1pixclear.gif" width=1 height=1></td>
+         <td class="subtitle" helpanchor="io-attrib" helpsub="$RSTR(ButAttr)">$RSTR(ButAttr)
+             <script>
+              writeHelpIcon("io-attrib");</script></td></tr>
+        <tr>
+          <td class="startsubleft"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="startsub" helpbold="$RSTR(buttxt)" myhelp="$RSTR(buttxt_help)">$RSTR(buttxt) <input name="OidTB17.3.2" 
+            value="$IF($O(17.3.2),$O(17.3.2),relay)"
+            size="10" 
+            onChange="setRelayButtonText(this);">
+            </td></tr>
+        <tr>
+          <td class="endsubleft"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="endsub" helpbold="$RSTR(actlive)" myhelp="$RSTR(actlive_help)">$RSTR(actlive)
+             <script>
+               writeLiveSelect();</script></td></tr>
+
+        $IF($V(IQEYE7),<!--,)
+        $IF($V(IQ06),<!--,)
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=1 height=1></td>
+          <td class="subtitle">LED Attributes
+             <script>
+              writeHelpIcon("io-led");</script></td></tr>
+        <tr>
+          <td class="startsubleft"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="startsub">LED state
+	   <script>
+	      writeLEDSelect();</script></td></tr>
+	<tr>
+          <td class="endsubleft"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="endsub"></td></tr>
+        $IF($V(IQEYE7),-->,)
+        $IF($V(IQ06),-->,)
+
+        <tr>
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=1 height=1></td>
+          <td class="subtitle" helpanchor="io-action" helpsub="$RSTR(RlyAct)">$RSTR(RlyAct)
+             <script>
+              writeHelpIcon("io-action");</script></td></tr>
+        <tr>
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="$RSTR(rlyst)" myhelp="$RSTR(rlyst_help)">$RSTR(rlyst)
+            <script>
+              writeRelayStateSelect();</script></td></tr>
+        <tr> 
+          <td class="left"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="input" helpbold="$RSTR(acttm)" myhelp="$RSTR(acttm_help)">$RSTR(acttm)
+             <script>
+               writeDurationSelect();</script></td></tr>
+        <tr>
+          <td class="left"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="input" helpbold="$RSTR(foidle)" myhelp="$RSTR(foidle_help)">$RSTR(foidle) $O(1.3.3,JTB)</td></tr>
+        <tr>
+          <td class="left"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="input" helpbold="$RSTR(actmo)" myhelp="$RSTR(actmo_help)">$RSTR(actmo) $O(1.3.5.3.2,JSB)</td></tr>
+
+        <tr>
+          <td class="endsubleft"><img src="1pixclear.gif" width=1 height=1></td>
+          <td class="endsub" helpbold="$RSTR(acttr)" myhelp="$RSTR(acttr_help)">$RSTR(acttr) $O(1.3.5.3.3,JSB)</td></tr>
+
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="center">
+        <table class="input" cellspacing=0  cellpadding=0>
+          <tr><td><!-- placeholder --> </td></tr></table>
+      </td></tr> <!-- end bottom left content -->
+    </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+
+<script>
+  writeFooter('myDefaults');</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

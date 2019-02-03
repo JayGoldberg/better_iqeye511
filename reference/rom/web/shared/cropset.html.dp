@@ -1,0 +1,725 @@
+<!-- Copyright (C) 2006 - 2010 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(cropset)</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="boxes.js"></script>
+<script>
+
+$INC(maxsize.js.dp)
+
+window.scrollTo(0,0);
+
+enableJavaAlert();
+
+
+
+var PageTitle = "$RSTR(cropset)";
+var PageHelp = "$RSTR(cropset_help)";
+
+var drawBoxes = (UseActiveX() || canSpush);
+
+var has264Support = "$O(2.40.7.2)";
+if (has264Support == "1") has264Support = 1;
+else has264Support = 0;
+
+var ds = $O(1.2.2);
+
+var camOffsetLeft = 0; 
+var camOffsetTop = 0;  
+
+$IF($V(IQEYE6),
+    var maxWidth = $O(1.2.18.3); 
+    var maxHeight= $O(1.2.18.4); 
+,
+    var maxWidth = $O(1.2.20.5); 
+    var maxHeight= $O(1.2.20.6);
+)
+
+
+var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+			    Math.ceil(maxHeight/322));
+
+var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+
+
+var dsfactor = Math.max(ds,ds_necessary);
+
+
+var dsreq = ds_necessary;
+
+
+if (isIQeye6) {
+     if (dsreq == 3) dsreq = 4;
+}
+if (isIQeye6 || isIQeye7) {
+    
+    if (dsreq > 4) dsreq = 4;
+}
+if (isIQeye500) {
+     
+    if (dsreq > 2) dsreq = 2;
+}	  
+
+var dsstring = "?ds=" + dsreq;
+
+
+
+var imWidth =  Math.floor(maxWidth/ds_float);
+var imHeight = Math.floor(maxHeight/ds_float);
+
+
+if (isIQeye6 && !isIQeye5 && !isIQeye7) dsstring = "";
+
+
+var CROP = 0;
+
+var iqviewWarningGiven = false; 
+
+
+var orient = "$O(1.2.4)";
+orient = (orient.match("90") || orient.match("270") ||
+  orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+
+var suspendUpdate = false; 
+
+
+var unloading = false;
+
+var initX = $IF($V(IQEYE6),$O(1.2.6.4),$O(1.2.18.6));
+var initY = $IF($V(IQEYE6),$O(1.2.6.1),$O(1.2.18.5));
+var initW = $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7));
+var initH = $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8));
+
+
+if (orient=="portrait") { 
+    var tmp;
+    tmp = imWidth; imWidth = imHeight; imHeight = tmp;
+    tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
+    tmp = initW; initW = initH; initH = tmp;
+}
+
+
+
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)" onClick="return clearCrop();"'
+    + ' onMouseOver=\'window.status="restore crop defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resdef)</a></li>\n';
+
+if (canSpush) {
+    
+    imWidth = Math.floor($O(1.2.6.2)/ds_float);
+    imHeight = Math.floor($O(1.2.6.3)/ds_float);
+}
+
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+
+
+
+var lastX = initX;
+var lastY = initY;
+var lastW = initW;
+var lastH = initH;
+
+function InitBoxes ()
+{
+    if (!drawBoxes) return;
+    var x, y, w, h;
+
+    var url;
+
+    url = 'now.jpg?snap=spush0.2' + dsstring; 
+
+    if (!isIQeye6) {
+           
+	url += '?ov=0';
+    }
+
+    x = Math.floor (initX/ds_float);
+    y = Math.floor (initY/ds_float);
+    w = Math.floor ($O(1.2.6.2)/ds_float);
+    h = Math.floor ($O(1.2.6.3)/ds_float);
+
+    if (canSpush) {
+	
+	imAttr += ' style="margin-left: '+x+'px; margin-top: '+y+'px;" ';
+    }
+
+    CreateControl ("live", 
+		   imAttr, 
+		   "", 
+		   '<param name="InternalDptz" value="0">' +
+		   '<param name="StreamDptz" value="0">' +
+		   '<param name="Windowless" value="1">' + 
+		   '<param name="OffsetX" value="' + x + '">' + 
+		   '<param name="OffsetY" value="' + y + '">' +
+		   '<param name="DisplayWidth" value="' + w + ' ">' + '<param name="DisplayHeight" value="' + h + '">'
+		   ,isIQeye6, isIQeye7 || isIQeye5,
+		    url);
+
+    
+    
+    
+    
+    var w_limit = Math.floor($O(1.2.20.5)/ds_float);
+    var h_limit = Math.floor($O(1.2.20.6)/ds_float);
+
+    BoxInit ('live', 'boxes', w_limit, h_limit, 1, 0, ds_float);
+
+    x = initX;
+    y = initY;
+
+    if (orient == "portrait") { 
+	h = $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7));
+	w = $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8));
+    }
+    else {
+	w = $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7));
+	h = $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8));
+    }
+    BoxSetDim (0, x, y, w, h);
+    BoxSetColor (0, 'green');
+    DrawBoxes ();
+}
+
+
+
+function resetToInitialVals() {
+    if (drawBoxes) {
+	BoxSetDim (CROP, initX, initY, initW, initH);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (!app) return false;
+	app.setX(CROP,initX);
+	app.setY(CROP,initY);
+	app.setW(CROP,initW);
+	app.setH(CROP,initH);
+	app.paint();
+    }
+    return false;
+}
+
+
+
+
+
+function showArchivingWarning() {
+    $IF($V(IQEYE6),,return true;)
+
+    
+    if (!iqviewWarningGiven && "$O(1.13.11)" == "ENABLED") {
+	var reply = confirm("$RSTR(cropwarn)");
+	iqviewWarningGiven = true;
+	return reply;
+    } else return true;
+}
+
+
+
+function clearCrop() {
+    if (!showArchivingWarning()) return false;
+
+    if (drawBoxes) {
+	BoxSetDim (CROP, 0, 0, maxWidth, maxHeight);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (app) { 
+	    app.setX(CROP,0);
+	    app.setY(CROP,0);
+	    app.setW(CROP,maxWidth);
+	    app.setH(CROP,maxHeight);
+	    app.paint();
+	}
+    }
+
+    if (isMole) {
+	submitNoThread(
+	    "OidTR1.2.18.5", 0,     
+	    "OidTR1.2.18.6", 0,     
+	    "OidTR1.2.18.7", $O(1.2.20.5), 
+	    "OidTR1.2.18.8", $O(1.2.20.6) 
+        );
+    }
+    else {
+	submitNoThread(
+	    "OidTR1.2.18.5", 0,     
+	    "OidTR1.2.18.6", 0,     
+	    "OidTR1.2.18.7", $O(1.2.20.5), 
+	    "OidTR1.2.18.8", $O(1.2.20.6), 
+	    "OidCR1.2.8.13", "ON",        
+	    
+	    
+	    $IF($V(IQEYE6),"OidTR1.2.2"$, $O(1.2.2,N)$,,)
+	    "OidCR1.2.6.5", "ON",    
+	    "OidCR1.2.16",  "ON"
+        );
+    }
+
+    window.onbeforeunload="";
+
+    reloadLater();
+    return false;
+}
+
+
+
+function setMaxSize(field) {
+    
+    if (!iqviewWarningGiven && "$O(1.13.11)" == "ENABLED") {
+        var reply = confirm("$RSTR(cropwarn)");
+        iqviewWarningGiven = true;
+        if (!reply) {
+            resetMaxSizeSelect();
+            return;
+        }
+    }
+
+    var newWidth  = getSelectedMaxWidth()-0;
+    var newHeight = getSelectedMaxHeight()-0;
+
+    if (orient=="portrait") { 
+	var tmp = newWidth;
+	newWidth =  newHeight;
+	newHeight = tmp;
+    }
+
+    var f = document.myform;
+
+    suspendUpdate = true;
+
+
+    if (drawBoxes) {
+	BoxSetDim (CROP, (maxWidth-newWidth)/2,
+		   (maxHeight-newHeight)/2,
+		   newWidth, newHeight);
+	DrawBoxes ();
+    }
+    else {
+	
+	var app = theApplet();
+	if (app) {
+	    app.setX(CROP, (maxWidth-newWidth)/2);
+	    app.setY(CROP, (maxHeight-newHeight)/2);
+	    app.setW(CROP, newWidth);
+	    app.setH(CROP, newHeight);
+	    app.paint();
+	}
+    }
+    suspendUpdate = false;
+
+    return false;
+}
+
+
+function formatIsValid(field) {
+    var name = field.name;
+    var val = field.value;
+    var horizRE = /left|width/;
+    var vertRE = /top|height/;
+    if (name.match(horizRE)) {
+        val = parseInt(val);
+        if (isNaN(val) || val<0 || val>maxWidth) {
+	    
+            alert("Please enter values from 0 to " + (maxWidth-1));
+            select(field);
+            return false;
+        }
+        field.value = val;
+    }
+    if (name.match(vertRE)) {
+        val = parseInt(val);
+        if (isNaN(val) || val<0 || val>maxHeight) {
+	    
+            alert("Please enter values from 0 to " + (maxHeight-1));
+            select(field);
+            return false;
+        }
+        field.value = val;
+    }
+    return true;
+}
+
+
+
+
+function submitNoThread(n0,v0) {
+    var name = n0, val = v0;
+    if (arguments.length>2) {
+        for (var n=2;n<arguments.length; n+=2) {
+            val +=  "&" + arguments[n] + "=" + arguments[n+1];
+        }
+    }
+
+    
+    if (theSendState()) {
+	showSending();
+        
+        status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    sendCommand(ind);
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+function beforeUnloadHandler() {
+    
+
+    var boxnum= CROP;
+    var left, top, width, height;
+
+    if (drawBoxes) {
+	var dims = BoxGetDim (boxnum);
+	left = dims.left;
+	top = dims.top;
+	width = dims.width;
+	height = dims.height;
+    }
+    else {
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    window.onbeforeunload=""; 
+
+    var str=null;
+    if (cropChanged(left, top, width, height)){
+	return str = "$RSTR(applywarn)";
+    }
+}
+
+function unloadHandler() {
+    
+    suspendUpdate = true;
+    unloading = true;
+
+    window.status="";
+    return true;
+}
+
+function cropChanged(left, top, width, height) {
+    if (Math.abs(left - lastX)  > dsfactor) return true;
+    if (Math.abs(top - lastY)   > dsfactor) return true;
+    if (Math.abs(width - lastW) > dsfactor)  return true;
+    if (Math.abs(height - lastH)> dsfactor) return true;
+    return false;
+}
+
+var BlinkIsOn = true;
+
+function rebootTextBlinker ()
+{
+    if (!theSendState()) return;
+    if (BlinkIsOn) {
+	hide(theSendState());
+	BlinkIsOn = false;
+    }
+    else {
+	show(theSendState());
+	BlinkIsOn = true;
+    }
+    setTimeout ("rebootTextBlinker()", 500);
+}
+
+function rebootingMessage()
+{
+    if (!theSendState()) return;
+
+    
+    if(theSendState().innerHTML == "&nbsp;" ) {
+	
+	theSendState().innerHTML = "REBOOTING";
+	setTimeout ("rebootTextBlinker()", 500);
+    } else
+	setTimeout('rebootingMessage()',1000);
+}
+
+function submitFunction() {
+    suspendUpdate = true;
+
+    var boxnum= CROP;
+    var left, top, width, height;
+    var do_reboot= 0;
+
+    if (drawBoxes) {
+	var dims = BoxGetDim (boxnum);
+	
+	left   = dims.left;
+	top    = dims.top;
+	width  = dims.width;
+	height = dims.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) return;
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    if (orient=="portrait") { 
+	var tmp = width;
+	width = height;
+	height = tmp;
+    }
+
+    if (cropChanged(left, top, width, height)) {
+	
+	lastX = left;
+	lastY = top;
+	lastW = width;
+	lastH = height;
+
+	
+	window.status="setting crop window before moving to next page...";
+	if (isMole) {
+	    submitNoThread(	
+		"OidTR1.2.6.2",  width,    
+		"OidTR1.2.6.3",  height,
+		"OidTR1.2.6.4",  left,
+		"OidTR1.2.6.1",  top);
+	} else if (isIQeye6) {
+	    submitNoThread(	
+		"OidTR1.2.6.2",  width,    
+		"OidTR1.2.6.3",  height,
+		"OidTR1.2.6.4",  left,
+		"OidTR1.2.6.1",  top,
+		"OidCR1.2.8.13", "ON",    
+
+		
+		
+		"OidTR1.2.2",    $O(1.2.2,N),
+		"OidCR1.2.16",   "ON"); 
+	} else {
+	    submitNoThread(	
+		"OidTR1.2.18.5", top,     
+		"OidTR1.2.18.6", left,
+		"OidTR1.2.18.7", width,
+		"OidTR1.2.18.8", height,
+		"OidCR1.2.6.5",  "ON",	  
+		"OidCR1.2.8.13", "ON",    
+		"OidCR1.2.16",   "ON"); 
+	}
+    }
+
+    window.onbeforeunload = "";
+
+    if(do_reboot) {
+	setEcam2("OidCB2.11","ON");
+	setTimeout('rebootingMessage()',2000);
+	setTimeout('reloadLater()',30000);
+    } else
+	reloadLater();
+
+    return false; 
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+
+function WriteLive ()
+{
+    document.write ('<td id="livetd"');
+    document.write (' width=330 height=330 valign="top" align="left">');
+
+    if (drawBoxes) {
+	document.write ('<div id="live"></div>');
+	document.write ('<span id="boxes">boxes</span>');
+	return;
+    }
+    document.write ('<div id="Applet_Div">Applet</div>');
+    var rv = 
+	'<applet code="WindowSet.class" name="spapplet" ' + imAttr + '>' 
+	+ '<param name="url1" value="1pixgray.gif">'
+	+ '<param name="offsetx" value="' 
+	+   initX/dsfactor + '">'
+	+ '<param name="offsety" value="' 
+	+   initY/dsfactor + '">'
+	+ '<param name="url2" value="'
+	+ 'now.jpg?snap=spush0.2';
+    
+    if (!isIQeye6) rv += '?ov=0';
+    rv += dsstring
+	+ '">'
+	
+	+ '<param name="dsfactor" value="' + dsfactor + '">';
+    
+    if (orient=="portrait") { 
+	rv += '<param name="h0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7)) + '">'
+	    + '<param name="w0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8)) + '">'
+	    + '<param name="hOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.2,OidTR1.2.18.7)">'
+	    + '<param name="wOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.3,OidTR1.2.18.8)">';
+    } else {
+	rv += '<param name="w0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.2),$O(1.2.18.7)) + '">'
+	    + '<param name="h0" value="'
+	    + $IF($V(IQEYE6),$O(1.2.6.3),$O(1.2.18.8)) + '">'
+	    + '<param name="wOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.2,OidTR1.2.18.7)">'
+	    + '<param name="hOid0" value="'
+	    + '$IF($V(IQEYE6),OidTR1.2.6.3,OidTR1.2.18.8)">';
+    }
+    rv += '<param name="x0" value="' + initX + '">';
+    rv += '<param name="y0" value="' + initY + '">';
+    $IF($V(IQEYE6),rv += '<param name="hw" value="' + $O(1.2.6.2)/dsfactor + '">';
+	rv += '<param name="hh" value="' + $O(1.2.6.3)/dsfactor + '">';,)
+	rv += '<param name="numWindows" value="1">';
+    rv += '<param name="xOid0" value="$IF($V(IQEYE6),OidTR1.2.6.4,OidTR1.2.18.6)">';
+    rv += '<param name="yOid0" value="$IF($V(IQEYE6),OidTR1.2.6.1,OidTR1.2.18.5)">';
+    rv += '<param name="saveOid0" value="OidCR1.2.16">';
+    rv += '<param name="color0" value="#00FF00">';
+    rv += '</applet>';
+    CreateApplet ("Applet_Div", rv);
+    document.write ('</td>');
+}
+
+</script>
+</head>
+
+<body onUnload="unloadHandler()">
+
+<noscript>
+  <font color="#FF0000">
+    <!-- fixme: translate this next message -->
+
+    <b>You must enable JavaScript to use this page.</b></font></noscript>
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("window"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=850>
+<tr>
+	 <script>WriteLive();</script>
+  <td rowspan=2  valign="top" align="right" style="padding-top: 18px">
+
+<form name="myform" method="post">
+<table class="input" cellspacing=0  cellpadding=0 width=420 style="margin-right: 10px;">
+<tr>
+  <td class="subtitleleft">&nbsp;</td>
+  <td height=20 class="subtitleleft">
+    <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+    <li id="current"><a href="cropset.html">$RSTR(crop)</a></li>
+  <script>
+      if (hasExposureSupport)
+	  document.write('<li><a href="exposure.html">$RSTR(exposure)</a></li>');
+      if (hasAWBSupport)
+          document.write('<li><a href="awb.html">$RSTR(awb)</a></li>');
+      if (hasPrivacySupport)
+	  document.write('<li><a href="privacy.html">$RSTR(privacy)</a></li>');
+      if (hasMotionSupport)
+	  document.write('<li><a href="motionset.html">$RSTR(motion)</a></li></li>');
+      if (hasCameo)
+	  document.write('<li><a href="vcamset.html">$RSTR(vcam)</a></li></li>');
+  </script> 
+  </ul></td>
+</tr>
+<tr><td class="startsubleft">&nbsp; </td>
+  <td class="startsubw">$RSTR(croptitle)<script>writeHelpIcon("crop");</script></a></td>
+</tr>
+<tr><td class="left" height=22>&nbsp;</td>
+  <td class="input">$RSTR(precrop)
+    <script>
+      writeMaxSizeSelect();</script></td></tr>
+<tr><td class="left" height=20>&nbsp; </td>
+  <td class="input">&nbsp; </td>
+</tr>
+<tr> 
+  <td class="left" height=20>&nbsp; </td>
+  <td  class="input">&nbsp; </td>
+</tr>
+<tr><td class="left" height=20>&nbsp; </td>
+  <td class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+  <td class="input">&nbsp; </td.>
+</tr>
+<tr> <td class="left">&nbsp; </td>
+  <td class="input" align="center">
+    <ul id="buttonp">
+      <li><a href=""
+        onClick="return submitFunction()" 
+	onMouseOver="window.status='$RSTR(subcur)'; return true;" 
+        onMouseOut="window.status=''">$RSTR(apply)</a></li>
+      <li><a href=""
+        onClick="return resetToInitialVals();"
+        onMouseOver="window.status='$RSTR(resinit)'; return true;"
+        onMouseOut="window.status='';">$RSTR(cancel)</a></li>
+    </ul>
+  </td>
+</tr>
+<tr><td class="endsubleft">&nbsp;</td>
+  <td class="endsub">&nbsp;</td>
+</tr>
+</table></form>
+  </td>
+</tr>
+<tr>
+  <td valign="bottom"  align="center" height=60>&nbsp; </td>
+</tr>
+</table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+
+<script>
+  writeFooter('myDefaults');
+</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td class="b" colspan=2><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif"></td>
+</tr>
+</table>
+
+
+<script>
+if (drawBoxes) InitBoxes ();
+</script>
+</body>
+</html>

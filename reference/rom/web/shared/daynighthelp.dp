@@ -1,0 +1,45 @@
+
+      <p><b><a name="IQdaynight"></a>daynight settings:</b> 
+
+     The daynight settings control how the daynight feature operates.
+Daynight cameras have a movable infrared filter which can be moved out
+of the image path to give the camera better performance in lowlight
+situations.  "Day mode" is when the IR filter is in place.  "Night
+mode" is when the IR filter is moved away.
+
+     <div style="margin-left: 1cm">
+
+      <p><b>Mode:</b>
+	  How the daynight feature operates.
+	  <ul>
+	  <li>auto: daynight operates automatically based on light
+levels</li>
+          <li>dayopen: forced to day mode when input trigger is open; forced to night mode when input trigger is closed</li>
+          <li>dayclosed: forced to day mode when input trigger is closed; forced to night mode when input trigger is open</li>
+	  <li>forceday: forced to day mode always</li>
+	  <li>forcenight: forced to night mode always</li>
+	  <li>timer: operates according to daytime start and end
+times</li>
+	  </ul>
+      </p>
+      <p><b>Output Relay:</b>
+          Set the output relay based on day mode or night mode
+	  <ul>
+	    <li>dayopen: in day mode open the output relay; in night mode close the output relay</li>
+	    <li>dayclose: in day mode close the output relay in night mode open the output relay</li>
+	  </ul>
+      <p><b>At night use:</b>
+          <ul>
+	    <li>b&w: use grayscale mode at night</li>
+	    <li>color: use color mode at night. If the
+camera is set for color at night then lighting sources which have an
+infrared component (sunlight, incandescent bulbs) may have false color. </li>
+	  </ul>
+      <p><b>Daytime start:</b>
+	  Start time for day mode.  This is
+specified as HH:MM on a 24 hour clock (9am is 09:00, 6pm is 18:00).</p>
+     <p><b>Daytime end:</b>
+	  End time for day mode.  This is
+specified as HH:MM on a 24 hour clock (9am is 09:00, 6pm is 18:00).</p>
+
+     </div>

@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN: Replay Help
+</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+</head>
+<body bgcolor="#FFFFFF" text="#808080"> 
+
+<table width="100%" border=0 cellpadding=0 cellspacing=0 bgcolor=$V(COLOR)>
+<tr><td><img src="1pixclear.gif" width=1 height=10 alt=""></td></tr>
+<tr><td bgcolor=$V(COLOR) align="center">
+  <h2><font color=$V(HEADLINKCOLOR)>
+Replay Help</font></h2>
+</td></tr>
+</table>
+
+<font face="Arial, Helvetica, sans-serif">
+<br>
+Replay controls allows the viewer to display images which have been
+buffered in the camera.  The number of previous images available to
+view depends on the capacity of the CF card in the camera and the size
+of the images.
+
+<br><br>
+Click on the rewind button to play backwards.  Clicking more
+than once increases playback speed.
+
+<br><br>
+Click on pause to pause playback.  Click it again to resume play.
+
+<br><br>
+Click on the fastforward button to fast forward.  Clicking more
+than once increases playback speed.
+
+<br><br>
+The slider handle can be dragged to change the playback location.  The ends of the slider bar indicate the earliest and newest image times.
+
+<br><br>
+Click on the size up button to toggle the playback size.
+
+<br><br>
+Click on the "SNAPSHOT" button to save an image.
+
+<br><br>
+Click on the "VIDEO CLIP" button to save a video clip as an AVI file.
+
+<br><br>
+Zoom in by left clicking in the image.  Zoom out by right clicking.  Recenter by clicking the middle mouse button.
+
+<table border=0 width="100%" cellpadding="1">
+  <tr><td height="35">&nbsp;</td></tr>
+  <tr><td height="22" bgcolor=$V(COLOR)>&nbsp;</td></tr>
+  <tr><td align="right">
+    <font face="Arial, Helvetica, sans-serif"><b>$SN</b><br></font></td></tr>
+</table>
+</body></html>

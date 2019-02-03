@@ -1,0 +1,141 @@
+<!-- Copyright (C) 2006 - 2008 IQinVision -->
+<html>
+<head>
+<meta content="text/html; charset=$RCSET"
+http-equiv="content-type">
+<title>$SP $SN: Cameo View</title>
+<link rel="stylesheet" href="style.css">
+
+<style type="text/css">
+<!-- style sheet overrides -->
+<!-- redefine the input width smaller -->
+input {font-size: 12px; width: 20px;
+    background-color: white;
+    margin: 0px 2px 0px 3px; padding-right: 0px;
+    border: solid 1px black;}
+
+</style>
+
+<script src="lib.js"></script>
+<script src="gui.js" ></script>
+<script src="vid.js" ></script>
+<script src="cameo.js" ></script>
+<script>
+
+if (!isIE) {
+    alert ("This page requires Internet Explorer");
+}
+
+
+
+var CfgPage = false;
+
+var FramesLastPeriod = 0;
+var FpsPeriod = 3000;
+var FpsSecs = 3;
+
+var FullWidth;          
+
+
+
+function UpdateLabel (idx)
+{
+    var label = "gridlabel_stats"+idx;
+    document.getElementById (label).innerHTML = "";
+}
+
+function UpdateLabelName (idx)
+{
+    var label = "gridlabel_name"+idx;
+    document.getElementById (label).innerHTML = Regions[idx].label;
+}
+
+
+function DrawLabel (idx, x, y)
+{
+    var out;
+
+
+
+    y += 2;
+    out = '<span id="gridlabel_name' + idx + '" style="color: white; font-weight: bold; position: absolute; left: ' + x + 'px; top: ' + y + 'px; z-index: 1;  white-space: nowrap; width: ' + Regions[idx].grid_width + 'px">' + Regions[idx].label + '</span>';
+    out += '<span id="gridlabel_stats' + idx + '" style="position: absolute; left: ' + x + 'px; top: ' + (y+20) + 'px; z-index: 3; white-space: nowrap"></span>';
+
+    return out;
+}
+
+function setPage (field) {
+    
+    self.location = field.options[field.selectedIndex].value;
+    return false;
+}
+
+
+
+function LoadHandler()
+{
+    var livepos = GetElementPosition ("CtlDiv0");
+    MainwinLeft = livepos.x;
+    MainwinTop  = livepos.y;
+    DrawFrames(true);
+    FullWidth = Regions[0].source_width;
+    
+    setTimeout ("DrawCameos()", 1500);
+}
+
+function beforeUnloadHandler()
+{
+    
+    StopAllCameos ();
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+</script>
+</head>
+
+<body onload="LoadHandler();">
+<form name="myform" onSubmit="return false" action="">
+  <table class="main" cellspacing=0 cellpadding=0 width=850>
+    <script>writeViewingHeader("cameo"); </script>
+    <tr>
+      <td class="l"><img src="1pixclear.gif" width=1 height=620></td>
+      <td colspan=2 valign="top" align="left" style="background: url(iqbg.gif);">
+          <img src="1pixclear.gif" width=1 height=15>
+
+
+        <table cellspacing=0 cellpadding=0
+          style="margin-top: 0; margin-left: 0;
+          border-top: solid 0 #DDD; border-right: solid 0 #BBB;
+          border-bottom: solid 0 #BBB; border-left: solid 0 #DDD;">
+          <script language="JScript"> 
+            CreateCameo ();
+            document.write('<span id="boxes"></span>');
+            document.write('<span id="grids"></span>');
+	    document.write('<span id="cameos"></span>');
+          </script>
+          <img src="1pixclear.gif" width=1 height=25>
+
+        </table>
+
+      <span style="position: absolute; left: 490; top: 50; width:300; z-index: 2">
+
+
+        <table class="input" cellspacing=0  cellpadding=0>
+        <!-- <script>WriteControls();</script> -->
+        </table> <!-- end description of right column -->
+
+      </span>
+
+      </td>
+      <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+    </tr>
+
+    <tr>
+      <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+      <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+      <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

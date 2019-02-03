@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN: Digital Pan Tilt Zoom Hilfe
+</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+</head>
+<body bgcolor="#FFFFFF" text="#808080"> 
+
+<table width="100%" border=0 cellpadding=0 cellspacing=0 bgcolor=$V(COLOR)>
+<tr><td><img src="1pixclear.gif" width=1 height=10 alt=""></td></tr>
+<tr><td bgcolor=$V(COLOR) align="center">
+  <h2><font color=$V(HEADLINKCOLOR)>
+Digital Pan Tilt Zoom Help</font></h2>
+</td></tr>
+</table>
+
+<font face="Arial, Helvetica, sans-serif">
+<br>
+"Digital Pan Tilt Zoom" ermöglicht dem Betrachter ein digitales Bearbeiten
+      des Live-Bildes. $IF($V(IQEYE4),,Die dazugehörigen Kontrollen befinden sich in der Titelleiste.)
+<br><br>
+Klicken SIe mit dem mauscursor auf einen beliebigen Punkt im Bild, um das Bild 
+um diesen Punkt herum zu zentrieren. 
+
+
+$IF($V(IQEYE4),<!--,)
+<br><br>
+Klicekn Sie auf die Pfeiltasten um das Bild in die
+gewünschte Richtung zu bewegen.
+
+<br><br>
+Klicken Sie auf "k. ZOOM" um ganz auszuzoomen.
+
+<br><br>
+Klicken Sie auf "ZOOM+" um in das Bild zu zoomen. 
+
+<br><br>
+Klicken Sie auf "ZOOM-" um aus dem Bild zu zoomen.
+
+<br><br>
+Klicken Sie auf "Größe+" um da Bild zu vergössern.
+
+<br><br>
+Klicken Sie auf "Größe-" um das Bild zu verkleinern.
+
+<br><br>
+Klicken Sie auf "max.Größe" um das Bild in max. Größe zu sehen.
+
+$IF($V(IQEYE4),-->,)
+
+$IF($V(IQEYE4),,<!--)
+<br><br>
+Klicken Sie auf "Größe+" um da Bild zu vergössern.
+$IF($V(IQEYE4),,-->)
+
+<br><br>
+Klicken Sie auf "Einzelbild" um das Bild zu speichern.
+<br><br>
+Klicken Sie auf "VIDEOCLIP" um einen Videoauschnitt in AVI zu speichern.
+
+<br><br>
+Klicken Sie auf "STOP" um ein einzelnes Bild anstatt des Videostroms zu sehen.
+
+$IF($V(IQEYE4),<!--,)
+<br><br>
+Wenn ein "MULTI VIEW" sichtbar ist, können Sie mit einer Bestätigung direkt auf die MultiView-Seite  
+gelangen, um die bis zu 9 Kameras in einem Browserfenster sehen zu können. 
+
+<br><br>
+Falls sich neben dem "STOP" noch ein andere Button befindet, 
+dient dieser der Aktivation des Relais. Der Text auf dem Button
+ist frei definierbar und kann eine Beschreibung der Aktivierung
+selber sein.
+$IF($V(IQEYE4),-->,)
+</font>
+
+<table border=0 width="100%" cellpadding="1">
+  <tr><td height="35">&nbsp;</td></tr>
+  <tr><td height="22" bgcolor=$V(COLOR)>&nbsp;</td></tr>
+  <tr><td align="right">
+    <font face="Arial, Helvetica, sans-serif"><b>$SN</b><br></font></td></tr>
+</table>
+</body></html>

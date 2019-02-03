@@ -1,0 +1,174 @@
+/* Functions which may exist on basic or advanced settings pages.  I'm
+   sick of trying to keep track of what settings are where, so this is 
+   included by both pages. */
+
+var compression = '$O(1.2.10)';
+var quality = '$O(1.2.7)';
+compression = compression.toLowerCase();
+
+function qualitySelectString() {
+     var compArray = new Array ("high", "medium", "low", "xlow");
+     var valArray = new Array ("$RSTR(medium)", "$RSTR(high)", "$RSTR(fine)", "$RSTR(superfine)");
+     var outstring = "<select name='quality' onchange='setQuality(this);'>";
+     var selected = -1;
+
+     if (compression == "high") selected = 0;
+     else if (compression == "medium") selected = 1;
+     else if (compression == "low") selected = 2;
+     else if (compression == "xlow") selected = 3;
+
+     for (i=0; i < valArray.length; i++) {
+	outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + compArray[i] + '">' + valArray[i] 
+	    + '</option>\n';
+     }
+     if (selected < 0) {
+        outstring += '<option selected value="' + quality +
+'">'+quality+'</option>';
+     }
+     outstring += '</select>\n';
+     return outstring;    
+}
+
+function setQuality(field) {
+     var newval = field.options[field.selectedIndex].value;
+     if (field.selectedIndex > 3) {  
+        setEcam2 ("OidSB1.2.7", newval);
+	quality = newval;
+     }
+     else if (compression != newval) {
+        setEcam2 ("OidSB1.2.10", newval);
+        compression = newval;
+     }
+     return false;
+}
+
+function writeQuality() {
+     document.write(qualitySelectString());
+}
+
+
+function frameRateVal(val) {
+    return (val==0) ? "unlimited":val;
+}
+
+function postSetEcam(field) {
+    
+    if (field.name == "OidSB1.2.32.1") checkDaytimes ();
+    
+    else if (field.name == "OidSB1.2.30"     
+	     || field.name == "OidSB1.2.27"  
+	     || field.name == "OidTB1.2.31"  
+	     || field.name == "OidSB1.2.4"   
+	     || field.name == "OidSB1.17.2.6" 
+	     || field.name == "OidTB1.2.21"   
+	) reloadLater ();
+}
+
+var orient = "$O(1.2.4)".toLowerCase();
+
+function formatIsValid(field) {
+    var val = field.value;
+
+    
+
+    if (field.name == "OidTB1.2.3") { 
+	if (!isIQeye5 && (isNaN(field.value) || (field.value < 0.0) 
+	    || (field.value > 10.0))) { 
+	    alert("You must enter a number between 0.0 and 10.0");
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB1.2.21") { 
+	var maxval = 3.99;
+	if (isIQeye6) maxval = 1.98;
+	if (isNaN(field.value) || (field.value < 0.0) 
+	    || (field.value > maxval)) { 
+	    alert("You must enter a discrete value between 0.0 and " + maxval);
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB1.2.31") { 
+	if (val.toLowerCase().match("unlimited")) return true;
+        if (val != 0 && (val<1 || val>100)) {
+            alert("Please enter a number between 1.00 and 100.00");
+	    field.focus();
+            return false;
+        }
+    }
+    else if (field.name == "OidTB1.2.9.1.9.2") { 
+	if (field.value.length > 31) { 
+	    alert("You may enter no more than 31 characters.");
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidSB1.2.9.1.10.2"
+	|| field.name == "OidSB1.2.9.1.10.1") { 
+	
+        var chosen = field.options[field.selectedIndex].text;
+	if (chosen.toLowerCase() == "custom") {
+	    alert("Setting the color scheme to 'custom' is only \n"
+		  + "possible via the telnet interface to your $SP.\n"
+		  + "Please see your manual for details.");
+	    return false;
+	}
+    }
+    else if (field.name == "OidSB1.15.1") { 
+	
+	if (recordingToInternal && 
+	    field.options[field.selectedIndex].text == 'enabled') {
+	    alert ("Replay controls cannot be enabled while recording to internal drive");
+	    
+	    field.selectedIndex = 1-field.selectedIndex;
+	    field.focus();
+	    return false;
+	}
+    }
+    else if (field.name == "OidTB2.4") { 
+	if (field.value.length > 16) { 
+	    alert("Please enter a name of no more than\n"
+		  +"16 alphanumeric characters");
+	    select(field);
+	    return false;
+	}
+	var exp = /[^\w\-\_]+/; 
+	if (val.match(exp)) {
+	    alert("Please use only alphanumeric\n"
+		  + "characters, '-', and '_'.");
+            field.value = serverNameString; 
+	    return false;
+	}
+	serverNameString = val;
+    }
+    return true;
+}
+
+function writeTZSelect (classtype)
+{
+    
+    var gmtoff = 0;
+    var punix = 1;
+    var linux = 2;
+
+    document.write('<td class="'+classtype+'" helpbold="$RSTR(tzone)" myhelp="$RSTR(tzone_help)">$RSTR(tzone) ');
+
+    var out;
+    var tz = '$O(2.17)';
+    
+    out = '<select name="OidSB2.17" id=OidSB2.17" onChange="setEcam(this)">';
+    for (i = 0; i < TzTable.length; i += 3) {
+	out += '<option ';
+	if (tz == TzTable[i+linux] ||
+	    tz.toLowerCase() == TzTable[i+punix].toLowerCase())
+	    out += 'selected ';
+	out += 'value="'+TzTable[i+punix]+'">'+TzTable[i+gmtoff]+' '+TzTable[i+punix];
+    }
+
+    out += '</select>';
+    document.write (out);
+}
+
+

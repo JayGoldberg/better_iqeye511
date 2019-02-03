@@ -1,0 +1,597 @@
+<!-- Copyright (C) 2006 - 2011 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(serverset)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- internal styles: bump up input width -->
+<style type="text/css">
+select {width: 220px;}
+input {width: 219px;}
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="date_time.js" ></script>
+<script  src="tztable.js"></script>
+<script  src="setup.js"></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+$DEF(HASRTC, )
+
+$IF($V(IQEYE3),$DEF(HASRTC, true),)
+$IF($V(IQEYE6),$DEF(HASRTC, true),)
+$IF($V(IQEYE7),$DEF(HASRTC, true),)
+$IF($V(IQEYE5),$DEF(HASRTC, ),)
+$IF($V(IQEYE7),$DEF(HASRTC, true),)
+$IF($V(IQEYE4),$DEF(HASRTC, ),)
+$IF($V(IQ06),$DEF(HASRTC, true),)
+
+enableJavaAlert();
+
+var PageTitle = "$RSTR(serverset)";
+var PageHelp = "$RSTR(serverset_help)";
+
+var subnetMask =  "$O(3.6.1,R)";
+var gateway = "$O(3.6.2,R)";
+var ipaddress = "$SI";
+
+var passive = "$O(3.6.19.3)";
+passive = (passive.toLowerCase()=="enabled");
+
+var bcast = "$O(3.6.19.4)";
+bcast = (bcast.toLowerCase()=="enabled");
+
+function formatIsValid(field) { 
+    var val = field.value;
+    if (field.name == "OidTB2.4") { 
+	if (field.value.length > 16) { 
+	    alert("Please enter a name of no more than\n"
+		  +"16 alphanumeric characters");
+	    select(field);
+	    return false;
+	}
+	var exp = /[^\w\-\_]+/; 
+	if (val.match(exp)) {
+	    alert("Please use only alphanumeric\n"
+		  + "characters, '-', and '_'.");
+            field.value = serverNameString; 
+	    return false;
+	}
+	serverNameString = val;
+    }
+    if (field.name == "OidTN7.1") { 
+	var exp = /[^\d]/; 
+	if (val.match(exp) || val<0 || val>65536) {
+	    alert("Please enter a value from 0 through 65536");
+	    return false;
+	}
+	webport = val; 
+    }
+
+
+    if (field.name == "OidSB1.4.1.1") {
+	alert("Viewer controls will be enabled\n"
+	      + "after scanning has stopped.");
+	return true;
+    }
+    if (field.name == "OidTB2.18") { 
+	if (! isATime(field)) {
+	    alert("You must enter a military time in the format hh:mm:ss");
+	    select(field);
+	    return false;
+	}
+    }
+    if (field.name == "OidTB2.19") { 
+	if (! isADate(field)) {
+	    alert("You must enter a date in the format mm/dd/yyyy");
+	    select(field);
+	    return false;
+	}
+    }
+    if (field.name == "OidTR3.6.2") { 
+	var pattern = /^\s*dialout\s*$$/i;
+	if (val.match(pattern)) { 
+	    return true;
+	}
+	pattern = /^\s*0+\.0+\.0+\.0+\s*$$/; 
+	if (val.match(pattern)) { 
+	    return true;
+	}
+	if (! isAnIPAddress(field)) { 
+	    alert("You must enter `dialout' or\n"
+		  + "an ip address in the form nnn.nnn.nnn.nnn");
+	    select(field);
+	    return false;
+	}
+	
+	
+	
+	var gatewayArr = val.split(".");
+
+	
+	var ipaddrArr = document.getElementById("OidTR3.6.10").value.split(".");
+	var maskArr = document.getElementById("OidTR3.6.1").value.split(".");
+	for (var i=0;i<4;i++) {
+	    if ((ipaddrArr[i] & maskArr[i]) != (gatewayArr[i] & maskArr[i])) {
+		alert("AND of subnet mask and IP Address must be\n"
+		      + "the same as AND of subnet mask and gateway.\n"
+		      + "Difference in byte " + (i+1) ); 
+		return false;
+	    }
+	}
+       
+	gateway = val;
+	return true;
+    } 
+    if (field.name == "OidTN3.6.13") {  
+	var pattern = /^\s*none\s*$$/i;
+        if (field.value == "none") { 
+	    field.value = "None";
+	}
+	if (val.match(pattern)) {
+	    return true;
+	}
+	if (! isAnIPAddress(field)) { 
+	    alert("You must enter `none' or\n"
+		  + "an ip address in the form nnn.nnn.nnn.nnn");
+	    select(field);
+	    return false;
+	}
+	return true;
+    } 
+    if ((field.name == "OidTB3.6.19.2") || 
+	  (field.name == "OidTR3.6.1") || (field.name == "OidTR3.6.10")) {
+        
+
+	
+	if ((field.name=="OidTB3.6.19.2") && passive) {
+	    alert("This setting has no effect if 'passive' is checked");
+	    return false;
+	}
+
+	if (! isAnIPAddress(field)) {
+	    alert("You must enter an ip address in the form nnn.nnn.nnn.nnn");
+	    select(field);
+	    return false;
+	}
+	if (field.name=="OidTR3.6.1") {
+	    subnetMask = val;
+	}
+	if (field.name=="OidTR3.6.10") {
+	    hostname = field.value; 
+	}
+    }
+    if (field.name == "OidTN3.6.4") { 
+	
+	var exp = new RegExp("^(\\S+)$$"); 
+	if (field.value.length > 0 && !field.value.match(exp)) { 
+	    alert("'" + field.value + "' is not a valid domain name");
+	    select(field);
+	    return false;
+	}
+    }
+    return true;
+}
+
+function setPassword(field) {
+    var val = field.value;
+    if (! isAPassword(field)) {
+	
+	alert("Please enter 1 to 32 printable characters.\n" +
+		"Do not include white space characters.\n\n" +
+		"Password not changed.");
+	select(field);
+	return false;
+    }
+
+    setEcam2("OidTB9.1.8.trigger", escape('"' + val + '"'));
+    return false;
+}
+
+
+
+var OldReboot = reboot;
+function rebootDHCP() 
+{
+    setEcam2("OidCB2.11","ON");
+    
+    setTimeout ("finishDHCPReboot()", 2);
+    return false;
+}
+
+function finishDHCPReboot()
+{
+    alert ("Your camera is being rebooted with DHCP enabled.  Use IQfinder or IQmanager to locate the camera.");
+    window.close();
+    return false;
+}
+
+
+function setIP(field)
+{
+    if (! formatIsValid(field)) return false;
+    setEcam2 ("OidTN3.6.10", escape(field.value));
+    postSetEcam (field);
+}
+
+function setSubnet(field)
+{
+    if (! formatIsValid(field)) return false;
+    setEcam2 ("OidTN3.6.1", escape(field.value));
+    postSetEcam (field);
+}
+
+function setGateway(field)
+{
+    if (! formatIsValid(field)) return false;
+    setEcam2 ("OidTN3.6.2", escape(field.value));
+    postSetEcam (field);
+}
+
+
+var NeedStaticIP = false;
+var NeedStaticSubnet = false;
+
+function postSetEcam(field) {
+    if (field.name == "OidTR3.6.10" &&
+	field.value != "") {
+	NeedStaticIP = false;
+    }
+    if (field.name == "OidTR3.6.1" &&
+	field.value != "") {
+	NeedStaticSubnet = false;
+    }
+    if (field.name == "OidTN7.1" ||
+	field.name == "OidTR3.6.10" ||
+	field.name == "OidSB2.43" ||
+	field.name == "OidSN4.2") { 
+	if (field.name == "OidSN4.2" && 
+	    field.options[field.selectedIndex].value == "disabled") {
+	    
+	    alert("Please supply static values for IP settings");
+	    if (reboot == rebootDHCP)
+		reboot = OldReboot;
+	}
+	else if (field.name == "OidSN4.2" && 
+		 field.options[field.selectedIndex].value == "enabled") {
+	    reboot = rebootDHCP;
+	}
+	else {
+	    alert("Your setting will take effect\n"
+		  + "after you reboot your camera");
+	}
+    }
+    if (field.name == "OidSB2.17") { 
+	
+	reloadLater();
+    }
+    checkDHCP (field.name == "OidSN4.2" ? true : false);
+}
+
+
+function checkDHCP(from_user)
+{
+    var field = de("OidSN4.2");
+    if (field.options[field.selectedIndex].value == "enabled") {
+	
+	de("OidTR3.6.10").disabled = true;
+	de("OidTR3.6.1").disabled = true;
+	de("OidTR3.6.2").disabled = true;
+    }
+    else {
+	
+	de("OidTR3.6.10").disabled = false;
+	de("OidTR3.6.1").disabled = false;
+	de("OidTR3.6.2").disabled = false;
+	if (from_user) {
+	    de("OidTR3.6.10").value = "";
+	    de("OidTR3.6.1").value = "";
+	    de("OidTR3.6.2").value = "";
+	    NeedStaticIP = true;
+	    NeedStaticSubnet = true;
+	}
+    }
+}
+
+function writeNtpModeSelect() {
+     document.write ('<select name="NtpMode" ' +
+     ' onchange="setNtpMode(this.options[selectedIndex].value)">\n');
+     var out = "<option";
+     if (bcast) {
+       out += ' value="passive">$RSTR(passive)<option selected value="broadcast">$RSTR(broadcast)\n';
+     } else if (passive) {
+       out += ' selected value="passive">$RSTR(passive)<option value="broadcast">$RSTR(broadcast)\n';
+     } 
+     document.write (out);
+}
+
+function setNtpMode(val) {
+   if (val == "passive") {
+     submit ("OidCB3.6.19.3", "enabled", "OidCB3.6.19.4", "disabled");
+     passive = true;
+   } else if (val == "broadcast") {
+     submit ("OidCB3.6.19.3", "disabled", "OidCB3.6.19.4", "enabled");
+     passive = false;
+   } 
+}
+
+function setMaxBandwidth(field) {
+    var val = field.value;
+
+    
+    if (val.toLowerCase().match("$RSTR(unlimited)")) {
+	setEcam2(field.name, 0);
+	return false;
+    }
+    if (! isANatural(val) || val > 100000) {
+	alert("You must enter 'unlimited' or an integer between 0 and 100000.");
+	return false;
+    }
+    setEcam2(field.name, field.value);
+    return false;
+}
+
+function bandwidthVal(val) {
+    if (val==0) return "$RSTR(unlimited)";
+    else return val;
+}
+
+var objDate = new Date ('$O(2.19)');
+
+function writeDate ()
+{
+    
+    var date = '$O(2.19)';
+    if (objDate.getFullYear() - 0 > 2050) date = "unknown";
+    document.write (date);
+}
+
+function writeTime ()
+{
+    
+    var time = '$O(2.18)';
+    if (objDate.getFullYear() - 0 > 2050) time = "unknown";
+    document.write (time);
+}
+
+function beforeUnloadHandler()
+{
+    if (reboot == OldReboot &&
+	(NeedStaticIP ||
+	 NeedStaticSubnet)) {
+	return "DHCP disabled requires a static IP address and subnet.";
+    }
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+
+<form name="myform" method="post">
+
+<!-- each row has 3 tds: a border on each side, and the content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("server"); </script>
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+          writeCroppedImage();
+        </script>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">        <tr>		    
+          <td class="subtitleleft">
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 valign="top" class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+        <tr> 
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle" helpsub="$RSTR(Network)" helpanchor="server-network">$RSTR(Network)
+            <script>
+              writeHelpIcon("server-network");</script></td></tr>
+
+        <tr>
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="DHCP" myhelp="$RSTR(DHCP_help)">DHCP $O(4.2,JSN)</td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(ipaddr)" myhelp="$RSTR(ipaddr_help)">$RSTR(ipaddr) <input name="OidTR3.6.10" id="OidTR3.6.10" value="$O(3.6.10,R)" size="16" onChange="setIP(this)"></td></tr>
+
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(netmask)" myhelp="$RSTR(netmask_help)">$RSTR(netmask) <input name="OidTR3.6.1" id="OidTR3.6.1" value="$O(3.6.1,R)" size="16" onChange="setSubnet(this)"></td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(gateway)" myhelp="$RSTR(gateway_help)">$RSTR(gateway) <input name="OidTR3.6.2" id="OidTR3.6.2" value="$O(3.6.2,R)" size="16" onChange="setGateway(this)"></td></tr>
+        $IF($V(IQEYE4),<!--,)
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(namesvr)" myhelp="$RSTR(namesvr_help)">$RSTR(namesvr)
+            $O(3.6.13,JTN16)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(domname)" myhelp="$RSTR(domname_help)">$RSTR(domname)
+            $O(3.6.4,JTN16)</td></tr>
+        $IF($V(IQEYE4),-->,)
+
+        <tr> 
+	  <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(webpo)" myhelp="$RSTR(webpo_help)">$RSTR(webpo) $O(7.1,JTN)</td></tr>
+        $IF($V(IQEYE4),<!--,)
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(bandlim)" myhelp="$RSTR(bandlim_help)">$RSTR(bandlim)
+            <input name="OidTB7.5" value="$O(7.5,B)" size="16" 
+              onChange="setMaxBandwidth(this)"></td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(enetmode)" myhelp="$RSTR(enetmode_help)">
+            $RSTR(enetmode) $O(2.43,JSB)
+          </td></tr>
+        $IF($V(IQEYE4),-->,)
+
+        $IF($V(IQEYE4),<!--,)
+
+        <tr> 
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle" helpsub="$RSTR(Email)" helpanchor="server-smtp">$RSTR(Email)
+            <script>
+              writeHelpIcon("server-smtp");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" nowrap helpbold="$RSTR(mailsvr)" myhelp="$RSTR(mailsvr_help)">$RSTR(mailsvr)
+          $O(9.1.1.trigger,JTB15)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" nowrap helpbold="$RSTR(username)" myhelp="$RSTR(smtp_username)">$RSTR(username)
+          $O(9.1.7.trigger,JTB15)</td></tr>
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(password)" myhelp="$RSTR(smtp_password)">$RSTR(password) 
+            <input type="password" name="password" id="password" 
+             value="******" size="10" 
+             onChange="setPassword(this)">
+            </td></tr>
+        <tr> 
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle" helpsub="$RSTR(Time)" helpanchor="server-time">$RSTR(Time)
+            <script>
+              writeHelpIcon("server-time");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+           <script>writeTZSelect("startsub");</script>
+          </td>
+        </tr>
+        $IF($V(IQEYE4),-->,)
+        $IF($V(HASRTC),,<!--)
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(date)" myhelp="$RSTR(date_help)">$RSTR(date)
+            $O(2.19,JTB12)</td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(time)" myhelp="$RSTR(time_help)">$RSTR(time)
+            $O(2.18,JTB10)</td></tr>
+        $IF($V(HASRTC),,-->)
+
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(tmprot)" myhelp="$RSTR(tmprot_help)">$RSTR(tmprot)
+            $O(3.6.19.1,JSB)</td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(tmip)" myhelp="$RSTR(tmip_help)">$RSTR(tmip)
+            $O(3.6.19.2,JTB)</td></tr>
+
+        $IF($V(IQEYE4),,<!--)
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub"></td>
+        </tr>
+        $IF($V(IQEYE4),,-->)
+
+        $IF($V(IQEYE4),<!--,)
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+          <td class="endsub" helpbold="$RSTR(NTPm)" myhelp="$RSTR(NTPm_help)">$RSTR(NTPm)
+             <script>
+	        writeNtpModeSelect();</script>
+          </td></tr>
+
+        $IF($V(IQEYE4),-->,)
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left" width=320>
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+        <tr>
+          <td class="subtitleleft">&nbsp
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle">$RSTR(Info)
+             <!-- <script>
+              writeHelpIcon("tbd");</script></td></tr> -->
+        <tr> 
+          <td class="startsubleftg">&nbsp;</td>
+          <td class="startsubg">
+            $RSTR(ipaddr) $SI</td></tr>
+        $IF($V(HASRTC),<!--,)
+        $IF($V(IQEYE4),<!--,)
+        <tr> 
+          <td class="leftg">&nbsp;</td>
+          <td class="inputg">date: <script>writeDate()</script></td></tr>
+        <tr> 
+          <td class="leftg">&nbsp;</td>
+          <td class="inputg">time: <script>writeTime()</script></td></tr>
+        $IF($V(IQEYE4),-->,)
+        $IF($V(HASRTC),-->,)
+        <tr>
+          <td class="leftg">&nbsp;</td>
+          <td class="inputg">
+            $RSTR(hwaddr): $SH</td></tr>
+        <tr>
+          <td class="endsubleftg">&nbsp;</td>
+          <td class="endsubg">
+        $IF($V(IQEYE4),<!--,)
+            $RSTR(linkstat): $O(2.44,R)
+        $IF($V(IQEYE4),-->,)
+          </td></tr>
+      </td></tr></table> <!-- end bottom left content -->
+
+
+    </tr> 
+    </table>
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+<script>
+  writeFooter('logout','reboot');
+  if (!isMole)
+    document.myform["OidTB7.5"].value = bandwidthVal($O(7.5,B));
+  checkDHCP(false);
+   
+</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

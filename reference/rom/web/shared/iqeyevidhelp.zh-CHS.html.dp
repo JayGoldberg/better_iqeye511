@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN: Digital Pan Tilt Zoom Help
+</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+</head>
+<body bgcolor="#FFFFFF" text="#808080"> 
+
+<table width="100%" border=0 cellpadding=0 cellspacing=0 bgcolor=$V(COLOR)>
+<tr><td><img src="1pixclear.gif" width=1 height=10 alt=""></td></tr>
+<tr><td bgcolor=$V(COLOR) align="center">
+  <h2><font color=$V(HEADLINKCOLOR)>
+Digital Pan Tilt Zoom Help</font></h2>
+</td></tr>
+</table>
+
+<font face="Arial, Helvetica, sans-serif">
+<br>
+"Digital Pan Tilt Zoom" allows the viewer to pan about the
+      displayed image.  The controls are in the title bar.
+<br><br>
+With the cursor, click on any point in the image to 
+recenter the image around that point.  
+
+
+<br><br>
+Click on the arrow buttons to move the camera's view
+in the desired direction.
+
+<br><br>
+Click on the "NO ZOOM" button to zoom all the way out.
+
+<br><br>
+Click on the "ZOOM+" button to zoom in. 
+
+<br><br>
+Click on the "ZOOM-" button to zoom out.
+
+<br><br>
+Click on the "SIZE+" button to increase the size of the viewed image.
+
+<br><br>
+Click on the "SIZE-" button to decrease the size of the viewed image.
+
+<br><br>
+Click on the size "MAX" button to view the image full-sized, without
+downsampling.
+
+<br><br>
+Click on the "SNAPSHOT" button to save an image.
+<br><br>
+Click on the "VIDEO CLIP" button to save a video clip as an AVI file.
+
+<br><br>
+Click on the "STOP" button to view a single frame instead of an 
+image stream.
+
+<br><br>
+Click on the "SAVE" button to save the displayed image to your
+computer.
+
+<br><br>
+If there is a "MULTI VIEW" button, click on it to bring up the 
+the quad view page, which displays images from up to 9 cameras at once. 
+
+<br><br>
+If there is another button to the right of the "STOP" button
+click on it to activate the relay output.  This button's text
+can be set to describe what will happen when the relay output
+is activated.
+</font>
+
+<table border=0 width="100%" cellpadding="1">
+  <tr><td height="35">&nbsp;</td></tr>
+  <tr><td height="22" bgcolor=$V(COLOR)>&nbsp;</td></tr>
+  <tr><td align="right">
+    <font face="Arial, Helvetica, sans-serif"><b>$SN</b><br></font></td></tr>
+</table>
+</body></html>

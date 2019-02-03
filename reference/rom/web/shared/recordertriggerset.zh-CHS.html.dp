@@ -1,0 +1,76 @@
+<!-- Copyright (C) 2008 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Trigger settings</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+td.none {padding: 0; margin: 0; white-space: wrap}
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+
+<form name="myform" method="post">
+<table class="main" cellspacing=0 cellpadding=0 width=780>
+<script>
+  writeSettingsHeader("trigger"); </script>
+<tr> 
+  <td class="l"><img src="1pixclear.gif" width=1 height=1></td>
+  <td colspan=2>
+    <table>
+      <tr>
+        <td><img src="1pixclear.gif" width=50 height=1></td>
+        <td>
+        <p>
+        <h1>Trigger Settings Are Disabled</h1>
+
+        <p>
+        Your camera is currently recording images to 
+        ftp:
+        <p>
+        Changes to trigger settings will cause
+        possibly unintended results<br>to this archival process.
+        <p>
+        If you still want to access the trigger settings page, you must
+        first stop recording<br>
+        with the button on the
+        <a href="recorderset.html">IQrecorder settings page</a>.<br>
+        <p>
+        If the recorder is later restarted,
+        some of the settings<br>
+        on the trigger settings page may be overwritten.<br><br></td>
+      </tr>
+     </table></td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+<script>
+  writeFooter();</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

@@ -1,0 +1,2061 @@
+
+
+
+
+
+
+
+
+var isPTZ =  "$O(1.4.7,B)"; 
+isPTZ =  (isPTZ == "YES" || isPTZ == "yes" || isPTZ == "Yes") ? true:false;
+
+
+var requiredMajorVersion = 9;
+
+var requiredMinorVersion = 0;
+
+var requiredRevision = 0;
+
+
+var libprodID = "$O(2.21)";
+
+
+var useFlash = false;
+
+
+
+
+
+
+
+
+var isNav = (navigator.appName == "Netscape"); 
+var isNav6 = (isNav && (parseFloat(navigator.appVersion) >= 5.0));
+var isIE = ((navigator.appVersion.indexOf("MSIE") != -1) || (navigator.appVersion.indexOf("Trident") != -1));
+var isWin = (navigator.appVersion.indexOf("Win") != -1);
+var isMac = (navigator.appVersion.indexOf("Mac") != -1);
+var isNT = (navigator.appVersion.indexOf("Windows NT") != -1);
+var isOpera = (navigator.userAgent.indexOf("Opera") != -1);
+if (isOpera) isIE = false;
+var isMacIE = (isMac && isIE);
+var isIpod = (navigator.userAgent.indexOf("iPod") != -1);
+var isIphone = (navigator.userAgent.indexOf("iPhone") != -1);
+var isIpad = (navigator.userAgent.indexOf("iPad") != -1);
+var isSafari = (navigator.userAgent.indexOf("Safari") != -1);
+var NavVers = 0.0;
+var isW3C = (document.getElementById) ? true:false; 
+var isFirefox = (navigator.userAgent.indexOf("Firefox") != -1);
+var isOpera = (navigator.userAgent.indexOf("Opera") != -1);
+var isAndroid = (navigator.userAgent.indexOf("Android") != -1);
+var isMobile = (isIpod || isIphone);
+
+
+
+var IE64 = false;
+var IEVers = 0.0;
+
+if (isIE) {
+    var start = navigator.appVersion.indexOf("MSIE");
+    var end = navigator.appVersion.indexOf(";",start);
+    IEVers = parseFloat(navigator.appVersion.substring(start+4, end));
+    if (navigator.userAgent.indexOf(" x64;") != -1) {
+	IE64 = true;
+    }
+}
+
+var isMozilla = false;
+if (isNav) {
+    var start = navigator.userAgent.indexOf("Mozilla/");
+    NavVers = parseFloat(navigator.userAgent.substring(start+8));
+    if (NavVers>=5.0) { 
+        start = navigator.userAgent.indexOf("Netscape/");
+	if (start<0) isMozilla = true;
+	else NavVers = parseFloat(navigator.userAgent.substring(start+9));
+    }
+}
+
+var canSpush = false;
+
+if (isIpod || isIphone || isFirefox || isSafari || isOpera) {
+    
+    canSpush = true;
+}
+
+
+var offsetLeft = 0, offsetTop = 0; 
+
+
+
+if (isIE) {  
+    
+    if (isMac) {
+	
+	offsetLeft = 20; offsetTop = 10;
+	if (IEVers > 4.5) {
+	    offsetLeft = 10; offsetTop = 80;
+	}
+    } else { 
+	offsetLeft = 30; 
+	offsetTop = 75;  
+    }
+} 
+
+
+
+
+
+
+
+Encoder = {
+
+	
+	EncodeType : "numerical",  
+
+	isEmpty : function(val){
+		if(val){
+			return ((val===null) || val.length==0 || /^\s+$$/.test(val));
+		}else{
+			return true;
+		}
+	},
+	
+	HTML2Numerical : function(s){
+		var arr1 = new Array('&nbsp;','&iexcl;','&cent;','&pound;','&curren;','&yen;','&brvbar;','&sect;','&uml;','&copy;','&ordf;','&laquo;','&not;','&shy;','&reg;','&macr;','&deg;','&plusmn;','&sup2;','&sup3;','&acute;','&micro;','&para;','&middot;','&cedil;','&sup1;','&ordm;','&raquo;','&frac14;','&frac12;','&frac34;','&iquest;','&agrave;','&aacute;','&acirc;','&atilde;','&Auml;','&aring;','&aelig;','&ccedil;','&egrave;','&eacute;','&ecirc;','&euml;','&igrave;','&iacute;','&icirc;','&iuml;','&eth;','&ntilde;','&ograve;','&oacute;','&ocirc;','&otilde;','&Ouml;','&times;','&oslash;','&ugrave;','&uacute;','&ucirc;','&Uuml;','&yacute;','&thorn;','&szlig;','&agrave;','&aacute;','&acirc;','&atilde;','&auml;','&aring;','&aelig;','&ccedil;','&egrave;','&eacute;','&ecirc;','&euml;','&igrave;','&iacute;','&icirc;','&iuml;','&eth;','&ntilde;','&ograve;','&oacute;','&ocirc;','&otilde;','&ouml;','&divide;','&Oslash;','&ugrave;','&uacute;','&ucirc;','&uuml;','&yacute;','&thorn;','&yuml;','&quot;','&amp;','&lt;','&gt;','&oelig;','&oelig;','&scaron;','&scaron;','&yuml;','&circ;','&tilde;','&ensp;','&emsp;','&thinsp;','&zwnj;','&zwj;','&lrm;','&rlm;','&ndash;','&mdash;','&lsquo;','&rsquo;','&sbquo;','&ldquo;','&rdquo;','&bdquo;','&dagger;','&dagger;','&permil;','&lsaquo;','&rsaquo;','&euro;','&fnof;','&alpha;','&beta;','&gamma;','&delta;','&epsilon;','&zeta;','&eta;','&theta;','&iota;','&kappa;','&lambda;','&mu;','&nu;','&xi;','&omicron;','&pi;','&rho;','&sigma;','&tau;','&upsilon;','&phi;','&chi;','&psi;','&omega;','&alpha;','&beta;','&gamma;','&delta;','&epsilon;','&zeta;','&eta;','&theta;','&iota;','&kappa;','&lambda;','&mu;','&nu;','&xi;','&omicron;','&pi;','&rho;','&sigmaf;','&sigma;','&tau;','&upsilon;','&phi;','&chi;','&psi;','&omega;','&thetasym;','&upsih;','&piv;','&bull;','&hellip;','&prime;','&prime;','&oline;','&frasl;','&weierp;','&image;','&real;','&trade;','&alefsym;','&larr;','&uarr;','&rarr;','&darr;','&harr;','&crarr;','&larr;','&uarr;','&rarr;','&darr;','&harr;','&forall;','&part;','&exist;','&empty;','&nabla;','&isin;','&notin;','&ni;','&prod;','&sum;','&minus;','&lowast;','&radic;','&prop;','&infin;','&ang;','&and;','&or;','&cap;','&cup;','&int;','&there4;','&sim;','&cong;','&asymp;','&ne;','&equiv;','&le;','&ge;','&sub;','&sup;','&nsub;','&sube;','&supe;','&oplus;','&otimes;','&perp;','&sdot;','&lceil;','&rceil;','&lfloor;','&rfloor;','&lang;','&rang;','&loz;','&spades;','&clubs;','&hearts;','&diams;');
+		var arr2 = new Array('&#160;','&#161;','&#162;','&#163;','&#164;','&#165;','&#166;','&#167;','&#168;','&#169;','&#170;','&#171;','&#172;','&#173;','&#174;','&#175;','&#176;','&#177;','&#178;','&#179;','&#180;','&#181;','&#182;','&#183;','&#184;','&#185;','&#186;','&#187;','&#188;','&#189;','&#190;','&#191;','&#192;','&#193;','&#194;','&#195;','&#196;','&#197;','&#198;','&#199;','&#200;','&#201;','&#202;','&#203;','&#204;','&#205;','&#206;','&#207;','&#208;','&#209;','&#210;','&#211;','&#212;','&#213;','&#214;','&#215;','&#216;','&#217;','&#218;','&#219;','&#220;','&#221;','&#222;','&#223;','&#224;','&#225;','&#226;','&#227;','&#228;','&#229;','&#230;','&#231;','&#232;','&#233;','&#234;','&#235;','&#236;','&#237;','&#238;','&#239;','&#240;','&#241;','&#242;','&#243;','&#244;','&#245;','&#246;','&#247;','&#248;','&#249;','&#250;','&#251;','&#252;','&#253;','&#254;','&#255;','&#34;','&#38;','&#60;','&#62;','&#338;','&#339;','&#352;','&#353;','&#376;','&#710;','&#732;','&#8194;','&#8195;','&#8201;','&#8204;','&#8205;','&#8206;','&#8207;','&#8211;','&#8212;','&#8216;','&#8217;','&#8218;','&#8220;','&#8221;','&#8222;','&#8224;','&#8225;','&#8240;','&#8249;','&#8250;','&#8364;','&#402;','&#913;','&#914;','&#915;','&#916;','&#917;','&#918;','&#919;','&#920;','&#921;','&#922;','&#923;','&#924;','&#925;','&#926;','&#927;','&#928;','&#929;','&#931;','&#932;','&#933;','&#934;','&#935;','&#936;','&#937;','&#945;','&#946;','&#947;','&#948;','&#949;','&#950;','&#951;','&#952;','&#953;','&#954;','&#955;','&#956;','&#957;','&#958;','&#959;','&#960;','&#961;','&#962;','&#963;','&#964;','&#965;','&#966;','&#967;','&#968;','&#969;','&#977;','&#978;','&#982;','&#8226;','&#8230;','&#8242;','&#8243;','&#8254;','&#8260;','&#8472;','&#8465;','&#8476;','&#8482;','&#8501;','&#8592;','&#8593;','&#8594;','&#8595;','&#8596;','&#8629;','&#8656;','&#8657;','&#8658;','&#8659;','&#8660;','&#8704;','&#8706;','&#8707;','&#8709;','&#8711;','&#8712;','&#8713;','&#8715;','&#8719;','&#8721;','&#8722;','&#8727;','&#8730;','&#8733;','&#8734;','&#8736;','&#8743;','&#8744;','&#8745;','&#8746;','&#8747;','&#8756;','&#8764;','&#8773;','&#8776;','&#8800;','&#8801;','&#8804;','&#8805;','&#8834;','&#8835;','&#8836;','&#8838;','&#8839;','&#8853;','&#8855;','&#8869;','&#8901;','&#8968;','&#8969;','&#8970;','&#8971;','&#9001;','&#9002;','&#9674;','&#9824;','&#9827;','&#9829;','&#9830;');
+		return this.swapArrayVals(s,arr1,arr2);
+	},	
+
+	
+	NumericalToHTML : function(s){
+		var arr1 = new Array('&#160;','&#161;','&#162;','&#163;','&#164;','&#165;','&#166;','&#167;','&#168;','&#169;','&#170;','&#171;','&#172;','&#173;','&#174;','&#175;','&#176;','&#177;','&#178;','&#179;','&#180;','&#181;','&#182;','&#183;','&#184;','&#185;','&#186;','&#187;','&#188;','&#189;','&#190;','&#191;','&#192;','&#193;','&#194;','&#195;','&#196;','&#197;','&#198;','&#199;','&#200;','&#201;','&#202;','&#203;','&#204;','&#205;','&#206;','&#207;','&#208;','&#209;','&#210;','&#211;','&#212;','&#213;','&#214;','&#215;','&#216;','&#217;','&#218;','&#219;','&#220;','&#221;','&#222;','&#223;','&#224;','&#225;','&#226;','&#227;','&#228;','&#229;','&#230;','&#231;','&#232;','&#233;','&#234;','&#235;','&#236;','&#237;','&#238;','&#239;','&#240;','&#241;','&#242;','&#243;','&#244;','&#245;','&#246;','&#247;','&#248;','&#249;','&#250;','&#251;','&#252;','&#253;','&#254;','&#255;','&#34;','&#38;','&#60;','&#62;','&#338;','&#339;','&#352;','&#353;','&#376;','&#710;','&#732;','&#8194;','&#8195;','&#8201;','&#8204;','&#8205;','&#8206;','&#8207;','&#8211;','&#8212;','&#8216;','&#8217;','&#8218;','&#8220;','&#8221;','&#8222;','&#8224;','&#8225;','&#8240;','&#8249;','&#8250;','&#8364;','&#402;','&#913;','&#914;','&#915;','&#916;','&#917;','&#918;','&#919;','&#920;','&#921;','&#922;','&#923;','&#924;','&#925;','&#926;','&#927;','&#928;','&#929;','&#931;','&#932;','&#933;','&#934;','&#935;','&#936;','&#937;','&#945;','&#946;','&#947;','&#948;','&#949;','&#950;','&#951;','&#952;','&#953;','&#954;','&#955;','&#956;','&#957;','&#958;','&#959;','&#960;','&#961;','&#962;','&#963;','&#964;','&#965;','&#966;','&#967;','&#968;','&#969;','&#977;','&#978;','&#982;','&#8226;','&#8230;','&#8242;','&#8243;','&#8254;','&#8260;','&#8472;','&#8465;','&#8476;','&#8482;','&#8501;','&#8592;','&#8593;','&#8594;','&#8595;','&#8596;','&#8629;','&#8656;','&#8657;','&#8658;','&#8659;','&#8660;','&#8704;','&#8706;','&#8707;','&#8709;','&#8711;','&#8712;','&#8713;','&#8715;','&#8719;','&#8721;','&#8722;','&#8727;','&#8730;','&#8733;','&#8734;','&#8736;','&#8743;','&#8744;','&#8745;','&#8746;','&#8747;','&#8756;','&#8764;','&#8773;','&#8776;','&#8800;','&#8801;','&#8804;','&#8805;','&#8834;','&#8835;','&#8836;','&#8838;','&#8839;','&#8853;','&#8855;','&#8869;','&#8901;','&#8968;','&#8969;','&#8970;','&#8971;','&#9001;','&#9002;','&#9674;','&#9824;','&#9827;','&#9829;','&#9830;');
+		var arr2 = new Array('&nbsp;','&iexcl;','&cent;','&pound;','&curren;','&yen;','&brvbar;','&sect;','&uml;','&copy;','&ordf;','&laquo;','&not;','&shy;','&reg;','&macr;','&deg;','&plusmn;','&sup2;','&sup3;','&acute;','&micro;','&para;','&middot;','&cedil;','&sup1;','&ordm;','&raquo;','&frac14;','&frac12;','&frac34;','&iquest;','&agrave;','&aacute;','&acirc;','&atilde;','&Auml;','&aring;','&aelig;','&ccedil;','&egrave;','&eacute;','&ecirc;','&euml;','&igrave;','&iacute;','&icirc;','&iuml;','&eth;','&ntilde;','&ograve;','&oacute;','&ocirc;','&otilde;','&Ouml;','&times;','&oslash;','&ugrave;','&uacute;','&ucirc;','&Uuml;','&yacute;','&thorn;','&szlig;','&agrave;','&aacute;','&acirc;','&atilde;','&auml;','&aring;','&aelig;','&ccedil;','&egrave;','&eacute;','&ecirc;','&euml;','&igrave;','&iacute;','&icirc;','&iuml;','&eth;','&ntilde;','&ograve;','&oacute;','&ocirc;','&otilde;','&ouml;','&divide;','&Oslash;','&ugrave;','&uacute;','&ucirc;','&uuml;','&yacute;','&thorn;','&yuml;','&quot;','&amp;','&lt;','&gt;','&oelig;','&oelig;','&scaron;','&scaron;','&yuml;','&circ;','&tilde;','&ensp;','&emsp;','&thinsp;','&zwnj;','&zwj;','&lrm;','&rlm;','&ndash;','&mdash;','&lsquo;','&rsquo;','&sbquo;','&ldquo;','&rdquo;','&bdquo;','&dagger;','&dagger;','&permil;','&lsaquo;','&rsaquo;','&euro;','&fnof;','&alpha;','&beta;','&gamma;','&delta;','&epsilon;','&zeta;','&eta;','&theta;','&iota;','&kappa;','&lambda;','&mu;','&nu;','&xi;','&omicron;','&pi;','&rho;','&sigma;','&tau;','&upsilon;','&phi;','&chi;','&psi;','&omega;','&alpha;','&beta;','&gamma;','&delta;','&epsilon;','&zeta;','&eta;','&theta;','&iota;','&kappa;','&lambda;','&mu;','&nu;','&xi;','&omicron;','&pi;','&rho;','&sigmaf;','&sigma;','&tau;','&upsilon;','&phi;','&chi;','&psi;','&omega;','&thetasym;','&upsih;','&piv;','&bull;','&hellip;','&prime;','&prime;','&oline;','&frasl;','&weierp;','&image;','&real;','&trade;','&alefsym;','&larr;','&uarr;','&rarr;','&darr;','&harr;','&crarr;','&larr;','&uarr;','&rarr;','&darr;','&harr;','&forall;','&part;','&exist;','&empty;','&nabla;','&isin;','&notin;','&ni;','&prod;','&sum;','&minus;','&lowast;','&radic;','&prop;','&infin;','&ang;','&and;','&or;','&cap;','&cup;','&int;','&there4;','&sim;','&cong;','&asymp;','&ne;','&equiv;','&le;','&ge;','&sub;','&sup;','&nsub;','&sube;','&supe;','&oplus;','&otimes;','&perp;','&sdot;','&lceil;','&rceil;','&lfloor;','&rfloor;','&lang;','&rang;','&loz;','&spades;','&clubs;','&hearts;','&diams;');
+		return this.swapArrayVals(s,arr1,arr2);
+	},
+
+
+	
+	numEncode : function(s){
+		
+		if(this.isEmpty(s)) return "";
+
+		var e = "";
+		for (var i = 0; i < s.length; i++)
+		{
+			var c = s.charAt(i);
+			if (c < " " || c > "~")
+			{
+				c = "&#" + c.charCodeAt() + ";";
+			}
+			e += c;
+		}
+		return e;
+	},
+	
+	
+	htmlDecode : function(s){
+
+		var c,m,d = s;
+		
+		if(this.isEmpty(d)) return "";
+
+		
+		d = this.HTML2Numerical(d);
+		
+		
+		arr=d.match(/&#[0-9]{1,5};/g);
+		
+		
+		if(arr!=null){
+			for(var x=0;x<arr.length;x++){
+				m = arr[x];
+				c = m.substring(2,m.length-1); 
+				
+				if(c >= -32768 && c <= 65535){
+					
+					d = d.replace(m, String.fromCharCode(c));
+				}else{
+					d = d.replace(m, ""); 
+				}
+			}			
+		}
+
+		return d;
+	},		
+
+	
+	htmlEncode : function(s,dbl){
+			
+		if(this.isEmpty(s)) return "";
+
+		
+		dbl = dbl | false; 
+		
+		
+		if(dbl){
+			if(this.EncodeType=="numerical"){
+				s = s.replace(/&/g, "&#38;");
+			}else{
+				s = s.replace(/&/g, "&amp;");
+			}
+		}
+
+		
+		s = this.XSSEncode(s,false);
+		
+		if(this.EncodeType=="numerical" || !dbl){
+			
+			s = this.HTML2Numerical(s);
+		}
+
+		
+		s = this.numEncode(s);
+
+		
+		
+		
+		
+
+		
+		if(!dbl){
+			s = s.replace(/&#/g,"##AMPHASH##");
+		
+			if(this.EncodeType=="numerical"){
+				s = s.replace(/&/g, "&#38;");
+			}else{
+				s = s.replace(/&/g, "&amp;");
+			}
+
+			s = s.replace(/##AMPHASH##/g,"&#");
+		}
+		
+	        s = s.replace(/&#\d*([^\d;]|$$)/g, "$$1");
+
+		if(!dbl){
+			
+			s = this.correctEncoding(s);
+		}
+
+		
+		if(this.EncodeType=="entity"){
+			s = this.NumericalToHTML(s);
+		}
+
+		return s;					
+	},
+
+	
+	XSSEncode : function(s,en){
+		if(!this.isEmpty(s)){
+			en = en || true;
+			
+			if(en){
+				s = s.replace(/\'/g,"&#39;"); //no HTML equivalent as &apos is not cross browser supported
+				s = s.replace(/\"/g,"&quot;");
+				s = s.replace(/</g,"&lt;");
+				s = s.replace(/>/g,"&gt;");
+				s = s.replace(/\\/g,"&#92;"); // no HTML equivalent for backslash
+			}else{
+				s = s.replace(/\'/g,"&#39;"); //no HTML equivalent as &apos is not cross browser supported
+				s = s.replace(/\"/g,"&#34;");
+				s = s.replace(/</g,"&#60;");
+				s = s.replace(/>/g,"&#62;");
+				s = s.replace(/\\/g,"&#92;"); // no HTML equivalent for backslash
+			}
+			return s;
+		}else{
+			return "";
+		}
+	},
+
+	// returns true if a string contains html or numerical encoded entities
+	hasEncoded : function(s){
+		if(/&#[0-9]{1,5};/g.test(s)){
+			return true;
+		}else if(/&[A-Z]{2,6};/gi.test(s)){
+			return true;
+		}else{
+			return false;
+		}
+	},
+
+	// will remove any unicode characters
+	stripUnicode : function(s){
+		return s.replace(/[^\x20-\x7E]/g,"");
+		
+	},
+
+	// corrects any double encoded &amp; entities e.g &amp;amp;
+	correctEncoding : function(s){
+		return s.replace(/(&amp;)(amp;)+/,"$$1");
+	},
+
+
+	// Function to loop through an array swaping each item with the value from another array e.g swap HTML entities with Numericals
+	swapArrayVals : function(s,arr1,arr2){
+		if(this.isEmpty(s)) return "";
+		var re;
+		if(arr1 && arr2){
+			//ShowDebug("in swapArrayVals arr1.length = " + arr1.length + " arr2.length = " + arr2.length)
+			// array lengths must match
+			if(arr1.length == arr2.length){
+				for(var x=0,i=arr1.length;x<i;x++){
+					re = new RegExp(arr1[x], 'g');
+					s = s.replace(re,arr2[x]); //swap arr1 item with matching item from arr2	
+				}
+			}
+		}
+		return s;
+	},
+
+	inArray : function( item, arr ) {
+		for ( var i = 0, x = arr.length; i < x; i++ ){
+			if ( arr[i] === item ){
+				return i;
+			}
+		}
+		return -1;
+	}
+
+}
+
+//example of using the html encode object
+
+// set the type of encoding to numerical entities e.g & instead of &
+//Encoder.EncodeType = "numerical";
+
+// HTML encode text from an input element
+// This will prevent double encoding.
+// var encoded = Encoder.htmlEncode(document.getElementById('input'));
+
+// To encode but to allow double encoding which means any existing entities such as
+// &amp; will be converted to &amp;amp;
+// var dblEncoded = Encoder.htmlEncode(document.getElementById('input'),true);
+
+// Decode the now encoded text
+//var decoded = Encoder.htmlDecode(encoded);
+
+
+// if true, needs serverpush applet because browser unable to display
+// serverpush
+// var needsApplet =  (isIE && !isMac) || isNav6 || isOpera;
+var needsApplet =  isIE || isNav6 || isOpera;
+if (canSpush) needsApplet = false;
+
+// if true, needs iframes for getting output from
+// setting commands.  This is because Java wasn't working well
+
+
+
+
+
+
+
+
+
+var needsIframe = isMac;
+
+
+
+
+
+function propsAlert(arg, freq) {
+    var i;
+    var count=0;
+    if (!freq) freq = 20;
+    var str = "";
+    arg = getObject(arg);
+    for (i in arg) {
+        if (i=="innerHTML") str += i+ ":[deleted to save output]\n";
+	else str += i + ":" + arg[i] + "\n";
+	if (i == "style") {
+	    for (var j in arg.style) {
+		str += "style " + j + ":" + arg.style[j] + "\n";
+		count++;
+		if (count%freq == 0) {
+		    alert(str);
+		    str="";
+		}
+	    }
+	}
+	count++;
+	if (count%freq == 0) {
+	    alert(str);
+	    str="";
+	}
+    }
+    alert(str);
+}
+
+
+
+function arrayAlert(arg) {
+   if (!arg) {
+       alert(arg + " does not exist");
+       return;
+   }
+   if (!arg.length) {
+       alert(arg + " does not have a length");
+       return;
+   }
+   for (var ind=0; ind<arg.length; ind++) propsAlert(arg[ind]);
+}
+
+
+function select(field) {
+    field.focus();
+    field.select();
+}
+
+
+function numbform(value, place) {
+    return Math.round(value*Math.pow(10,place))/(Math.pow(10,place));
+}
+
+
+function isANatural(field) {
+    if (isNaN(field)) return false;
+    if (field<0) return false;
+    if (parseInt(field) == field) return true;
+    return false;
+}
+
+
+function isATime2(field) { 
+    if (field.type != "text") return false;
+    var exp = new RegExp("(\\d\\d):(\\d\\d)$$");
+    var arr = field.value.match(exp);
+    if (arr == null) {
+	exp = new RegExp("(\\d):(\\d\\d)$$");
+	arr = field.value.match(exp);
+	if (arr) { 
+	    field.value = "0" + arr[1] + ":" + arr[2];
+	}
+	else return false; 
+    }
+    if ((arr[1]<0) || (arr[2]<0) || (arr[1]>24) || (arr[2]>60)) return false;
+    return true;
+}
+
+
+
+function isAnIPAddress(field) {
+    if (field.type != "text") return false;
+    if (field.value.length == 0) return true; 
+    
+    var exp = new RegExp("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)$$");
+    var arr = field.value.match(exp);
+    if (arr == null) return false; 
+    if (arr[1] > 255) return false; 
+    if (arr[2] > 255) return false; 
+    if (arr[3] > 255) return false; 
+    if (arr[4] > 255) return false; 
+    return true;
+}
+
+
+function isAPassword(field) {
+    if (field == null) return false;
+    if (field.type != "text" && field.type!="password") return false;
+    var val = field.value;
+    if (val == null) return false;
+    if (val.length == 0) return true; 
+    if (val.length > 32) return false;
+    var exp = /[^\x21-\x7E]/;  
+    if (val.match(exp)) return false;
+    return true;
+}
+
+
+function getObject(obj) {
+    var theObj = null;
+    if (typeof obj=="object") return obj;
+    if (typeof obj=="string") {
+	var str = (document.all) ? "document.all." + obj:"document." + obj;
+	if (eval(str)) theObj = eval(str);
+    }
+    if (isW3C && !theObj) return document.getElementById(obj);
+    return theObj;
+}
+
+function de(elem) 
+{
+     return document.getElementById(elem);
+}
+
+
+function getImObj(obj) {
+    var theObj = eval("document."+obj);
+    if (isW3C && !theObj) theObj = document.getElementById(obj);
+    if (!theObj) return null;
+    return theObj;
+}
+
+
+function hide(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.visibility) theObj.visibility = "hidden"; 
+    else theObj.style.visibility="hidden"; 
+}
+
+
+function show(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.visibility) theObj.visibility = "visible"; 
+    else theObj.style.visibility="visible"; 
+}
+
+function theSendState() {
+    return de("sendState");
+}
+
+
+function showEmptySendState() {
+    if (theSendState()) theSendState().innerHTML = "&nbsp;";
+}
+
+
+function showSending() {
+    if (theSendState()) theSendState().innerHTML = "SENDING";
+}
+
+
+
+
+function showWaiting() {
+    if (!theSendState()) return;
+    if (theSendState().innerHTML == "SENDING") {
+	theSendState().innerHTML = "WAITING";
+    }
+}
+
+
+function showCompleted() {
+    status = "completed sending command to camera";
+    if (theSendState()) theSendState().innerHTML = "COMPLETED";
+    setTimeout("scheduleEmptySendState()", 1000);
+}
+
+
+
+function scheduleEmptySendState() {
+    if (!theSendState()) return;
+    if (!(theSendState().innerHTML == "SENDING")) {
+	showEmptySendState();
+	status = "";
+    } else setTimeout("scheduleEmptySendState()",100);
+}
+
+
+
+function transferCompleted() {
+    if (!theSendState()) return true;
+    if (theSendState().innerHTML == "SENDING") return false;
+    if (theSendState().innerHTML == "WAITING") return false;
+    return true;
+}
+
+
+function getObjectLeft(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return 0;
+    
+    if (theObj.style && theObj.style.pixelLeft != null) 
+	return theObj.style.pixelLeft+ offsetLeft; 
+
+    var rv = theObj.offsetLeft; 
+    if (rv) return rv - 0 + offsetLeft;
+    return theObj.x + offsetLeft; 
+}
+
+
+function getObjectTop(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+
+    if (theObj.style && theObj.style.pixelTop != null) 
+	return theObj.style.pixelTop + offsetTop; 
+    var rv = theObj.offsetTop; 
+    if (rv) return  rv - 0 + offsetTop;
+    return theObj.y; 
+}
+
+
+function getObjectVis(obj) {
+    var theObj = getObject(obj);
+    if (!theObj) return;
+    if (theObj.style) return theObj.style.visibility;
+    else return theObj.visibility; 
+}
+
+function isHiding(obj) {
+    var vis = getObjectVis(obj);
+    if (vis == "hide" || vis =="hidden" || vis == "") return true;
+    return false;
+}
+
+
+function getClickX(evt) {
+    if (evt.pageX) return evt.pageX + offsetLeft; 
+    if (isMacIE) {
+	return window.event.offsetX + offsetLeft + document.body.scrollLeft;
+    }
+    return window.event.offsetX + offsetLeft;
+}
+
+
+function getClickY(evt) {
+    if (evt.pageY) return evt.pageY + offsetTop; 
+    if (isMacIE)
+	return window.event.offsetY + offsetTop + document.body.scrollTop;
+    return window.event.offsetY + offsetTop;
+}
+
+
+var webport = "$O(7.1,N)";
+var https_port = "$O(3.12.2,N)";
+var hostname = window.location.hostname;
+function loadIndexPage() {
+    var loc;
+
+    if (document.location.protocol == 'http:') {
+	loc = "http://" + hostname;
+	if (webport != "80") loc += ":" + webport;
+    }
+    else {
+	loc = "https://" + hostname;
+	if (https_port != "443") loc += ":" + https_port;
+    }
+    loc += "/"; 
+    window.location.href = loc;
+}
+
+
+function logout() {
+    var expires = new Date(); 
+
+
+    
+    
+
+    
+    SetCookie("SrvrCreds", "00000000000000000000000000000000", expires, "/");
+    loadIndexPage();
+    return false;
+}
+
+
+function reboot() {
+    setEcam2("OidCB2.11","ON");
+    
+    setTimeout('loadIndexPage()',60000);
+    alert("$RSTR(alertreboot)");
+    return false;
+}
+
+
+function logoutLater() {
+   status = "waiting for commands to complete before logging out";
+   if (transferCompleted()) {
+        status = "";
+	logout();
+   }
+   else setTimeout("logoutLater();", 100);
+}
+
+
+function reloadLater() {
+   status = "waiting for commands to complete before reloading page";
+   if (transferCompleted()) {
+       
+       
+       var oldhref = window.location.href;
+       var start = oldhref.indexOf("?dummy");
+       var newhref;
+       if (start>=0) {
+	   var newver = oldhref.substring(start+7)-0+1;
+	   newhref = oldhref.substring(0,start)+"?dummy=" + newver;
+       } else {
+	   newhref = oldhref+"?dummy=0";
+       }
+       if (document.images) {
+	   
+	   
+	   window.location.replace(newhref);
+       } else window.location.href = newhref;
+       status = "";
+   }
+   else setTimeout("reloadLater();", 100);
+}
+
+
+var loadLaterLocation = ""; 
+function loadLater(loc) {
+   status = "waiting for commands to complete before reloading page";
+   if (transferCompleted()) {
+       if (document.images) {
+	   
+	   
+	   window.location.replace(loc);
+       } else window.location.href = loc;
+       status = "";
+   }
+   else {
+       if (!loadLaterLocation) loadLaterLocation = loc;
+       setTimeout("loadLater(loadLaterLocation);", 100);
+   }
+}
+
+function checkTransfer() {
+    if (! transferCompleted()) {
+        window.open("incomplt.html","incomplete",
+                    "height=400,width=600,scrollbars");
+    }
+    return false;
+}
+
+
+function factory(setting, value, phrase) {
+    var msg =
+	"This will set all " + phrase + 
+	" settings to factory default values.\r\nDo you want to continue?";
+    if (confirm(msg)) {
+	setEcam2(setting, value);
+	reloadLater();
+    }
+    return false;
+}
+
+var helpwin = null;
+
+
+function helpMe(section) {
+    if (!helpwin || helpwin.closed) { 
+	helpwin = window.open("help."+'$O(7.8,R)'+".html#" + section, "helpwin",
+			      "height=600,width=600,scrollbars");
+    } else {
+	helpwin.location.hash = section;
+	helpwin.focus();
+    }
+    return false;
+}
+
+
+var PageTitle = "Missing Page Title";
+var PageHelp = "Missing Page Help";
+
+
+function helpMeAuto(section) {
+    newwindow2=window.open('','name','height=600,width=600,scrollbars,resizable');
+    var doc = newwindow2.document;
+    doc.open();
+    doc.write('<html><head><title>$SP $SN: Help</title>');
+    doc.write('<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">');
+    doc.write('<style type="text/css">');
+    doc.write('td {font-family: Arial, Helvetica, sans-serif;}');
+    doc.write('b {font-family: Arial, Helvetica, sans-serif;}');
+    doc.write('</style>');
+    doc.write('</head>');
+    doc.write('<body bgcolor="#FFFFFF" text="#808080" link="#800000">');
+
+    doc.write('<table>');
+    doc.write('<tr> ');
+    doc.write('<td height=5 width="21">');
+    doc.write('<img src="1pixclear.gif" width=1 height=5 border=0 alt=""></A></td>');
+    doc.write('</tr>');
+    doc.write('<tr> ');
+    doc.write('<td colspan="3">');
+    doc.write('<b><font size="+3">'+PageTitle+'</font></b></td>');
+    doc.write('</tr>');
+    doc.write('<td height=5 width="21"></td>');
+    doc.write('</tr>');
+    doc.write('<tr> ');
+    doc.write('<td width=21></td> ');
+    doc.write('<td>');
+    doc.write(PageHelp);
+
+    AssembleHelp (doc);
+
+    doc.write('</td>');
+    doc.write('</tr>');
+    doc.write('</table>');
+
+    doc.write('</body></html>');
+    doc.close();
+     
+    if (!isFirefox)
+	newwindow2.location.hash = section;
+    newwindow2.focus();
+    return false;
+}
+
+
+function AssembleHelp (doc)
+{
+    
+    var arrElements = document.getElementsByTagName("td");
+
+    
+    for (var i=0; i<arrElements.length; i++) {
+	
+	var element=arrElements[i];
+	
+	if (element.attributes["helpsub"]) { 
+	    if (element.attributes["helpanchor"]) {
+		doc.write('<a name="'+element.attributes["helpanchor"].value+'"></a>');
+	    }
+	    doc.write('<p><b><font size="+3">'+element.attributes["helpsub"].value+'</font></b><p>');
+	    if (element.attributes["myhelp"]) {
+		doc.write (element.attributes["myhelp"].value);
+	    }
+	}
+	else if (element.attributes["helpbold"]) {
+	    doc.write('<p><b>'+element.attributes["helpbold"].value+': </b>');
+	    if (element.attributes["myhelp"]) {
+		doc.write (element.attributes["myhelp"].value);
+	    }
+	}
+    }
+}
+
+
+
+
+
+
+
+function formatIsValid(field) {
+    return true;
+}
+
+
+function preSetEcam() {
+    return;
+}
+
+
+function postSetEcam(field) {
+    return;
+}
+
+
+function setEcam(field) {
+    if (! formatIsValid(field)) return false;
+    preSetEcam(field);
+    var fname = field.name;
+    var ftype = field.type;
+    var fval  = field.value;
+    if (ftype == "select-one") {
+	
+	fval = field.options[field.selectedIndex].value;
+	if (fval == null || fval.length == 0) {
+	    fval = field.options[field.selectedIndex].text;
+	}
+    }
+    else if (ftype == "text") { }
+    else if (ftype == "password") { } 
+    else if (ftype == "checkbox") fval = (field.checked)? "enabled":"disabled";
+
+    
+       
+    if (fval.match("&") || (ftype == "text")) fval = '"' + fval + '"';
+
+    setEcam2(fname, escape(fval));
+    postSetEcam(field);
+    return false;
+}
+
+var commandBufferSize = 40; 
+                            
+var commandBuffer = new Array();
+for (var i=0; i<commandBufferSize; i++) {
+    commandBuffer[i] = new Object();
+    commandBuffer[i].name = null;
+    commandBuffer[i].val = null;
+    commandBuffer[i].output = null;
+} 
+
+
+function iframeText() {
+    if (!window.commandIframe) return "";
+    if (!window.commandIframe.document) return "";
+    if (!window.commandIframe.document.body) return "";
+    if (!window.commandIframe.document.body.innerHTML) return "";
+    return window.commandIframe.document.body.innerHTML;
+}
+
+function getReplyFromIframe(ind) {
+    if (!window.commandIframe) return;
+    var newhref = window.commandIframe.location.href;
+    if (newhref.indexOf("cmd_done") > -1) {
+	commandBuffer[ind].output = iframeText();
+
+	
+	
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+    } else if (newhref.indexOf(commandBuffer[ind].name) > -1) {
+	commandBuffer[ind].output = iframeText();
+    } 
+
+    
+    
+    
+    
+    else if (newhref.indexOf(window.location.href) > -1) {
+	setTimeout("window.commandIframe.location.href='get.oid?2.27';",500);
+
+	
+	
+	commandBuffer[ind].output = 'netscape7 bug'; 
+    }
+    else setTimeout("getReplyFromIframe(" + ind + ")", 100);
+}
+
+
+
+function getOIDFromIframe(name) {
+    if (!window.commandIframe) return null;
+    if (window.commandIframe.location.href) {
+	if (window.commandIframe.location.href.indexOf("get.oid?" + name) > -1)
+	    return iframeText();
+	
+	
+	if (window.commandIframe.location.href.indexOf(window.location.href) > -1)
+	    return null;
+    }
+
+    setTimeout("getOIDFromIframe('" + name + "')",100);
+}
+
+
+function sendCommand(ind) {
+    var name = commandBuffer[ind].name;
+    var val  = commandBuffer[ind].val;
+    commandBuffer[ind].output = null;
+    if (needsIframe) {
+	
+	if (!window.commandIframe) return;
+	var name = commandBuffer[ind].name;
+	var val = commandBuffer[ind].val;
+	var href = "set.oid?" + name + "=" + val;
+	window.status = "setting " + href;
+	
+	window.commandIframe.location.href = href;
+	
+	
+	getReplyFromIframe(ind);  
+    } 
+    else { 
+	
+	
+	AjaxSetOid (name, val, ind);
+    }
+    getCommandOutput(ind);
+}
+
+
+
+function getCommandOutput(ind) {
+    var output = commandBuffer[ind].output;
+    if (output != null) { 
+		
+	var start = output.indexOf("%");
+	if (start == -1) start = output.indexOf("Error");
+	if (start != -1) {
+	    var stop = output.toLowerCase().indexOf("</xmp>");
+	    var msg = output.substring(start, stop);
+	    if (msg.indexOf("%Info") != -1) {
+		
+		
+		window.status = msg;
+	    } 
+	    else alert(msg);
+	}
+	showCompleted();
+	commandBuffer[ind].name = null; 
+    } else if (needsIframe) 
+	setTimeout("getCommandOutput(" + ind + ")", 100);
+}
+
+
+function getOIDVal(oidnum) {
+    var output;	
+    if (needsIframe) {
+	if (!window.commandIframe) return null;
+	window.commandIframe.location.href = "get.oid?" + oidnum;
+	output = getOIDFromIframe(oidnum);
+
+	
+	
+	output = null;
+    }
+    else {
+	
+	
+	output = AjaxGetOidValSync (oidnum);
+    }
+    if (output == null) return "";
+
+    
+    var loutput = output.toLowerCase();	
+    var start = loutput.indexOf("<xmp>");
+    if (start == -1) return "";
+    var stop = loutput.indexOf("</xmp>");
+    return msg = output.substring(start+5, stop);
+}
+
+
+
+
+function setEcam2(name, val) { 
+    
+    if (theSendState()) {
+	showSending();
+	status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+      
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    
+    
+    
+    setTimeout("sendCommand(" + ind + ");",1);  
+    return false;
+}
+
+
+function submit(n0,v0) {
+    if (arguments.length<=2) return setEcam2(n0,v0); 
+    var val=v0;
+    for (var n=2;n<arguments.length; n+=2) {
+	val +=  "&" + arguments[n] + "=" + arguments[n+1];
+    }
+    setEcam2(n0,val);
+}
+
+function enableJavaAlert() {
+    if(!isIE) { 
+	
+	if (!canSpush && !navigator.javaEnabled()) {
+	    alert("You must enable java for this page to work correctly.");
+	}
+    }
+}
+
+function spushImgString(args) {
+    return '"now.jpg?snap=spush' + args + '"';
+}
+
+function preImg(args) {
+    return "now.jpg?snap=pre" + args;
+}
+
+function preImgString(args) {
+    return '"now.jpg?snap=pre' + args + '"';
+}
+
+
+
+
+
+
+var AjaxAsyncRequest = false;
+
+
+var AjaxSyncRequest = false;
+
+function AjaxInitAsync ()
+{
+    var rv = true;
+    try {
+	AjaxAsyncRequest = new XMLHttpRequest();
+    } catch (trymicrosoft) {
+        try {
+	    AjaxAsyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (othermicrosoft) {
+	    try {
+		AjaxAsyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxAsyncRequest = false;
+		rv = false;
+	    }
+        }
+    }
+    return rv;
+}
+
+function AjaxInitSync ()
+{
+    var rv = true;
+    try {
+	AjaxSyncRequest = new XMLHttpRequest();
+    } catch (trymicrosoft) {
+        try {
+	    AjaxSyncRequest = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (othermicrosoft) {
+	    try {
+		AjaxSyncRequest = new ActiveXObject("Microsoft.XMLHTTP");
+	    } catch (failed) {
+		AjaxSyncRequest = false;
+		rv = false;
+	    }
+        }
+    }
+    return rv;
+}
+
+ 
+function AjaxParseResponse () 
+{
+    var result = null;
+    var str = AjaxAsyncRequest.responseText;
+
+    
+    var start = str.indexOf ("<xmp>");
+    var stop  = str.indexOf ("</xmp>");
+    
+    if (start > 0 && (stop > start)) {
+	result = str.substring (start+5, stop);
+    }
+    return result;
+}
+
+var AjaxErrs = new Array();
+AjaxErrs[12001] = "out of handles";
+AjaxErrs[12002] = "internet timeout";
+AjaxErrs[12003] = "extended error";
+AjaxErrs[12004] = "internal error";
+AjaxErrs[12005] = "invalid url";
+AjaxErrs[12006] = "unrecognized scheme";
+AjaxErrs[12007] = "name not resolved";
+AjaxErrs[12012] = "internet shutdown";
+AjaxErrs[12016] = "invalid operation";
+AjaxErrs[12017] = "operation canceled";
+AjaxErrs[12018] = "incorrect handle type";
+AjaxErrs[12019] = "incorrect handle state";
+AjaxErrs[12020] = "no proxy request";
+AjaxErrs[12021] = "registry value not found";
+AjaxErrs[12022] = "bad registry param";
+AjaxErrs[12023] = "no direct access available";
+AjaxErrs[12024] = "no context supplied";
+AjaxErrs[12025] = "no callback";
+AjaxErrs[12026] = "request pending";
+AjaxErrs[12027] = "incorrect format";
+AjaxErrs[12028] = "item not found";
+AjaxErrs[12029] = "cannot connect";
+AjaxErrs[12030] = "connection aborted";
+AjaxErrs[12031] = "connection reset";
+AjaxErrs[12032] = "force retry";
+AjaxErrs[12033] = "invalid proxy";
+AjaxErrs[12036] = "internet handle exists";
+AjaxErrs[12150] = "no http headers";
+AjaxErrs[12151] = "no returned headers";
+AjaxErrs[12152] = "http invalid server response";
+AjaxErrs[12153] = "http invalid header";
+AjaxErrs[12154] = "http invalid query";
+AjaxErrs[12155] = "http header exists";
+AjaxErrs[12156] = "redirect failed";
+
+
+function AjaxCheckReady () 
+{
+    var code;
+    var text;
+
+    
+    if (AjaxAsyncRequest.readyState == 4) {
+	
+	if (AjaxAsyncRequest.status == 200) {
+	    var result;
+	    result = AjaxParseResponse ();
+	    if (result) {
+		code = 0; text = result;
+	    }
+	    else {
+		code = 1; text = "Unable to parse response";
+	    }
+	}
+	else if (AjaxAsyncRequest.status == 404) {
+	    code = 2; text = "Request URL does not exist";
+	}
+	else {
+	    if (AjaxAsyncRequest.status == 12029) {
+		code = 4; text = "Request timeout";
+	    }
+	    else {
+		code = 5; 
+		text = "XML Error: status code is " + AjaxAsyncRequest.status;
+		if (AjaxErrs[AjaxAsyncRequest.status] != undefined)
+		    text += ": " + AjaxErrs[AjaxAsyncRequest.status]; 
+	    }
+	}
+	
+	AjaxDone (code, AjaxAsyncRequest.status, text);
+    }
+}
+
+
+
+function AjaxGetOid (oid) 
+{
+    if (!AjaxAsyncRequest) {
+	if (AjaxInitAsync () == false) return false;
+    }
+    var url = "get.oid?" + oid;
+    AjaxAsyncRequest.open ("GET", url, true);
+    AjaxAsyncRequest.onreadystatechange = AjaxCheckReady;
+    
+    AjaxAsyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxAsyncRequest.send(null);
+    return true;
+}
+
+
+function AjaxDone (result_code, http_status, result_text) {}
+
+
+function AjaxGetOidValSync (oid) 
+{
+    if (!AjaxSyncRequest) {
+	if (AjaxInitSync () == false) return false;
+    }
+
+    var url = "get.oid?" + oid;
+    AjaxSyncRequest.open ("GET", url, false);
+    
+    AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxSyncRequest.send(null);
+    if (AjaxSyncRequest.readyState == 4 &&
+	AjaxSyncRequest.status == 200) {
+	return AjaxSyncRequest.responseText;
+    }
+    return null;
+}
+
+
+function AjaxSetOid (oid, val, ind)
+{
+    if (!AjaxSyncRequest) {
+	if (AjaxInitSync () == false) return false;
+    }
+    var url = "set.oid?" + oid + "=" + val;
+    
+    AjaxSyncRequest.open ("GET", url, false);
+    
+    AjaxSyncRequest.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+    AjaxSyncRequest.send(null);
+    if (AjaxSyncRequest.readyState == 4) {
+	if (AjaxSyncRequest.status == 200) {
+	    commandBuffer[ind].output = AjaxSyncRequest.responseText;
+	}
+    }
+    return true;
+}
+
+
+
+
+function SetCookie(name, value) {
+    var argv = SetCookie.arguments;
+    var argc = SetCookie.arguments.length;
+    var expires = (argc > 2) ? argv[2] : null;
+    var path    = (argc > 3) ? argv[3] : null;
+    var domain  = (argc > 4) ? argv[4] : null;
+    var secure  = (argc > 5) ? argv[5] : false;
+    document.cookie = name + "=" + escape (value) +
+        ((expires == null) ? "" : ("; expires=" + expires.toGMTString())) +
+        ((path    == null) ? "" : ("; path=" + path)) +
+        ((domain  == null) ? "" : ("; domain=" + domain)) +
+        ((secure  == true) ? "; secure" : "");
+}
+
+function getCookie(Name) {
+    var search = Name + "=";
+    if (document.cookie.length > 0) { 
+        offset = document.cookie.indexOf(search);
+        if (offset != -1) { 
+            offset += search.length;
+            
+            end = document.cookie.indexOf(";", offset);
+            
+            if (end == -1)
+                end = document.cookie.length;
+            return unescape(document.cookie.substring(offset, end));
+        }
+    }
+    return null;
+}
+
+
+function deleteCookie (name) {
+    if (getCookie (name)) 
+	document.cookie = name + "=" +
+	    ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
+}
+	
+
+var UsingActiveX = -1;
+
+
+function UseActiveX () {
+    if (useFlash) return 1;
+    if (UsingActiveX >= 0) {
+	return UsingActiveX;
+    }
+    if (isIE && isWin) { 
+	var val = getCookie("newactivex");
+	if (val == null) { 
+	    var now = new Date();
+	    
+	    now.setTime(now.getTime() + 1000*60*60*24*365*1000);
+	    
+	    if (isIE
+		
+		){
+		SetCookie("newactivex","1",now);
+		UsingActiveX = 1;
+	    } else {
+		SetCookie("newactivex","0",now);
+		UsingActiveX = 0;
+	    }
+	} else {
+	    if (val) UsingActiveX = 1;
+	    else UsingActiveX = 0;
+	}
+    }
+    else UsingActiveX = 0;
+    return UsingActiveX;
+}
+
+
+function CreateApplet (DivID, app_string) {
+     var d = document.getElementById (DivID);
+     d.innerHTML = app_string;
+}
+
+
+
+function CreateActiveXControl (DivID, imAttr, logging, streamDptzParam,
+			       isIQeye6, isIQeye7, imageString, id, noport) 
+{	
+    
+    if (useFlash) {
+	CreateFlashControl(DivID, imAttr, logging, streamDptzParam,
+			   isIQeye6, isIQeye7, imageString, id);
+    }
+    else if (canSpush) {
+	
+	var now = new Date();
+	
+	var outString = '<img ' + imAttr + ' onmousedown="return false;" src="';
+	
+	if (isIQeye6 && !isIQeye7 && !isMole)
+	    outString += 'now.jpg?snap=spush?dummy='+now.getTime()+'">';
+	else
+	    outString += imageString + '?dummy='+now.getTime()+'">';
+	var d = document.getElementById(DivID);
+	if (d) 
+	    d.innerHTML = outString;
+    }
+    else if (IE64) {
+	var d = document.getElementById(DivID);
+	if (d) 
+	    d.innerHTML = "Streaming with 64-bit IE not supported.  Use 32-bit.";
+    }
+    else {
+	CreateActiveX(DivID, imAttr, logging, streamDptzParam,
+		      isIQeye6, isIQeye7, imageString, id, noport);
+    }
+}
+
+function CreateActiveX(DivID, imAttr, logging, streamDptzParam,
+			       isIQeye6, isIQeye7, imageString, id, noport) 
+{	
+	
+    
+    
+    var outString
+	= '<object id="'+id+'" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="'+location.protocol+'//'+location.host+'/iqweb.ocx#Version=1,0,7,1"'
+        + ' standby="ActiveX control is loading">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n';
+    if (!noport) {
+        outString += '<param name="Port" value="$O(7.1,R)">\n';
+    }
+    outString += logging
+	+ streamDptzParam;
+    outString += '<param name="URL" value="/' + imageString + '">\n';
+    outString += '<br><b>ActiveX Camera Control</b>'
+        + '<font color="#FF5555">'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
+        + '<br><a href=appletvid.html>Click here</a>'
+	+ ' to display with a Java Applet instead.'
+        + '</font></object>\n';
+    var d = document.getElementById(DivID);
+    
+    if (d)
+	d.innerHTML = outString; 
+}
+
+function Create264RecordControl (DivID, url, id, noport)
+{
+    var outString
+	= '<object id="'+id+'" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="'+location.protocol+'//'+location.host+'/iqweb.ocx#Version=1,0,7,1"'
+        + ' standby="ActiveX control is loading">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
+	+ '<param name="StreamDptz" value="0">\n' +
+	+ '<param name="Display" value="0">';
+    if (!noport) {
+        outString += '<param name="Port" value="$O(7.1,R)">\n';
+    }
+    outString += '<param name="URL" value="/' + url + '">\n';
+    outString += '<br><b>ActiveX Recording Control</b>'
+        + '<font color="#FF5555">'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
+        + '</font></object>\n';
+    var d = document.getElementById(DivID);
+    
+    if (d)
+	d.innerHTML = outString; 
+}
+
+function Destroy264RecordControl (DivID)
+{
+    return;
+
+    var d = document.getElementById(DivID);
+    
+    if (d)
+	d.innerHTML = ""; 
+}
+
+function CreateAudioControl (DivID, id, noport)
+{
+    var outString
+	= '<object id="'+id+'" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="'+location.protocol+'//'+location.host+'/iqweb.ocx#Version=1,0,7,1"'
+        + ' standby="ActiveX control is loading">\n'
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n'
+	+ '<param name="StreamDptz" value="0">\n' +
+	+ '<param name="Display" value="0">';
+    if (!noport) {
+        outString += '<param name="Port" value="$O(7.1,R)">\n';
+    }
+    outString += '<br><b>ActiveX Audio Control</b>'
+        + '<font color="#FF5555">'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
+        + '</font></object>\n';
+    var d = document.getElementById(DivID);
+    
+    if (d)
+	d.innerHTML = outString; 
+}
+
+function GetPlayerVersion()
+{
+	var UNDEF = "undefined";	
+	var	SHOCKWAVE_FLASH = "Shockwave Flash";
+	var	SHOCKWAVE_FLASH_AX = "ShockwaveFlash.ShockwaveFlash";
+	var FLASH_MIME_TYPE = "application/x-shockwave-flash";
+	var OBJECT = "object";
+	var playerVersion = [0,0,0];
+	var	win = window;
+	var	doc = document;
+	var	nav = navigator;
+	var	d = null;
+	if (typeof nav.plugins != UNDEF && 
+		(typeof nav.plugins[SHOCKWAVE_FLASH] == OBJECT || typeof nav.plugins[SHOCKWAVE_FLASH+" 2.0"] == OBJECT)) 
+	{
+		var swVer2 = navigator.plugins["Shockwave Flash 2.0"] ? " 2.0" : "";
+		
+		d = nav.plugins[SHOCKWAVE_FLASH + swVer2].description;
+		if (d && !(typeof nav.mimeTypes != UNDEF && 
+			nav.mimeTypes[FLASH_MIME_TYPE] && !nav.mimeTypes[FLASH_MIME_TYPE].enabledPlugin)) 
+		{ 
+			
+			d = d.replace(/^.*\s+(\S+\s+\S+$$)/, "$$1");
+			playerVersion[0] = parseInt(d.replace(/^(.*)\..*$$/, "$$1"), 10);
+			playerVersion[1] = parseInt(d.replace(/^.*\.(.*)\s.*$$/, "$$1"), 10);
+			playerVersion[2] = /r/.test(d) ? parseInt(d.replace(/^.*r(.*)$$/, "$$1"), 10) : 0;
+		}
+	}
+	else if (typeof win.ActiveXObject != UNDEF) 
+	{
+		var a = null, fp6Crash = false;
+		try 
+		{
+			a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".7");
+		}
+		catch(e) {
+			try { 
+				a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".6");
+				playerVersion = [6,0,21];
+				a.AllowScriptAccess = "always";	 
+			}
+			catch(e) {
+				if (playerVersion[0] == 6) {
+					fp6Crash = true;
+				}
+			}
+			if (!fp6Crash) {
+				try {
+					a = new ActiveXObject(SHOCKWAVE_FLASH_AX);
+				}
+				catch(e) {}
+			}
+		}
+		if (!fp6Crash && a) { 
+			try {
+				d = a.GetVariable("$$version");	
+				if (d) {
+					d = d.split(" ")[1].split(",");
+					playerVersion = [parseInt(d[0], 10), parseInt(d[1], 10), parseInt(d[2], 10)];
+				}
+			}
+			catch(e) {}
+		}
+	}
+	return playerVersion;
+}
+function hasPlayerVersion(reqMajorVer, reqMinorVer, reqRevision) 
+{
+	var pv = GetPlayerVersion();	
+	
+	return (pv[0] > reqMajorVer || (pv[0] == reqMajorVer && pv[1] > reqMinorVer) || 
+			(pv[0] == reqMajorVer && pv[1] == reqMinorVer && pv[2] >= reqRevision)) ? true : false;
+}
+function CreateFlashControl (DivID, imAttr, logging, streamDptzParam,
+			       isIQeye6, isIQeye7, imageString, id) 
+{	
+	var hasRequestedVersion = hasPlayerVersion(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+
+	
+	if (hasRequestedVersion) 
+	{  
+		
+		var attributes=imAttr.split(" ");
+		var i;
+		var startIdx;
+		var endIdx;
+		var myOffsetX = 0;
+		var myOffsetY = 0;
+		var displayAreaWidth;
+		var displayAreaHeight;
+		var myImgWidth;
+		var myImgHeight;
+		var locationAndSize;
+		var windowMode="window";
+		
+		for(i in attributes)
+		{
+			if(attributes[i].indexOf("width")>=0)
+			{
+				startIdx = attributes[i].indexOf("\"");
+				endIdx = attributes[i].lastIndexOf("\"");
+				displayAreaWidth= parseInt(attributes[i].substring(startIdx+1, endIdx));
+				myImgWidth = displayAreaWidth;
+			}
+			else if(attributes[i].indexOf("height")>=0)
+			{
+				startIdx = attributes[i].indexOf("\"");
+				endIdx = attributes[i].lastIndexOf("\"");
+				displayAreaHeight= parseInt(attributes[i].substring(startIdx+1, endIdx));		
+				myImgHeight = displayAreaHeight;	
+			}
+		}
+		
+		if(streamDptzParam != null)
+		{
+			if (streamDptzParam.indexOf("Windowless")>=0)
+			{
+				windowMode = "opaque";
+			}
+			if (streamDptzParam.indexOf("OffsetX")>=0)
+			{
+				var params = streamDptzParam.split("<");
+				var valueStr = "value=\"";
+				var valueStrLen = valueStr.length;
+				for(j in params)
+				{
+					if(params[j] != null)
+					{
+						if (params[j].indexOf("OffsetX")>=0)
+						{
+							startIdx = params[j].indexOf(valueStr)+valueStrLen;
+							endIdx = params[j].lastIndexOf("\"");							
+							myOffsetX = parseInt(params[j].substring(startIdx, endIdx));
+						}
+						else if (params[j].indexOf("OffsetY")>=0)
+						{
+							startIdx = params[j].indexOf(valueStr)+valueStrLen;
+							endIdx = params[j].lastIndexOf("\"");
+							myOffsetY = parseInt(params[j].substring(startIdx, endIdx));
+						}
+						else if (params[j].indexOf("DisplayWidth")>=0)
+						{
+							startIdx = params[j].indexOf(valueStr)+valueStrLen;
+							endIdx = params[j].lastIndexOf("\"");
+							myImgWidth = parseInt(+params[j].substring(startIdx, endIdx));
+						}
+						else if (params[j].indexOf("DisplayHeight")>=0)
+						{
+							startIdx = params[j].indexOf(valueStr)+valueStrLen;
+							endIdx = params[j].lastIndexOf("\"");
+							myImgHeight = parseInt(+params[j].substring(startIdx, endIdx));
+						}
+					}
+				}	
+			}		
+		}
+		
+		locationAndSize = "offsetX="+myOffsetX + "&"+ 
+						  "offsetY="+myOffsetY + "&" + 
+						  "imgWidth="+myImgWidth + "&" + 
+						  "imgHeight="+myImgHeight;
+		
+		window.id = document.forms[0].id;	  
+		
+    	
+		
+		var flashElementStr = AC_FL_RunContent(
+						"id", id,
+						"wmode", windowMode,
+						"src", "FlashLiveImagePlayer",
+						"width", displayAreaWidth,
+						"height", displayAreaHeight,
+						"align", "middle",
+						"quality", "high",
+						"bgcolor", "#869ca7",
+						"name", "FlashLiveImagePlayer",
+						"allowScriptAccess","always",
+						"type", "application/x-shockwave-flash",
+						"pluginspage", "http://www.adobe.com/go/getflashplayer",
+						"imgstr", imageString,
+						"locationandsize", locationAndSize);
+		
+		var d = document.getElementById(DivID);
+	    if (d)
+			d.innerHTML = flashElementStr;
+  	} 
+  	else 
+  	{  
+	    var alternateContent = 'This content requires the Adobe Flash Player. '
+	   	+ '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
+	    document.write(alternateContent);  
+  	}    
+}
+
+function CreateControl (DivID, imAttr, logging, streamDptzParam,
+			 isIQeye6, isIQeye7, imageString) 
+{
+    var doingHttps;
+
+    
+    if (self.location.protocol == "https:") doingHttps = true;
+    else doingHttps = false;
+
+    
+    CreateActiveXControl(DivID, imAttr, logging, streamDptzParam,
+			 isIQeye6, isIQeye7, imageString, "Iqeye1", 1);
+}
+
+
+function CreateCameoControl (DivID, imAttr, imageString, id, windowless)
+{
+	var param = 
+	'<param name="StreamDptz" value="0">\n'
+        + '<param name="InternalDptz" value="0">\n'
+        + '<param name="Display" value="0">\n'
+        + '<param name="Windowless" value="'+windowless+'">\n'
+        + '<parm name="Smoothing" value="1">\n';
+    CreateActiveXControl (DivID, imAttr, "", param, false, true, 
+			  imageString, id, 1);
+}
+
+var PrimaryH264Width  = '$O(1.17.8.1)';
+var PrimaryH264Height = '$O(1.17.8.2)';
+
+var SecondaryH264Width  = '$O(1.17.9.1)';
+var SecondaryH264Height = '$O(1.17.9.2)';
+
+
+function CreateQT264Control (DivID, id, res)
+{
+    var outstring;
+    
+    var width, height;
+
+    
+    if (res == "low" && SecondaryH264Width <= 1)
+	res = "hi";
+
+    if (res == "low") {
+	width  = SecondaryH264Width;
+	height = SecondaryH264Height;
+    }
+    else {
+	width  = PrimaryH264Width;
+	height = PrimaryH264Height;
+    }
+
+    if (width > 640) {
+	width /= 2;
+	height /= 2;
+    }
+
+    var url = "rtsp://"+location.host+"/rtsp/now.mp4";
+    if (res == "low") url += "?res=low";
+
+    outstring = '<object id="'+id+'" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" codebase="http://www.apple.com/qtactivex/qtplugin.cab" height="'+height+'" width="'+width+'">';
+
+    outstring += '<param name="qtsrc" value="'+url+'">';
+    outstring += '<param name="autoplay" value="true">';
+    outstring += '<param name="type" value="video/quicktime" height="'+height+'" width="'+width+'">';
+    outstring += '<param name="controller" value="false">';
+    outstring += '<param name="EnableJavaScript" value="true">';
+    outstring += '<param name="scale" value="aspect">';
+    outstring += '<param name="kioskmode" value="true">';
+    outstring += '<embed name="'+id+'embed" id="'+id+'embed" src="sample.mov" qtsrc="'+url+'" height="'+height+'" width="'+width+'" ';
+    outstring += 'autoplay="true" controller="false" kioskmode="true" scale="aspect" EnableJavaScript="true" type="video/quicktime" pluginspage="http://www.apple.com/quicktime/download/">';
+    outstring += '</object>';
+
+    
+
+    var d = document.getElementById(DivID);
+    if (d)
+	d.innerHTML = outstring; 
+}
+
+function CreateVLC264Control (DivID, id, res)
+{
+    var outstring;
+    
+    var width, height;
+
+    
+    if (res == "low" && SecondaryH264Width <= 1)
+	res = "hi";
+
+    if (res == "low") {
+	width  = SecondaryH264Width;
+	height = SecondaryH264Height;
+    }
+    else {
+	width  = PrimaryH264Width;
+	height = PrimaryH264Height;
+    }
+
+    if (width > 640) {
+	width /= 2;
+	height /= 2;
+    }
+
+    var url = "rtsp://"+location.hostname+"/rtsp/now.mp4";
+    if (res == "low") url += "?res=low";
+
+    outstring = '<object classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921" width="'+width+'" height="'+height+'" id="'+id+'" events="True">';
+
+    outstring += '<param name="ShowDisplay" value="True" ></param>';
+    outstring += '<param name="AutoLoop" value="no"></param>';
+    outstring += '<param name="AutoPlay" value="False"></param>';
+    outstring += '<embed type="application/x-vlc-plugin" name="'+id+'embed" id="'+id+'embed" autoplay="yes" loop="no" width="'+width+'" height="'+height+'"></embed>';
+    outstring += '</object>';
+
+    
+
+    var d = document.getElementById(DivID);
+    if (d)
+	d.innerHTML = outstring;
+
+    var vlc = document.getElementById(isIE ? id : id+'embed');
+    
+    var options = [':rtsp-tcp', ':rtsp-http'];
+    if (vlc && vlc.playlist) {
+	vlc.playlist.items.clear();
+	var itemId = vlc.playlist.add(url, "", options);
+	if ( itemId != -1 ) vlc.playlist.playItem (itemId);
+    }
+    vlc.style.width = width;
+    vlc.style.height = height;
+}
+
+
+function CreateSpushControl (DivID, imAttr, imageString, id)
+{
+    var out;
+    
+    out = '<a href=""><img src="'+imageString+'" name="'+id+'" '+imAttr+ '></a>';
+    
+    var d = document.getElementById(DivID);
+    if (d)
+	d.innerHTML = out; 
+     
+}
+
+
+function GetElementPosition (id)
+{
+    e = document.getElementById(id);
+
+    var left = 0;
+    var top  = 0;
+    
+    while (e.offsetParent){
+	left += e.offsetLeft;
+	top  += e.offsetTop;
+	e     = e.offsetParent;
+    }
+    
+    left += e.offsetLeft;
+    top  += e.offsetTop;
+
+    
+
+    return {x:left, y:top};
+}
+
+
+function MouseCoords (ev) 
+{
+    
+    if (ev.pageX || ev.pageY){
+	return {x:ev.pageX, y:ev.pageY};
+    }
+    
+    return {
+	x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
+	y:ev.clientY + document.body.scrollTop  - document.body.clientTop
+    };
+}
+
+
+function trimString (str) {
+  str = this != window? this : str;
+  
+  return str.replace(/^\s+/g, '').replace(/\s+$$/g, '');
+}
+
+String.prototype.trim = trimString;
+
+
+
+
+
+
+
+
+function AC_AddExtension(src, ext)
+{
+  if (src.indexOf('?') != -1)
+    return src.replace(/\?/, ext+'?'); 
+  else
+    return src + ext;
+}
+
+function AC_Generateobj(objAttrs, params, embedAttrs) 
+{ 
+    var str = '';
+    if (isIE && isWin && !isOpera)
+    {
+  		str += '<object ';
+  		for (var i in objAttrs)
+  			str += i + '="' + objAttrs[i] + '" ';
+  		str += '>';
+  		for (var i in params)
+  			str += '<param name="' + i + '" value="' + params[i] + '" /> ';
+  		str += '</object>';
+    } else {
+  		str += '<embed ';
+  		for (var i in embedAttrs)
+  			str += i + '="' + embedAttrs[i] + '" ';
+  		str += '> </embed>';
+    }
+
+    
+    return str;
+}
+
+function AC_FL_RunContent(){
+  var ret = 
+    AC_GetArgs
+    (  arguments, ".swf", "movie", "clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+     , "application/x-shockwave-flash"
+    );
+  var flashStr = AC_Generateobj(ret.objAttrs, ret.params, ret.embedAttrs);
+  return flashStr;
+}
+
+function AC_GetArgs(args, ext, srcParamName, classid, mimeType)
+{	
+  var ret = new Object();
+  var flashVarsWidth;
+  var flashVarsHeight;
+  var flashVarImgStr;
+  var flashVarLocationAndSize;
+  
+  ret.embedAttrs = new Object();
+  ret.params = new Object();
+  ret.objAttrs = new Object();
+  for (var i=0; i < args.length; i=i+2)
+  {
+    var currArg = args[i].toLowerCase();    
+
+    switch (currArg){	
+      case "classid":
+        break;
+      case "pluginspage":
+        ret.embedAttrs[args[i]] = args[i+1];
+        break;
+      case "src":
+      case "movie":	
+        args[i+1] = AC_AddExtension(args[i+1], ext);
+        ret.embedAttrs["src"] = args[i+1];
+        ret.params[srcParamName] = args[i+1];
+        break;
+      case "onafterupdate":
+      case "onbeforeupdate":
+      case "onblur":
+      case "oncellchange":
+      case "onclick":
+      case "ondblClick":
+      case "ondrag":
+      case "ondragend":
+      case "ondragenter":
+      case "ondragleave":
+      case "ondragover":
+      case "ondrop":
+      case "onfinish":
+      case "onfocus":
+      case "onhelp":
+      case "onmousedown":
+      case "onmouseup":
+      case "onmouseover":
+      case "onmousemove":
+      case "onmouseout":
+      case "onkeypress":
+      case "onkeydown":
+      case "onkeyup":
+      case "onload":
+      case "onlosecapture":
+      case "onpropertychange":
+      case "onreadystatechange":
+      case "onrowsdelete":
+      case "onrowenter":
+      case "onrowexit":
+      case "onrowsinserted":
+      case "onstart":
+      case "onscroll":
+      case "onbeforeeditfocus":
+      case "onactivate":
+      case "onbeforedeactivate":
+      case "ondeactivate":
+      case "type":
+      case "codebase":
+        ret.objAttrs[args[i]] = args[i+1];
+        break;
+      case "id":
+      case "align":
+      case "vspace": 
+      case "hspace":
+      case "class":
+      case "title":
+      case "accesskey":
+      case "name":
+      case "tabindex":
+        ret.embedAttrs[args[i]] = ret.objAttrs[args[i]] = args[i+1];
+        break;      
+      case "width":
+        ret.embedAttrs[args[i]] = ret.objAttrs[args[i]] = args[i+1];
+        flashVarsWidth = "width="+args[i+1];
+        break;
+      case "height":
+        ret.embedAttrs[args[i]] = ret.objAttrs[args[i]] = args[i+1];
+        flashVarsHeight = "height="+args[i+1];
+        break;
+      case "imgstr":
+      	flashVarImgStr = "imageString="+args[i+1];
+      	break;
+      case "locationandsize":
+      	flashVarLocationAndSize = args[i+1];
+      	break;
+      default:
+        ret.embedAttrs[args[i]] = ret.params[args[i]] = args[i+1];
+    }
+  }
+  ret.objAttrs["classid"] = classid;
+  if (mimeType) ret.embedAttrs["type"] = mimeType;
+  ret.params["FlashVars"]=flashVarsWidth+"&"+flashVarsHeight+"&"+flashVarImgStr+"&"+flashVarLocationAndSize;
+  ret.embedAttrs["FlashVars"]=flashVarsWidth+"&"+flashVarsHeight+"&"+flashVarImgStr+"&"+flashVarLocationAndSize;
+  return ret;
+}
+
+var HaveQT = false;
+var HaveVLC = false;
+
+
+
+var Doing264 = false; 
+var CanDo264 = false; 
+
+var UseQT = false; 
+
+function Check264 ()
+{
+    
+    if (HaveVLC) {
+	CanDo264 = true;
+	UseQT = false;
+    }
+
+    else if (isFalcon) {
+	if (!(HaveQT || HaveVLC)) {
+	    if (confirm ("You need the VLC player to view H.264 streams.  Download the player?")) {
+		self.location = "install_vlc.html";
+	    }
+	    CanDo264 = false;
+	}
+    }   
+}
+
+
+var numb = '0123456789';
+var lwr = 'abcdefghijklmnopqrstuvwxyz';
+var upr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function isValid(parm,val) {
+    if (parm == "") return true;
+    for (i=0; i<parm.length; i++) {
+	if (val.indexOf(parm.charAt(i),0) == -1) return false;
+    }
+    return true;
+}
+
+function isNumber(parm) {return isValid(parm,numb);}
+function isLower(parm) {return isValid(parm,lwr);}
+function isUpper(parm) {return isValid(parm,upr);}
+function isAlpha(parm) {return isValid(parm,lwr+upr);}
+function isAlphanum(parm) {return isValid(parm,lwr+upr+numb);} 
+
+

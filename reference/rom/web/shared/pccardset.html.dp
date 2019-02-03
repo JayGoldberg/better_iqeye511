@@ -1,0 +1,426 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: pccard window</title>
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+enableJavaAlert();
+
+var cardSupport =  "$O(3.7.7,R)"; 
+var cardActive = (cardSupport == "Active");
+
+
+
+
+
+
+
+
+function formatIsValid(field) {
+    var name = field.name;
+    var val = field.value;
+    
+    if (name == "OidTB3.7.5" || name == "OidTN3.7.5") { 
+	if (val.length >32) {
+	    alert("Please enter at most 32 alphanumeric characters.");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB3.7.20.2" || name == "OidTN3.7.20.2") { 
+	
+	
+	
+	var exp = new RegExp("^([0-9a-fA-F]{2}\-){4}[0-9a-fA-F]{2}$$");
+	if (val.match(exp)) return true;
+	exp = new RegExp("^([0-9a-fA-F]{2}\-){12}[0-9a-fA-F]{2}$$");
+	if (val.match(exp)) return true;
+	alert("You must enter 5 or 13 hex bytes\n"
+	      + "in the form XX-XX-...-XX, where each XX\n"
+	      + "represents a hex byte value");
+	return false;
+    }
+    if (name == "OidTB3.7.22" || name == "OidTN3.7.22") { 
+	var intval = parseInt(val);
+	if (intval == NaN || intval<0 || intval>3000) {
+	    alert ("Please enter an integer from 0 to 3000");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB3.7.23" || name == "OidTN3.7.23") { 
+	var intval = parseInt(val);
+	if (intval == NaN || intval<256 || intval>2346) {
+	    alert ("Please enter an integer from 256 to 2346");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB3.7.21.1" || name == "OidTN3.7.21.1"
+	|| name == "OidTB3.7.21.2" || name == "OidTN3.7.21.2") {
+	
+
+	
+	
+	if (val.match(/default/i)) {
+	    return true;
+	}
+	var exp = new RegExp("^(\\s*\\d+\\s*,)*\\s*\\d+\\s*$$");
+	if (val.match(exp)) return true;
+	alert("Enter \"default\" or a comma-separated list of integers");
+	return false;
+    }
+    if (name == "OidTB3.7.24" || name == "OidTN3.7.24") { 
+	var intval = parseInt(val);
+	if (val.match(/default/i)) {
+	    field.value = "default";
+	    return true;
+	}
+	if (intval == NaN || intval<256 || intval>2346) {
+	    alert ("Please enter an integer from 256 to 2346");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidSB3.7.4" || name == "OidSN3.7.4") { 
+	val = field.options[field.selectedIndex].text;
+	if (val == "Any") return true;
+	var region = currentRegion();
+	if (region == "fcc") {
+	    if (val <1 || val> 11) {
+		alert ("Valid channels in the fcc region are 1 through 11");
+		return false;
+	    }
+	}
+	if (region == "ic") {
+	    if (val <1 || val> 11) {
+		alert ("Valid channels in the ic region are 1 through 11");
+		return false;
+	    }
+	}
+	if (region == "etsi") {
+	    if (val <1 || val> 13) {
+		alert ("Valid channels in the etsi region are 1 through 13");
+		return false;
+	    }
+	}
+	if (region == "spain") {
+	    if (val <10 || val> 11) {
+		alert ("Valid channels in the spain region are 10 and 11");
+		return false;
+	    }
+	}
+	if (region == "france") {
+	    if (val <10 || val> 13) {
+		alert ("Valid channels in the france region are 10 through 13");
+		return false;
+	    }
+	}
+	if (region == "mkk") {
+	    if (val != "14") {
+		alert ("The only valid channel in the mkk region is 14");
+		
+		return false;
+	    }
+	}
+    }
+    return true;
+}
+
+function currentRegion() {
+    var elem = document.myform["OidSB3.7.19"];
+    if (!elem) return ""; 
+    return elem.options[elem.selectedIndex].text;
+}
+
+var warningGiven=false; 
+
+function preSetEcam(field) {
+    
+    
+    if (! cardActive) { 
+	if (!warningGiven) {
+	    alert("Your settings will take place after you reboot your\n"
+		  + "camera with a PC card inserted.\n\n"
+		  + "This warning will not reappear.");
+	    warningGiven=true;
+	}
+    } else {
+	if (!warningGiven) {
+	    alert("Your settings will take place after\n"
+		  + "you reboot your camera\n\n"
+		  + "This warning will not reappear.");
+	    warningGiven=true;
+	}
+    }
+    var result = field.name.match("Oid(.)B([\\d\\.]+)");
+    if (result != null) {
+	
+	
+	field.name = "Oid" + result[1] + "N" + result[2];
+    }
+}
+
+
+
+
+
+
+var stateArr = new Array($O(3.7.1,JL));
+var oldStateIndex = 0;
+
+function set80211State(field) {
+    if (field.selectedIndex == oldStateIndex) return; 
+    setEcam2("OidSN3.7.1", stateArr[field.selectedIndex]);
+    alert("You must reboot your camera in order\n"
+	  + "for this change to take effect.");
+    return false;
+}
+
+
+function write80211StateSelect() {
+    var curval = '$O(3.7.1)';
+    curval = curval.toLowerCase();
+    var outval = stateArr;
+    var outstring = 
+	"<select name='OidSB3.7.1' onChange='return set80211State(this);'>\n";
+    var selected=0;
+    for (var i=0; i<outval.length; i++) {
+	if (curval == outval[i]) {
+	    selected=i;
+	    break;
+	}
+    }
+    oldStateIndex=selected;
+    for (var i=0; i < outval.length; i++) {
+	if (i== selected) outstring  += "<option selected>"; 
+	else outstring  += "<option>"; 
+	outstring += outval[i] + "</option>\n";
+    }
+    outstring += '</select>\n';
+    document.write(outstring);
+}
+
+
+
+
+var channelArr = new Array("Any", "1","2","3","4","5","6","7",
+			   "8","9","10","11","12","13","14");
+
+
+function writeChannelSelect() {
+    var curval = '$O(3.7.4)';
+    var outval = channelArr;
+    var outstring = "<select name='OidSB3.7.4' onChange='setEcam(this)'>";
+    var selected=0;
+    for (var i=0; i<outval.length; i++) {
+	if (curval == outval[i]) {
+	    selected=i;
+	    break;
+	}
+    }
+    oldChannelIndex=selected;
+    for (var i=0; i < outval.length; i++) {
+	outstring += (i== selected) ? "<option selected>":"<option>"; 
+	outstring += outval[i] + "</option>";
+    }
+    outstring += '</select>';
+    document.write(outstring);
+}
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)"'
+    + ' onClick=\'setEcam2("OidCB3.7.2", "ON"); return false;\''
+    + ' onMouseOver=\'window.status="reset wireless card"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'reset 802.11</a></li>\n';
+
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript><font color="#FF0000">
+<b>You must enable Javascript for this page to work properly.</b></font>
+</noscript>
+
+<form name="myform" method="post" action=""> 
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("pccard");
+</script>
+          <!--
+            Use the text input fields and pull-down menus on this page to enter
+            the camera's 802.11 pc card settings. 802.11 is a standard for
+            wireless ethernet networking.  
+            In the United States, the default 802.11 settings will 
+            probably suffice.
+            In other countries, users must set Region
+            before 802.11 functionality will be available.
+            Note that ESSID is case-sensitive.
+          -->
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="right">
+    <table class="content" cellspacing=0 cellpadding=0  width=780>
+    <tr>
+      <!-- the image area -->
+      <td width=330 height=330 style="padding: 44px 18px 4px 38px;
+         background: url(gray.gif) no-repeat;" 
+         valign="top" align="left">
+
+       <script>
+          // this is div id=mainfeed, image is constrained narrower than 322
+          writeCroppedImage();
+          // old code
+	  // document.write
+	  // (spAppletDivs("now.jpg?snap=spush0.2" + dsstring, imAttr));
+       </script>&nbsp;</td>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 34px;">
+        <tr>
+          <td class="subtitleleft">
+             <img src=1pixclear.gif" width=8 height=1></td>
+          <td height=20 valign="top" class="subtitleleft">
+            <span id-sendState name=sendState>&nbsp;</span></td></tr>
+
+        <tr>
+          <td class="subtitleleft">&nbsp;</td>
+          <td class="subtitle">Wireless Network Setup
+              <script>
+               writeHelpIcon("pccard-setup");</script></td></tr>
+
+        <tr>
+            <td class="startsubleft">&nbsp;</td>
+            <td class="startsub">802.11
+             <script>
+                if (cardActive) document.write("(active) ");
+                else document.write("(inactive) ");
+                write80211StateSelect();</script></td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">region $O(3.7.19,JSB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">MAC address $O(3.7.3,JSB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">channel (current value $O(3.7.17,R))
+              <script>
+                writeChannelSelect();</script></td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">ESSID (current value $O(3.7.14,R)) $O(3.7.5,JTB)
+              </td></tr>
+          <tr>
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">network type $O(3.7.6,JSB)</td></tr>
+
+          <tr>
+             <td class="subtitleleft">
+               &nbsp;</td>
+             <td class="subtitle">Security
+                <script>
+                writeHelpIcon("pccard-security");</script></td></tr>
+          <tr><td class="startsubleft">&nbsp;</td>
+            <td class="startsub">WEP state $O(3.7.20.1,JSB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">WEP key (currently $O(3.7.20.2,R))
+              <input name="OidTB3.7.20.2" value="**********" size=14 
+                onChange="setEcam(this)"></td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">WEP index $O(3.7.20.3,JSB)</td></tr>
+          <tr>
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">WEP rx $O(3.7.20.4,JSB)</td></tr>
+          <tr>
+             <td class="subtitleleft">
+               &nbsp;</td>
+             <td class="subtitle">Antenna Settings
+                <script>
+                writeHelpIcon("pccard-antenna");</script></td></tr>
+          <tr>
+            <td class="startsubleft">&nbsp;</td>
+            <td class="startsub">receiving antennae $O(3.7.21.1,JSB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">transmitting antennae $O(3.7.21.2,JSB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">RTS threshold $O(3.7.22,JTB)</td></tr>
+          <tr>
+            <td class="left">&nbsp;</td>
+            <td class="input">fragment threshold $O(3.7.23,JTB)</td></tr>
+          <tr>
+            <td class="endsubleft">&nbsp;</td>
+            <td class="endsub">power level $O(3.7.24,JSB)</td></tr>
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="center">
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+          <tr>
+             <td class="subtitleleft">
+               <img src="1pixclear.gif" width=1 height=1></td>
+             <td class="subtitle">Wi-Fi Information
+                <script>
+                writeHelpIcon("pccard-status");</script></td></tr>
+          <tr>
+            <td class="startsubleftg">&nbsp;</td>
+            <td class="startsubg">current card $O(3.7.9,R)</td></tr>
+          <tr>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">card firmware revision $O(3.7.16,R)</td></tr>
+          <tr>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">status $O(3.7.10,R)</td></tr>
+          <tr>
+            <td class="leftg">&nbsp;</td>
+            <td class="inputg">errors $O(3.7.11,R)</td></tr>
+          <tr>
+            <td class="endsubleftg">&nbsp;</td>
+            <td class="endsubg">BSSID $O(3.7.13,R)</td></tr>
+        </table>
+      </td></tr> <!-- end bottom left content -->
+  </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+
+<script>
+  writeFooter('myDefaults', 'reboot', 'logout');</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

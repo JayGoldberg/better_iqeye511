@@ -1,0 +1,1521 @@
+<!-- Copyright (C) 2006 - 2011 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(titlerec)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- internal styles -->
+<style type="text/css">
+
+
+.staticstr {border-style: none; background-color: transparent}
+
+td.white {background-color: #fff; border-color: #fff; color: #fff}
+
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+enableJavaAlert();
+
+var PageTitle = "$RSTR(titlerec)";
+var PageHelp = "$RSTR(iqrec_help)";
+
+
+
+var SimpleMode = false;
+var SchedMode = false;
+var cropwidth = $O(1.2.6.2,R)-0;	
+var cropheight = $O(1.2.6.3,R)-0;
+var dsArray = new Array (1,2,4,8);
+var widthArray = new Array(cropwidth, cropwidth/2, cropwidth/4, cropwidth/8);
+var heightArray = new Array(cropheight, cropheight/2, 
+			    cropheight/4, cropheight/8);
+var ds = $O(1.2.2);
+var periodicDS = "$O(1.13.1.11.2)";
+var eventDS = "$O(1.13.1.11.1)"; 
+periodicDS = (periodicDS.toLowerCase()=="default") ? ds: periodicDS-0;
+eventDS =    (eventDS.toLowerCase()=="default")    ? ds: eventDS-0;
+
+var intervalsArray  = new Array("10","5","1","MAX", "0");
+var recordRateArray = new Array("1/10 secs","1/5 secs",
+				"1/sec","max","Disabled");
+var periodicInterval = "$O(1.13.6)"; 
+
+var eventIntervalsArray  = new Array("10","5","1","0.5","0");
+var eventRateArray = new Array("1/10 secs","1/5 secs",
+				 "1/sec", "2/sec", "max");
+var eventInterval = "$O(1.13.1.13.1)"; 
+var numPreTrig = $O(1.3.8.1)-0;   
+var numPostTrig = $O(1.3.7.1)-0;  
+var lastMsg = "";
+
+
+var myDefaultsHref;
+
+var internalFS;
+if (isIQeye7) internalFS = "$O(2.40.4.1.3)";
+else internalFS = "EMPTY";
+var internalEmpty;
+if (internalFS == "EMPTY") internalEmpty = true;
+else internalEmpty = false;
+
+var internalMounted = $O(2.40.4.1.1);
+var internalPath = "hdisk";
+var internalPathRE = "hdisk";
+var internalLimit = $O(2.40.4.1.2)* 0.90;
+
+internalLimit = internalLimit/1000;
+
+internalLimit = Math.round(internalLimit * 100)/100;
+
+var internalCapacity = $O(2.40.4.1.2);
+
+internalCapacity = internalCapacity/1000;
+
+internalCapacity = Math.round(internalCapacity * 100)/100;
+
+var internalFree = $O(2.40.4.1.4);
+
+internalFree = internalFree/1000;
+
+internalFree = Math.round(internalFree * 100)/100;
+
+var removableMounted = $O(2.40.4.2.1);
+var removablePath = "pccard";
+var removablePathRE = "pccard";
+var removableSize = $O(2.40.4.2.2) * 0.90;
+
+removableSize = removableSize/1000;
+
+removableSize = Math.round(removableSize * 100)/100;
+
+var recordingEnabled = "$O(1.13.11,R)";
+recordingEnabled = (recordingEnabled=="ENABLED") ? true:false;
+
+var myIP="$SI";
+var loopbackIP = "127.0.0.1";
+var recorderIP = "$O(8.1.1.trigger)";
+var recorderPath = "$O(1.13.4)";
+
+
+var recordingTo = "external"; 
+var recordToIndex = 2;
+var username = "$O(8.1.5.trigger)";
+
+var replay = '$O(1.15.1)';
+replay = replay.toLowerCase();
+if (replay == 'enabled') replay = true;
+else replay = false;
+
+getMyArgs ();
+
+function getMyArgs () {
+    var args = new Object();
+    var query = location.search.substring(1);
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+    for (var i=0; i<pairs.length; i++) {
+        var pos = pairs[i].indexOf('=');
+        if (pos==-1) continue;
+        var argname = pairs[i].substring(0,pos);
+        var value = pairs[i].substring(pos+1);
+        args[argname] = unescape(value);
+    }
+    if (args.advanced != null) {
+	if (args.advanced == 1) SimpleMode = false;
+	else SimpleMode = true;
+    }
+    if (args.sched != null) {
+	if (args.sched == 1) SchedMode = true;
+	else SchedMode = false;
+    }
+}
+
+function setupMyFooter() {
+    if (SchedMode) {
+	setupFooterSched ();
+    }
+    else {
+	setupFooterSet ();
+    }
+}
+
+function setupFooterSched () {
+    myDefaultsHref =
+	'<li><a href="javascript:void(0)" onClick="return loadSet();"'
+	+ ' onMouseOver="window.status=\'$RSTR(settings)\'; return true;" '
+	+ ' onMouseOut="window.status=\'\'">$RSTR(settings)</a></li>\n';
+}
+
+function setupFooterSet () {
+    var label = (recordingEnabled) ? 
+	"$RSTR(disrec)" : "$RSTR(enrec)";
+    
+    myDefaultsHref =
+	'<li><a href="javascript:void(0)" onClick="return sendEmailTest();"'
+	+ ' onMouseOver="window.status=\'$RSTR(teste)\'; return true;" '
+	+ ' onMouseOut="window.status=\'\'">$RSTR(teste)</a></li>\n';
+    myDefaultsHref += '<li><a href="javascript:void(0)" id="startStop" '
+	+ 'name="startStop"' 
+	+ ' onClick="return doStartStop();">' + label + '</a></li>';
+    
+
+    
+    if (isIQeye7 && !internalEmpty) {
+        
+	myDefaultsHref +=
+	    '<li style="margin-left: 80px;"><a href="javascript:void(0)" onClick="return doFormat();"'
+	    + ' onMouseOver="window.status=\'$RSTR(format)\'; return true;" '
+	    + ' onMouseOut="window.status=\'\'">$RSTR(format)</a></li>\n';
+    }
+}
+
+function loadSched() {
+    self.location = location.pathname + "?sched=1";
+    return false;
+}
+
+function loadSet() {
+    self.location = location.pathname + "?sched=0";
+    return false;
+}
+
+
+function loadAdvanced() {
+    self.location = location.pathname + "?advanced=1";
+    return false;
+}
+
+
+function loadSimple() {
+    submit ("OidTB1.3.7.1", "10",
+	    "OidTB1.3.8.1", "10",
+	    "OidTB1.13.1.11.1", "1",
+	    "OidTB1.13.1.13.1", "0");
+    self.location = location.pathname + "?advanced=0";
+    return false;
+}
+
+function doFormat() {
+    if (replay) {
+	alert ("$RSTR(warnfmtrply)");
+	return false;
+    }
+
+    if (recordingEnabled) {
+	alert ("$RSTR(warnfmtrec)");
+	return false;
+    }
+    var msg = "$RSTR(warnfmter)";
+    if (confirm(msg)) {
+	setEcam2 ("OidTR19.1", "HDISK");
+	setTimeout ("reloadLater();", 3000);
+    }
+    return false;
+}
+
+function recordingAlert() {
+    alert("$RSTR(warnrec)");
+    
+}
+
+function recordingToAlert() {
+    alert("$RSTR(warnrec)");
+    document.myform.recordTo.focus();
+}
+
+
+
+function setRecordTo(field) {
+
+    if (recordingEnabled) {
+	recordingAlert();
+	field.selectedIndex = recordToIndex;
+	return false;
+    }
+
+    var val = field.value;
+
+    if (val == "internal" &&
+	replay) {
+	alert ("Internal recording is not allowed while replay controls are enabled.");
+	field.selectedIndex = recordToIndex;
+	return;
+    }
+
+    recordToIndex = field.selectedIndex;
+    recordingTo = val;
+    if (val=="external") {
+	document.myform.iprecorder.value = "0.0.0.0";
+	submit("OidTB8.1.1.trigger", escape(document.myform.iprecorder.value),
+	       "OidTB1.13.4", "iqlib");
+	checkRecordTo();
+	return;
+    }
+    recorderIP = myIP;
+    username = "root";
+    document.myform.iprecorder.value = loopbackIP;
+    document.myform.username.value = username;
+    document.myform.password.value = "";
+    if (val=="internal") {
+	
+	document.myform["OidTB1.13.8"].value = internalLimit;
+	submit("OidTB8.1.1.trigger", escape(loopbackIP),
+	       "OidTB8.1.5.trigger", username,
+	       "OidTB1.13.4", escape(internalPath),
+  	       "OidTB1.13.8", internalLimit);
+    }
+    else if (val=="removable") {
+	
+	document.myform["OidTB1.13.8"].value = removableSize;
+	submit("OidTB8.1.1.trigger", escape(myIP),
+	       "OidTB8.1.5.trigger", username,
+	       "OidTB1.13.4", escape(removablePath),
+  	       "OidTB1.13.8", removableSize);
+    }
+    else {
+	document.myform.password.focus();
+    }
+    checkRecordTo ();
+    return false;
+}
+
+function checkRecordTo ()
+{
+    if (recordingEnabled) {
+	document.myform.recordTo.disabled = true;
+    }
+    else {
+	document.myform.recordTo.disabled = false;
+    }
+    if (recordingEnabled ||
+	recordToIndex != 0 &&
+	internalMounted) {
+	
+	document.myform.iprecorder.disabled = true;
+	document.myform.username.disabled = true;
+	document.myform.password.disabled = true;
+    }
+    else {
+	document.myform.iprecorder.disabled = false;
+	document.myform.username.disabled = false;
+	document.myform.password.disabled = false;
+    }
+}
+
+function writeRecordToSelect() {
+    
+    var out = '<select name="recordTo" id="recordTo" onChange="return setRecordTo(this);">';
+    var selected = "external";
+    if (myIP == recorderIP || recorderIP == "127.0.0.1") {
+	if (recorderPath.match(internalPathRE)) {
+	    selected = "internal";
+	    recordingTo = "external";
+	}
+	if (recorderPath.match(removablePathRE)) {
+	    selected="removable";
+	    recordingTo = "removable";
+	}
+    }
+    out += (selected=="external") ? "<option selected ":"<option ";
+    out += 'value="external">$RSTR(Ext)</option>\n';
+    if (internalMounted) {
+	out += (selected=="internal") ? "<option selected ":"<option ";
+	out += 'value="internal">$RSTR(Camint)</option>\n';
+    }
+    if (removableMounted) {
+	out += (selected=="removable") ? "<option selected ":"<option ";
+	out += 'value="removable">$RSTR(Camrem)</option>\n';
+    }
+    out += '</select>';
+
+    if (selected=="internal") recordToIndex = 1;
+    if (selected=="removable") recordToIndex = 2;
+    if (selected=="external") recordToIndex = 0;
+
+    document.write(out);
+}
+
+function writeCardInfo() {
+     if (!isIQeye7) return;
+     var fs;
+
+     if (!internalEmpty) {
+	 fs = internalFS;
+	 if (fs == "OTHER") fs = "$RSTR(unknown)";
+     }
+     else
+	 fs = '$RSTR(nocard)';
+
+     var out 
+	 = '<tr>'
+	 + '<td class="subtitleleft">&nbsp'
+	 + '<img src="1pixclear.gif" width=8 height=1></td>'
+	 + '<td class="subtitle">$RSTR(IntCard)'
+	 + '<tr>'
+	 + '<td class="startsubleftg">&nbsp;</td>'
+	 + '<td class="startsubg">'
+	 + '$RSTR(Fsys): ' + fs;
+     if (!internalEmpty) {
+	 out += ', $RSTR(Free): <span id="intfree" name="intfree">'+internalFree+'</span>GB';
+     }
+     out += '</td></tr>'
+	 + '<tr> '
+	 + '<td class="endsubleftg">&nbsp;</td>'
+	 + '<td class="endsubg">';
+     if (internalMounted)
+	 out += '$RSTR(Capac): ' + internalCapacity + 'GB, $RSTR(SugMax): ' +
+internalLimit + 'GB';
+     out += '</td></tr>';
+
+     document.write(out);
+}
+
+
+function recorderFactory() {
+    factory("OidTB1.13.3","ON","Recorder"); 
+    return false;
+}
+
+function sendEmailTest() {
+    setEcam2("OidTR1.13.10","ON");
+    return false;
+}
+
+function setMinImages(field) {
+    var numImagesIndex = document.myform.minImages.selectedIndex;
+    var numImages = 
+	document.myform.minImages.options[numImagesIndex].text - 0;
+    var numPreImages = document.myform.preImages.selectedIndex;
+    if (numPreImages==0) numPreTrig = numImages; 
+    if (numPreImages==1) numPreTrig = Math.floor(numImages/2);
+    if (numPreImages==2) numPreTrig = 0;
+    numPostTrig = numImages - numPreTrig;
+    
+    submit("OidTB1.3.8.1", numPreTrig, "OidTB1.3.7.1", numPostTrig);
+    return false;
+}
+
+function writeMinImagesSelect() 
+{
+    var numImages = numPreTrig + numPostTrig;
+    if (SimpleMode) {
+	numImages = 20;
+	var out = '<input readonly=true class="staticstr" value="' + numImages + '">';
+	document.write (out);
+    }
+    else {
+	var rv = "<select id='minImages' onChange='return setMinImages(this);'>";
+	var vals = new Array("1","2","4","6","8","10",numImages);
+	var i, selected=vals.length-1;
+	
+	for (i=0; i<=vals.length; i++) {
+	    if (numImages <= vals[i]) {
+		selected=i;
+		break;
+	    }
+	}
+	if (selected != vals.length-1) vals.length--;
+	for (i=0; i<vals.length; i++) {
+	    rv += (i==selected) ? '<option selected>' : '<option>';
+	    rv += (vals[i] + "</option>");
+	}
+	rv += '</select>';
+	document.write(rv);
+    }
+}
+
+function setPreImages(field) {
+    var numImagesIndex = document.myform.minImages.selectedIndex;
+    var numImages = 
+	document.myform.minImages.options[numImagesIndex].text - 0;
+    var val = field.selectedIndex;
+    if (val==0) numPreTrig = numImages;
+    if (val==1) numPreTrig = Math.floor(numImages/2);
+    if (val==2) numPreTrig = 0;
+    numPostTrig = numImages - numPreTrig;
+    
+    submit("OidTB1.3.8.1", numPreTrig, "OidTB1.3.7.1", numPostTrig);
+    return false;
+}
+
+function writePreImagesSelect() {
+    if (SimpleMode) {
+	var out = '<input readonly=true  class="staticstr" value="$RSTR(HalfIm)">';
+	document.write (out);
+    }
+    else {
+	var rv = "<select id='preImages' onChange='return setPreImages(this);'>";
+	var i, selected=1; 
+	var numImages = numPreTrig + numPostTrig;
+	
+	if (numPreTrig==0) selected = 2;
+	if (numPreTrig==numImages) selected = 0;
+	
+	rv += (selected==0) ? '<option selected>' : '<option>';
+	rv += '$RSTR(AllIm)</option>';
+	rv += (selected==1) ? '<option selected>' : '<option>';
+	rv += '$RSTR(HalfIm)</option>';
+	rv += (selected==2) ? '<option selected>' : '<option>';
+	rv += '$RSTR(none)</option>';
+	
+	rv += '</select>';
+	document.write(rv);
+    }
+}
+
+function setEventResolution(field) {
+    var oldval = eventDS; 
+    var newval = dsArray[field.selectedIndex];
+
+    if (oldval != newval) {
+	eventDS = newval;
+	setEcam2("OidTB1.13.1.11.1", newval); 
+
+    }
+    return false;
+}
+
+function writeEventResolutionSelect() {
+    var downsample = eventDS;
+    var outstring = 
+	"<select id='evResSelect' onChange='setEventResolution(this);'>";
+    var i, selected=0;
+    var staticString;
+
+    if (SimpleMode) {
+	downsample = 1;
+	staticString = '<input readonly=true  class="staticstr" value="';
+    }
+
+    for (i=0; i<dsArray.length; i++) {
+	if (downsample == dsArray[i]) {
+	    selected=i;
+	    break;
+	}
+    }
+    for (i=0; i < dsArray.length; i++) {
+	outstring += (i==selected) ? '<option selected>' : '<option>';
+	outstring += "1/" + dsArray[i];
+	if (dsArray[i]<10) outstring += " ";
+	outstring += " ";
+	outstring += widthArray[i] + "x" + heightArray[i];
+	if (i==selected) staticString += widthArray[i] + "x" + heightArray[i];
+	outstring += "</option>";
+    }
+    outstring += '</select>';
+    if (SimpleMode) {
+	staticString += '">';
+	document.write (staticString);
+    }
+    else document.write(outstring);
+}
+
+function setPeriodicResolution(field) {
+    var oldval = periodicDS; 
+    var newval = dsArray[field.selectedIndex];
+
+    if (oldval != newval) {
+	periodicDS = newval;
+	setEcam2("OidTB1.13.1.11.2", newval);
+    }
+    return false;
+}
+
+function writePeriodicResolutionSelect() {
+    var downsample = periodicDS;
+    var outstring = 
+	"<select id='perResSelect' onChange='setPeriodicResolution(this);'>";
+    var i, selected=0;
+
+    for (i=0; i<dsArray.length; i++) {
+	if (downsample == dsArray[i]) {
+	    selected=i;
+	    break;
+	}
+    }
+    for (i=0; i < dsArray.length; i++) {
+	outstring += (i==selected) ? '<option selected>' : '<option>';
+	outstring += "1/" + dsArray[i];
+	if (dsArray[i]<10) outstring += " ";
+	outstring += " ";
+	outstring += widthArray[i] + "x" + heightArray[i];
+	outstring += "</option>";
+    }
+    outstring += '</select>';
+    document.write(outstring);
+}
+
+
+
+function setPeriodicRate(field) {
+    var val = field.value.toLowerCase();
+
+    if (val == "Max") val = "MAX";
+    else if (val == "Disabled") val = 0;
+    else if (isNaN(parseFloat(val))) {
+	alert ('Specify "0" for disabled, "max" for maximum rate, or an interval in seconds');
+	field.focus();
+	return;
+    }
+    setEcam2("OidTB1.13.6", val);
+}
+
+function writePeriodicRecordRateSelect()
+{
+    var textArray = new Array ("$RSTR(Disabled)", "5fps", "4fps", "3fps", "2fps", "1fps",
+			      "1f/5sec", "1f/10sec", "1f/30sec", "1f/min", "1f/30min",
+			      "1f/hour");
+    var valArray = new Array ("0", "0.20", "0.25", "0.33", "0.50", "1.00",
+			      "5.00", "10.00", "30.00", "60.00", "1800.00", "3600.00");
+    var selected = -1;
+
+    var val = periodicInterval;
+    val = val.toLowerCase ();
+    var intervalStr = val;
+
+    if (val == "disabled") val = 0;
+
+    
+    var fval = parseFloat (val);
+    if (!isNaN (fval)) {
+	fval = Math.round (fval * 1000)/1000;
+	val = fval;
+    }
+
+    for (i=0; i < valArray.length; i++) {
+	if (val == parseFloat (valArray[i])) {
+	    selected = i;
+	    break;
+	}
+    }
+
+    var outstring = 
+	"<select id='periodocRateSelect' onChange='setPeriodicRate(this);'>";
+
+    for (i=0; i < textArray.length; i++) {
+	outstring += (i==selected) ? '<option selected ' : '<option ';
+	outstring += 'value="' + valArray[i] + '">' + textArray[i] 
+	    + '</option>\n';
+    }
+    if (selected == -1) {
+	outstring += "<option selected value=" + val + 
+	    ">1f/" + val + " sec</option>";
+    }
+    outstring += '</select>\n';
+    document.write (outstring);
+}
+
+
+
+
+
+
+
+
+function setEventRate(field) {
+    var index = field.selectedIndex;
+    if (index == intervalsArray) { 
+	eventInterval = field.options[field.selectedIndex].value;
+    } else {
+	eventInterval = eventIntervalsArray[index];
+    }
+    setEcam2("OidTB1.13.1.13.1", eventInterval);
+    return false;
+}
+
+function writeEventRecordRateSelect() {
+    var outstring = 
+	"<select name='eventRateSelect' onChange='return setEventRate(this);'>";
+    var i, selected=-1;
+    var len = eventIntervalsArray.length;
+
+    
+    var interval = eventInterval.toLowerCase();
+    if (interval=="max") selected = len - 1;
+    else {
+	interval = interval - 0;
+	if (interval < eventIntervalsArray[len-2]) { 
+	    
+	    selected = len-2;  
+	} else {
+	    for (i=0; i<len-1; i++) {
+		if (interval == eventIntervalsArray[i]) {
+		    selected=i;
+		    break;
+		}
+	    }
+	}
+    }
+    for (i=0; i < len; i++) {
+	outstring += (i==selected) ? '<option selected>' : '<option>';
+	outstring += eventRateArray[i]; 
+	outstring += "</option>";
+    } 
+    if (selected == -1) {
+	outstring += "<option selected value=" + interval + 
+	    ">1/" + interval + " sec</option>";
+    }
+    outstring += '</select>';
+    document.write(outstring);
+}
+
+function stopRecording() {
+    setEcam2("OidCB1.13.11","DISABLED"); 
+     
+     reloadLater ();
+}
+
+var LastRecordingStatus = "";
+
+
+
+
+
+
+function recordingStatus(result) { 
+    if (result=="Success") return true;
+    if (result=="None") return true; 
+
+    
+    if (result == LastRecordingStatus) return false;
+    LastRecordingStatus = result;
+
+    
+    if (result.indexOf("Err") > -1) ; 
+    else if (result.match("Testing"))
+	alert("Your camera is still attempting to login to the recorder.\n"
+	      + "Please try reloading this page in a few minutes"
+	    );
+    else if (result=="Login") {
+	if (recorderIP != "" &&
+	    username != "") {
+	    alert("Your camera is unable to login to the recorder.\n"
+		  + "Please check the USERNAME and PASSWORD\n"
+		  + "on this page and on the FTP recorder."
+		);
+	}
+    }
+    else if (result=="Memory") 
+	alert("Your camera does not have enough memory to send\n"
+	      + "images to the recorder\n"
+	      + "Try rebooting it.");
+    else if (result=="Socket create")
+	alert("Your Camera is unable to create a network socket.\n"
+	      +"Try rebooting it.");
+    else if (result=="Name resolution" || result=="Connect") {
+	if(recordingTo == "external" && recorderIP=="")
+	    alert("You must fill in a FTP recorder IP address entry.");
+	else
+	    alert("Your camera could not find an FTP recording\n"
+              + "device at address " + recorderIP + "\n"
+              + "Please check the IP address entry on this page");
+    } else 
+	alert("Your camera is unable to archive images.\n"
+	       +"Please check your recorder settings.");
+    
+    return false;
+}
+
+
+function AjaxDone (result_code, http_status, result_text)
+{
+    if (result_code == 0 &&
+	http_status == 200) {
+	
+	var ftp_status;
+	var quota_reached;
+	var in_business;
+	var re = /\n/;
+	var i;
+	
+	var string_list = result_text.split(re);
+	
+	for (i = 0; i < string_list.length; i++) {
+	    var re2 = /\=/;
+	    
+	    var pieces = string_list[i].split(re2);
+	    
+	    var value = pieces[1].substring(0,pieces[1].length-1);
+	    if (pieces[0] == "1.13.18")
+		ftp_status = value;
+	    else if (pieces[0] == "1.13.19")
+		quota_reached = value;
+	    else if (pieces[0] == "1.13.20")
+		in_business = value;
+	    else if (pieces[0] == "2.40.4.1.4") {
+		internalFree = value;
+		
+		internalFree = internalFree/1000;
+		
+		internalFree = Math.round(internalFree * 100)/100;
+		if (!internalEmpty) de("intfree").innerHTML = internalFree;
+	    }
+	}
+	window.setTimeout ('startStatusUpdate();', 5000);
+	
+	setMsgLabel (ftp_status, quota_reached, in_business);
+	
+	if (!getObject ("recordingtext")) return;
+	getObject ("recordingtext").innerHTML = lastMsg;
+    }
+}
+
+function startStatusUpdate ()
+{
+    
+    if (AjaxGetOid ("1.13.18&1.13.19&1.13.20&2.40.4.1.4") == false)
+	updateStatusText ("XML error");
+}
+
+function setMsgLabel (ftp_status, quota_reached, in_business) {
+    var test =  recordingStatus(ftp_status);
+    var quotaReached = quota_reached;
+    var inBusinessHours = in_business;
+    var lastFTPStatus = ftp_status;
+    var err = lastFTPStatus.toLowerCase();
+
+    lastMsg = (recordingEnabled && test) ? '$RSTR(RECING)' : '$RSTR(notrec)';
+
+    if (quotaReached=="TRUE") {
+	lastMsg = "$RSTR(ovrmax)";
+    }
+    if (inBusinessHours=="FALSE") {
+	lastMsg = "$RSTR(offhours)";
+    }
+    if (err !="none"
+	&& err !="success") {
+	lastMsg = "$RSTR(recerr)" + ": " + err;
+    }
+    if (err =="testing") {
+	lastMsg = "$RSTR(attrec)";
+    }
+}
+
+function writeMsg () {
+     var out = '<tr><td class="subtitle" align="right" valign="bottom"><span id="recordingtext">' + lastMsg + '</span></td></tr>';
+     document.write (out);
+}
+
+function writeStartStopButton() {
+    lastLabel = (recordingEnabled) ? 
+	"$RSTR(disrec)" : "$RSTR(enrec)";
+
+    var out = 
+	'<li><a href="javascript:void(0)" id="startStop" '
+	+ 'name="startStop"' 
+	+ ' onClick="return doStartStop();">' + lastLabel + '</a></li>';
+    document.write(out);
+}
+
+
+function setButtonStart() {
+    if (! getObject("startStop")) return;
+    if (transferCompleted()) 
+	getObject("startStop").value="$RSTR(enrec)";
+    else setTimeout("setButtonStart()",200);
+}
+
+
+function setButtonStop() {
+    if (! getObject("startStop")) return;
+    if (transferCompleted()) 
+	getObject("startStop").value="$RSTR(disrec)";
+    else setTimeout("setButtonStop()",200);
+}
+
+function buttonIsStart() {
+    if (! getObject("startStop")) return false;
+    return (getObject("startStop").innerHTML == "$RSTR(enrec)");
+}
+
+function buttonIsStop() {
+    if (! getObject("startStop")) return false;
+    return (getObject("startStop").innerHTML == "$RSTR(disrec)");
+}
+
+
+function setRecordingTextStopped() {
+    if (! getObject("recordingtext")) return;
+    if (transferCompleted())
+	getObject("recordingtext").innerHTML = 'not recording';
+    else setTimeout("setRecordingTextStopped()",200);
+}
+
+function doStartStop() {
+    if (buttonIsStart()) {
+	var destSelect = document.getElementById ("recordTo");
+	if (replay && 
+	    (destSelect.options[destSelect.selectedIndex].value == 
+	     "internal")) {
+	    alert ("Internal recording is not allowed while replay controls are enabled.");
+	    return false;
+	}
+	if(recordingTo == "external" && recorderIP=="") {
+	    alert("You must fill in a FTP recorder IP address entry.");
+	    document.myform.iprecorder.focus();
+	    return true;
+        }
+	if (hasMotionSupport) {
+	    var field = document.getElementById ("OidSB1.13.14");
+	    if (field.options[field.selectedIndex].text == 'Disabled') {
+		if (!confirm ("Motion events are not enabled.  Continue?")) {
+		    return true;
+		}
+	    }
+	}
+	
+        submit("OidCB1.13.11","ENABLED");
+	reloadLater();
+    } else stopRecording();
+    return false;
+}
+
+
+
+function checkFtpResult() {
+    if (!transferCompleted()) setTimeout("checkFtpResult();",200);
+    else {
+	if (needsIframe) 
+	    reloadLater();
+	else {
+	    var val = getOIDVal("1.13.18");
+	    if (!recordingStatus(val)) {
+
+	    }
+	    else {
+	        alert ("Test succeeded");
+	        reloadLater ();	    
+	    }
+	}
+    }
+}
+
+
+
+function doOverwriteSuspend(field) {
+    var val = field.options[field.selectedIndex].value;
+    if (val == "Overwrite") {
+	setEcam2("OidSB1.13.9","ENABLED");
+    } else {
+	setEcam2("OidSB1.13.9","DISABLED");
+    }
+    return false;
+}
+
+function writeOverwriteSuspendSelect() {
+    var state = "$O(1.13.9)"; 
+    var rv = '<select name="overwriteSuspend" '
+	+ 'onChange="doOverwriteSuspend(this)">';
+    if (state == "ENABLED")
+	rv += '<option selected value="Overwrite">$RSTR(Overw)<option value="Suspend">$RSTR(Susnot)';
+    else
+	rv += '<option value="Overwrite">$RSTR(Overw)<option selected value="Suspend">$RSTR(Susnot)';
+    rv += '</select>';
+    document.write(rv);
+}
+
+function writeMaxStorageField() {
+    var storage = "$O(1.13.8)" - 0;
+    if (storage==0) storage = "unlimited";
+    document.write(
+	'<input name="OidTB1.13.8" id="OidTB1.13.8" value="' + storage
+	+' " size="8" onChange="return setMaxStorage(this)">');
+}
+
+function setMaxStorage(field) {
+    
+    var val = field.value;
+    val = val.toLowerCase();
+
+    
+    if (val.match('unlimited')) {
+        setEcam2(field.name, "0");
+	return true;
+    }
+
+    if (isNaN(parseInt(val))) val = parseInt("0"+val);
+
+    if (isNaN(val) || val < 0 || 
+	((recordingTo != "external") && (val > internalLimit))) {
+	if (recordingTo == "external") {
+	    alert ("Please enter 'unlimited' or the number of gigabytes to use");
+	}
+	else {
+	    alert("Please enter 'unlimited' or\n" +
+		  "a number from 0.001 through " + internalLimit);
+	}
+	select(field);
+	return false; 
+    }
+    setEcam2(field.name, field.value);
+    return true;
+}
+
+function setIP(field) {
+    if (recordingEnabled) {
+	recordingAlert();
+	field.value = recorderIP;
+	return false;
+    }
+    if (recordingTo != "external") {
+	recordingToAlert();
+	field.value = myIP;
+	return false;
+    }
+
+    var val = field.value;
+    if (!isAnIPAddress(field)) {
+	
+	var nameserver = "$O(3.6.13)";
+	if (nameserver.match("0.0.0.0")) { 
+	    alert("Please enter an IP Address, in the format:\n"
+		  + "xxx.xxx.xxx.xxx where xxx are numbers between 0 and 255");
+	    select(field);
+	    return false; 
+	}
+	if (val.length >31) {
+	    alert("Please input 31 characters or less");
+	    select(field);
+	    return false; 
+	}
+    }
+    recorderIP = val;
+    setEcam2("OidTB8.1.1.trigger",escape(val));
+    
+    return true;
+}
+
+function setPath(field) {
+    if (recordingEnabled) {
+	recordingAlert();
+	field.value = recorderPath;
+	return false;
+    }
+    var val = field.value;
+    var exp = /\s\S/; 
+    if (val.match(exp)) {
+	alert("Please do not use space\n"
+	      + "characters.");
+	field.value = recorderPath; 
+	return false;
+    }
+    
+    recorderPath = val;
+    setEcam2("OidTB1.13.4", escape('"' + val + '"'));
+    
+    return true;
+}
+
+function setUsername(field) {
+    if (recordingEnabled) {
+	recordingAlert();
+	field.value = username;
+	return false;
+    }
+    if (recordingTo != "external") {
+	recordingToAlert();
+	field.value = username;
+	return false;
+    }
+    var val = field.value;
+    if (val.length >15) {
+	alert("Please input 15 characters or less");
+	select(field);
+	return false; 
+    }
+    username = val;
+    setEcam2("OidTB8.1.5.trigger", escape('"' + val + '"'));
+    
+    return true;
+}
+
+function setPassword(field) {
+    var val = field.value;
+    if (recordingEnabled) {
+	recordingAlert();
+	return false;
+    }
+
+    if (! isAPassword(field)) {
+	
+	alert("Please enter 1 to 32 characters.\n" +
+		"Do not include white space characters.\n\n" +
+		"Password not changed.");
+	select(field);
+	return false;
+    }
+
+    setEcam2("OidTB8.1.6.trigger", escape('"' + val + '"'));
+    return true;
+}
+
+var emailRecordFail = "$O(1.13.17.1)".toLowerCase();
+var relayRecordFail = "$O(1.3.5.3.4)".toLowerCase();
+
+function setRecordFail(field) {
+    var val = field.value;
+    if (val=="both")
+        submit("OidSB1.13.17.1","ENABLED",  "OidSB1.3.5.3.4", "ENABLED");
+    if (val=="email")
+        submit("OidSB1.13.17.1","ENABLED",  "OidSB1.3.5.3.4", "DISABLED");
+    if (val=="relay")
+        submit("OidSB1.13.17.1","DISABLED", "OidSB1.3.5.3.4", "ENABLED");
+    if (val=="none") 
+        submit("OidSB1.13.17.1","DISABLED", "OidSB1.3.5.3.4", "DISABLED");
+    return false;
+}
+
+
+
+
+var emailQuota = "$O(1.13.17.2)".toLowerCase(); 
+
+var relayQuota = "$O(1.3.5.3.5)".toLowerCase(); 
+
+function setNotify(field) {
+    var val = field.value;
+    if (val=="Disabled")
+        submit("OidSB1.13.17.1", "DISABLED", "OidSB1.13.17.2", "DISABLED");
+    else
+        submit("OidSB1.13.17.1", "ENABLED", "OidSB1.13.17.2", "NEAR");
+    return false;
+}
+
+function writeNotifySelect () {
+    var out =
+	'<select name="Notify" onChange="return setNotify(this);">';
+    out += (emailRecordFail!="disabled") ? "<option selected ":"<option ";
+    out += 'value="enabled">$RSTR(Enabled)</option>\n';
+    out += (emailRecordFail=="disabled") ? "<option selected ":"<option ";
+    out += 'value="disabled">$RSTR(Disabled)</option>\n';
+    out += '</select>';
+    document.write(out);
+}
+
+
+function setRecipients(field) {
+    var domain = '$O(3.6.4)';
+    var val = field.value;
+
+    
+    if (domain.length>0) {
+	setEcam2("OidTB9.1.4.trigger",escape(val));
+	return false;
+    }
+    if (val.length<=0) { 
+	setEcam2("OidTB9.1.4.trigger","");
+	return false;
+    }
+    var addrs = val.split(" ");
+    for (var i=0; i<addrs.length;i++) {
+	var addr = addrs[i];
+	if (addr.indexOf("@")<0) {
+	    alert("Please use full e-mail addresses.\n"
+		  + "e.g. myself@mycompany.com");
+	    return false;
+	}
+    }
+    setEcam2("OidTB9.1.4.trigger",escape(val));
+    return false;
+}
+
+
+function formatIsValid(field) { 
+    var val = field.value;
+    var name = field.name;
+
+    if (name == "OidTB17.2.2") { 
+	var exp = /[^\d]/; 
+	if (val.match(exp) || val<0 || val>65536) {
+	    alert("Please enter a value from 0 through 65536");
+	    field.value = "";
+	    return false;
+	}
+    }
+ 
+    if (name.match("OidTB9.1.1.trigger")) { 
+	if (isAnIPAddress(field)) {
+	    return true;
+	}
+	
+	var nameserver = "$O(3.6.13)";
+	if (nameserver.match("0.0.0.0")) { 
+	    alert("Please enter an IP Address, in the format:\n"
+		  + "xxx.xxx.xxx.xxx where xxx are numbers between 0 and 255");
+	    return false;
+	}
+	if (val.length >31) {
+	    alert("Please input 31 characters or less");
+	    return false;
+	}
+	return true;
+    }
+    if (name == "OidTB1.13.6") { 
+	field.value = val.toUpperCase ();
+    }
+    
+    var regexp = /OidTB1.13.21.1.\d.1.\d.1/;
+    if (name.search(regexp) >= 0) {
+	var tfmt = /[0-2][0-9]:[0-5][0-9]/;
+	if (!(tfmt.test (val))) {
+	    alert ("Please enter HH:MM");
+	    return false;
+	}
+    }
+    return true;
+}
+
+function LoadHandler()
+{
+    
+    var el;
+    for (i = 1; i <= 7; i++) {
+	el = 'OidTB1.13.21.1.' + i + '.1.1.1';
+	de(el).style.width = "70px";
+    }
+    for (i = 1; i <= 7; i++) {
+	el = 'OidTB1.13.21.1.' + i + '.1.2.1';
+	de(el).style.width = "70px";
+    }
+     
+    de("schedrow").style.visibility = "visible";
+    checkRecordTo ();
+}
+
+</script>
+</head>
+
+<body onload="LoadHandler()";bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript>
+  <font color="#FF0000"><blink>
+  <b>You must enable Javascript for this page to work properly.</b>
+  </blink></font>
+</noscript>
+
+<form name="myform" method="post">
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+  <table class="main" cellspacing=0 cellpadding=0 width=850>
+    <script>writeSettingsHeader("recorder"); </script>
+    <tr>
+      <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+      <td colspan=2 valign="top" align="left">
+        <table class="content" cellspacing=0 cellpadding=0 width=850>
+          <tr>
+            <!-- the image area -->
+              <script>
+                writeCroppedImage();
+              </script>
+            <td rowspan=2 valign="bottom" align="right">
+              <table class="input" cellspacing=0  cellpadding=0 width=380 
+                style="margin-right: 10px;">
+                <tr>
+                  <td class="subtitleleft">
+                    <img src="1pixclear.gif" width=8 height=1></td>
+                  <td height=20 class="subtitleleft">
+                    <span id="sendState" name=sendState>&nbsp;</span></td>
+		</tr>
+                <tr> 
+                  <td class="subtitleleft">&nbsp;</td>
+                  <td class="subtitle" helpsub="$RSTR(EvSet)" helpanchor="IQV-event">$RSTR(EvSet)
+                    <script>writeHelpIcon("IQV-event");</script></td>
+		</tr>
+     
+                <tr>
+                  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub"></td>
+		</tr>
+
+		<script>
+		  if (hasMotionSupport) 
+		      document.write('<tr><td class="left">&nbsp;</td>'
+				     + '<td class="input" helpbold="$RSTR(motion)" myhelp="$RSTR(iqrec_motion_help)">$RSTR(motion) '
+				     + '$O(1.13.14,JSB)\n</td></tr>');
+                </script>
+          
+                $IF($V(IQEYE5),<!--,)
+                $IF($V(IQEYE7),-->,)
+                <tr>
+                  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(extinp)" myhelp="$RSTR(iqrec_extinp_help)">$RSTR(extinp) $O(1.3.4,JSB)</td>
+		</tr>
+                $IF($V(IQEYE7),<!--,)
+                $IF($V(IQEYE5),-->,)
+
+                $IF($V(IQEYE6),<!--,)
+                $IF($V(IQEYE5),-->,)
+                <tr>
+                  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(res)" myhelp="$RSTR(iqrec_recres_help)">$RSTR(res)
+                    <script>writeEventResolutionSelect();</script></td>
+		</tr>
+                $IF($V(IQEYE5),<!--,)
+                $IF($V(IQEYE6),-->,)
+
+                <tr>
+		  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(minimg)" myhelp="$RSTR(iqrec_minimg_help)" nowrap>$RSTR(minimg)
+                    <script>writeMinImagesSelect();</script></td>
+		</tr>
+                <tr>
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(numpre)" myhelp="$RSTR(iqrec_numpre_help)">$RSTR(numpre)
+                    <script>writePreImagesSelect();</script></td>
+		</tr>
+                <tr>
+                  <td class="subtitleleft">&nbsp;</td>
+                  <td class="subtitle" helpsub="$RSTR(TmLapse)" helpanchor="IQV-timelapse">$RSTR(TmLapse)
+                    <script>writeHelpIcon("IQV-timelapse");</script></td>
+                </tr>
+                <tr>
+                  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub" helpbold="$RSTR(framerate)" myhelp="$RSTR(iqrec_fr_help)">$RSTR(framerate)
+                    <script>writePeriodicRecordRateSelect();</script></td>
+                </tr>
+                <!-- non-IQeye5 text: commented out for iqeye5 -->
+                <tr>
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(recres)" myhelp="$RSTR(iqrec_recres_help)">
+                    $IF($V(IQEYE6),<!--,)
+                    $IF($V(IQEYE5),-->,)
+	            $RSTR(recres)
+                    <script>writePeriodicResolutionSelect();</script>
+                    $IF($V(IQEYE5),<!--,)
+                    $IF($V(IQEYE6),-->,)
+	          </td>
+		</tr>
+        
+          
+                <tr>
+                  <td class="subtitleleft">&nbsp;</td>
+                  <td class="subtitle" helpsub="$RSTR(NetRecSet)" helpanchor="IQV-archive">$RSTR(NetRecSet)
+                    <script>writeHelpIcon("IQV-archive");</script></td>
+		</tr>
+                <tr>
+		  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub" helpbold="$RSTR(recto)" myhelp="$RSTR(iqrec_recto_help)">$RSTR(recto)
+                    <script>
+	            
+                    writeRecordToSelect();	  
+                    </script></td>
+		</tr>
+                <tr>
+                  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(recIP)" myhelp="$RSTR(iqrec_recIP_help)">$RSTR(recIP)
+                    <input name="iprecorder" id="iprecorder"
+                      value="$O(8.1.1.trigger)" size="15" 
+                      onChange="return setIP(this)"></td>
+		</tr>
+                <!-- removed mar 05
+                <tr>
+                  <td class="left">&nbsp;</td>
+                  <td class="input">path
+                  <input name="recorderpath" id="recorderpath"
+                    value="$O(1.13.4)" size="10" 
+                    onChange="setPath(this)"></td>
+		</tr>
+                -->
+                <tr> 
+                  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(username)" myhelp="$RSTR(iqrec_username_help)">$RSTR(username) <input name="username" id="username" 
+                    value="$O(8.1.5.trigger)" size="10" 
+                    onChange="return setUsername(this);"></td>
+		</tr>
+                <tr> 
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(password)" myhelp="$RSTR(iqrec_password_help)">$RSTR(password)
+                    <input type="password" name="password" id="password" 
+                     value="******" size="32" 
+                     onChange="return setPassword(this)"></td>
+		</tr>
+                <tr>
+                  <td class="subtitleleft">
+                    <img src="1pixclear.gif" width=8 height=1></<td>
+                  <td class="subtitle" helpsub="$RSTR(StorLim)" helpanchor="IQV-storageLimit">$RSTR(StorLim)
+                    <script>writeHelpIcon("IQV-storageLimit");</script></td>
+		</tr>
+                <tr>
+                  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub" helpbold="$RSTR(maxstor)" myhelp="$RSTR(iqrec_maxstor_help)">$RSTR(maxstor)
+		    <script>writeMaxStorageField();</script></td>
+		</tr>
+                <tr>
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(nrmax)" myhelp="$RSTR(iqrec_nrmax_help)">$RSTR(nrmax)
+                    <script>writeOverwriteSuspendSelect();</script></td>
+		</tr>
+                <tr>
+                <td class="subtitleleft">&nbsp;</td>
+                <td class="subtitle" helpsub="$RSTR(AdvNAT)"
+helpanchor="IQV-NAT" myhelp="$RSTR(iqrec_nat_help)">$RSTR(AdvNAT)
+                  <script>writeHelpIcon("IQV-NAT");</script></td>
+		</tr>
+                <tr>
+                  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub" helpbold="$RSTR(pubIP)" myhelp="$RSTR(iqrec_pubIP_help)">$RSTR(pubIP)
+                    $O(17.2.1,JTB15)</td>
+		</tr>
+         
+                <tr>
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(port)" myhelp="$RSTR(iqrec_port_help)">FTP $RSTR(port)
+                    $O(17.2.2,JTB3)</td>
+		</tr>
+          
+              </table> <!-- end description of right column -->
+            </td>
+          </tr>
+
+          <!-- start bottom left content (below image)  -->
+          <tr> 
+            <td valign="bottom"  align="left">
+              <table class="input" cellspacing=0 cellpadding=0 width=335 
+                style="margin: 0 0 8px 32px;">
+
+                <script>writeCardInfo();</script>
+
+                <tr>
+                  <td class="subtitleleft">&nbsp;</td>
+                  <td class="subtitle" helpsub="$RSTR(ErrNot)"
+helpanchor="IQV-notify" myhelp="$RSTR(iqrec_ErrNot_help)">$RSTR(ErrNot)
+                    <script>writeHelpIcon("IQV-notify");</script></td>
+		</tr>
+                <tr>
+                  <td class="startsubleft">&nbsp;</td>
+                  <td class="startsub" helpbold="$RSTR(notif)" myhelp="$RSTR(iqrec_notif_help)">$RSTR(notif)
+                    <script>writeNotifySelect();</script></td>
+		</tr>
+      
+                <tr> 
+                  <td class="left">&nbsp;</td>
+                  <td class="input" helpbold="$RSTR(SmmsIP)" myhelp="$RSTR(iqrec_SmmsIP_help)" nowrap>$RSTR(SmmsIP)
+                    $O(9.1.1.trigger,JTB15)</td>
+		</tr>
+        
+                <tr> 
+                  <td class="endsubleft">&nbsp;</td>
+                  <td class="endsub" helpbold="$RSTR(rcpts)" myhelp="$RSTR(iqrec_rcpts_help)">$RSTR(rcpts)
+                    <input name="OidTB9.1.4.trigger" 
+                     value="$O(9.1.4.trigger)" size="15" 
+                     onChange="setRecipients(this)"></td>
+		</tr>
+	      </table>
+            </td>
+          </tr>
+
+          <!-- start schedule -->
+          <tr id="schedrow" style="visibility: hidden">
+            <td colspan=2 valign="bottom" align="left">
+              <table class="content" cellspacing=0 cellpadding=0 width=780
+		 style="margin: 0 0 8px 32px;" >
+                <tr> 
+                  $DEF(DAYS,1;2;3;4;5;6;7;)
+                  $DEF(DAYS6,1;2;3;4;5;6;)
+                  <td colspan=1> 
+                  <table class="input" cellspacing=0  cellpadding=0>
+                    <tr>
+                      <td class="subtitleleft">&nbsp;</td>
+                      <td class="subtitleleft">&nbsp;</td>
+                      <td class="subtitleleft" colspan=10>
+                        <span id=sendState name=sendState>&nbsp;</span></td>
+                    </tr>
+                    <tr>
+                      <td class="subtitleleft">&nbsp;</td>
+                      <td class="subtitleleft">&nbsp;</td>
+                      <td class="subtitle" helpsub="$RSTR(RecSched)"
+helpanchor="recsched" myhelp="$RSTR(iqrec_sched_help)" align="right" colspan=10>$RSTR(RecSched)
+                        <script>writeHelpIcon("recsched");</script></td>
+                    </tr>
+                    <tr>
+	              <td class="subtitleleft">&nbsp</td>
+	              <td class="subtitleleft">&nbsp</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(sunday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(monday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(tuesday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(wednesday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(thursday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(friday)</td>
+	              <td class="subtitleleft" style="text-align: center">$RSTR(saturday)</td>
+                    </tr>
+                    <tr>
+                      <td class="startsubleft">&nbsp;</td>
+                      <td class="startsub" style="padding-top: 4px; background-position: 50% 0px">$RSTR(start)</td>
+	              $LOOP(IDX,$V(DAYS6),
+                      <td class="input" style="padding-top: 4px; background-position: 50% 0px"> 
+                      $O(1.13.21.1.$V(IDX).1.1.1,JTB10)
+                      </td>
+                      )
+                      <td class="input" style="padding-top: 4px; background-position: 100% 0px"> 
+                      $O(1.13.21.1.7.1.1.1,JTB10)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="left">&nbsp;</td>
+                      <td class="input" style="background-position: 50% 50%">$RSTR(stop)</td>
+	              $LOOP(IDX,$V(DAYS6),
+                      <td class="input" style="background-position: 50% 50%"> 
+                      $O(1.13.21.1.$V(IDX).1.2.1,JTB10)
+                      </td>
+                      )
+                      <td class="input" style="background-position: 100% 50%"> 
+                      $O(1.13.21.1.7.1.2.1,JTB10)
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td class="endsubleft" style="padding-bottom: 2px">
+                        <img src="1pixclear.gif" width=9 height=1></td>
+                      <td class="endsubleft" style="padding-bottom: 2px; background-position: 50% 100%">
+                        <img src="1pixclear.gif" width=9 height=1></td>
+	              $LOOP(IDX,$V(DAYS6),
+                      <td class="endsubleft" style="padding-bottom: 2px; background-position: 50% 100%">&nbsp</td>
+                      )
+                      <td class="endsubleft" style="padding-bottom: 2px; background-position: 100% 100%">&nbsp</td>
+                    </tr>
+                  </table>
+                  </td>
+	        </tr>
+	      </table>
+	    </td>
+          </tr>
+          <script>writeMsg();</script> 
+        </table>
+      </td>
+      <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+    </tr>
+
+    <script>
+    setupMyFooter();
+    writeFooter('myDefaults');
+    startStatusUpdate ();
+    </script>
+    <tr>
+      <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+      <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+      <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

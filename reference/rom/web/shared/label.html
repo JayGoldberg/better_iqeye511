@@ -1,0 +1,41 @@
+<html>
+<head>
+<script language="JavaScript" type="text/javascript">
+<!--
+    
+    
+    
+
+var label = "";			
+var width=320;			
+
+
+function getArgs() {
+    var args = new Object();
+    var query = location.search.substring(1); 
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+    for (var i=0; i<pairs.length; i++) {
+	var pos = pairs[i].indexOf('=');
+	if (pos==-1) continue;
+	args[pairs[i].substring(0,pos)] = unescape(pairs[i].substring(pos+1));
+    }
+    
+    if (args.label != null) label = args.label;
+    if (args.width != null) width = parseInt(args.width);
+}
+
+getArgs();
+-->
+</script>
+</head>
+<body bgcolor="#CCCCCC">
+<script language="JavaScript" type="text/javascript">
+document.write
+    ('<table width=' + width + ' bgcolor="#CCCCCC">'
+     + '<tr><td valign="top" align="center">'
+     + label + '</td></tr></table>');
+</script>
+
+</body>
+</html>

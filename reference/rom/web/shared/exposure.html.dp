@@ -1,0 +1,1089 @@
+<!-- Copyright (C) 2006 - 2010 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(expset)</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset= $RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="boxes.js"></script>
+
+<script>
+
+$INC(vars_nocache.js.dp)
+$DEF(MULTIEXP, )
+$IF($CMP($O(2.21),3b),,$DEF(MULTIEXP,true))
+$IF($CMP($O(2.21),4d),,$DEF(MULTIEXP,true))
+$IF($CMP($O(2.21),6a),,$DEF(MULTIEXP,true))
+$IF($CMP($O(2.21),6b),,$DEF(MULTIEXP,true))
+
+window.scrollTo(0,0);
+enableJavaAlert();
+
+var PageTitle = "$RSTR(expset)";
+var PageHelp = "$RSTR(expset_help)";
+
+var drawBoxes = (UseActiveX() || canSpush);
+
+var ds = $O(1.2.2);
+
+
+if (isFalcon) {
+    
+    mainWidth  = '$O(1.17.8.1)';
+    mainHeight = '$O(1.17.8.2)';
+    if (mainWidth <= 1 ||
+	mainHeight <= 1) { 
+	mainWidth = '$O(1.2.6.2)';
+	mainHeight = '$O(1.2.6.3)';
+    }
+}
+else {
+    mainWidth  = '$O(1.2.6.2)';
+    mainHeight = '$O(1.2.6.3)';
+}
+
+var cropLeft = $O(1.2.6.4,R);
+var cropTop =  $O(1.2.6.1,R);
+var cropwidth = mainWidth;
+var cropheight = mainHeight;
+var camOffsetLeft = 0; 
+var camOffsetTop = 0;  
+
+var autoGain = '$O(1.2.8.6)';
+autoGain = autoGain.toLowerCase();
+
+if (autoGain == "disabled") {
+     alert ("Autogain is locked.  Exposure windows will have no effect.");
+}
+
+
+
+var ds = $O(1.2.2);
+
+$IF($V(IQEYE6),
+    var maxWidth = $O(1.2.18.3); 
+    var maxHeight= $O(1.2.18.4); 
+,
+    var maxWidth = $O(1.2.20.5); 
+    var maxHeight= $O(1.2.20.6);
+)
+
+if (isFalcon) {
+    maxWidth = mainWidth;
+    maxHeight = mainHeight;
+}
+
+
+var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+			    Math.ceil(maxHeight/322));
+
+var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+
+
+var dsfactor = Math.max(ds,ds_necessary);
+
+
+var dsreq = ds_necessary;
+
+
+if (isIQeye6) {
+     if (dsreq == 3) {dsreq = 4;}
+}
+if (isIQeye6 || isIQeye7) {
+    
+    if (dsreq > 4) {dsreq = 4;}
+}
+if (isIQeye500) {
+     
+    if (dsreq > 2) dsreq = 2;
+}	  
+
+var HasMulti;
+
+if (isIQeye7 || isFalcon) {
+    HasMulti = true;
+}
+else {
+    HasMulti = false;
+}
+
+var dsstring = "?ds=" + dsreq;
+
+
+
+var imWidth =  Math.floor(maxWidth/ds_float);
+var imHeight = Math.floor(maxHeight/ds_float);
+
+
+if (isIQeye6 && !isIQeye5 && !isIQeye7) {dsstring = "";}
+
+    
+    
+    
+var currBox = 0;
+
+
+var GAIN = 0;
+
+
+var orient = "$O(1.2.4)";
+orient = (orient.match("90") || orient.match("270") ||
+  orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+var initXcrop = $IF($V(IQEYE6),$O(1.2.6.4),$O(1.2.18.6));
+var initYcrop = $IF($V(IQEYE6),$O(1.2.6.1),$O(1.2.18.5));
+
+
+var initX = $O(1.2.8.1,R);
+var initY = $O(1.2.8.8,R);
+var initW = $O(1.2.8.2,R)-0;
+var initH = $O(1.2.8.3,R)-0;
+
+
+
+
+if (isIQeye6 && !isIQeye5 && !isIQeye7) {
+     if (initXcrop == initX) {
+	  initX -= $O(1.2.6.4);
+     }
+     if (initYcrop == initY) {
+	  initY -= $O(1.2.6.1);
+     }
+}
+
+
+if (orient=="portrait") { 
+    var tmp;
+    tmp = imWidth; imWidth = imHeight; imHeight = tmp;
+    tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
+}
+
+if (canSpush) {
+    
+    imWidth = Math.floor(mainWidth/ds_float);
+    imHeight = Math.floor(mainHeight/ds_float);
+}
+
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+
+
+var suspendUpdate = false; 
+
+
+var unloading = false;
+
+
+
+var lastX = initX;
+var lastY = initY;
+var lastW = initW;
+var lastH = initH;
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)" onClick="return gainFactory();"'
+    + ' onMouseOver=\'window.status="$RSTR(resdef)"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resdef)</a></li>\n';
+
+var currBox=1;
+if (HasMulti) {
+    var numExp = '$O(1.2.8.23.3)'; 
+}
+else {
+    var numExp = 0;
+}
+
+numExp = numExp - 0;
+numExp += 1; 
+var numWindows = numExp - 0 + 1; 
+if (isFalcon) {
+    var maxNumWindows = 5; 
+}
+else {
+    var maxNumWindows = 8;		
+    if (numWindows>maxNumWindows) {
+	maxNumWindows = numWindows;
+    }
+}
+
+function InitBoxes ()
+{
+    if (!drawBoxes) return;
+    var x, y, w, h;
+    var url = 'now.jpg?snap=spush0.2' + dsstring; 
+
+    if (!isIQeye6) {
+           
+	url += '?ov=0';
+    }
+
+    x = Math.floor (initXcrop/ds_float);
+    y = Math.floor (initYcrop/ds_float);
+    w = Math.floor (mainWidth/ds_float);
+    h = Math.floor (mainHeight/ds_float);
+
+    if (canSpush) {
+	
+	imAttr += ' style="margin-left: '+x+'px; margin-top: '+y+'px;" ';
+    }
+
+    var parms = 
+	'<param name="InternalDptz" value="0">'
+	+ '<param name="StreamDptz" value="0">'
+	+ '<param name="Windowless" value="1">'
+	+ '<param name="OffsetX" value="' 
+	+   x + '">'
+	+ '<param name="OffsetY" value="' 
+	+   y + '">'
+	+ '<param name="DisplayWidth" value="' 
+	+ w + ' ">' 
+	+ '<param name="DisplayHeight" value="' 
+	+ h 
+	+ '">';
+
+    CreateControl ("live", 
+		   imAttr, 
+		   "", 
+		   parms,
+		   isIQeye6, isIQeye7 || isIQeye5, url);
+
+    
+    
+
+    var x_shift, y_shift;
+    if (isIQeye6 && !isIQeye7 && !isIQeye5) {
+	x_shift = -'$O(1.2.6.4)';
+	y_shift = -'$O(1.2.6.1)';
+    }
+    else {
+	x_shift = -'$O(1.2.18.6)';
+	y_shift = -'$O(1.2.18.5)';
+    }
+
+    if (!HasMulti) {
+	
+	BoxInit ('live', 'boxes', 320, 255, 1, 0, ds_float);
+	if(!isIQeye5) { 
+	    BoxSetXshift (x_shift);
+	    BoxSetYshift (y_shift);
+	}
+        if (isFalcon) {
+	    
+	    BoxSetGrid (12, 8, w, h);
+	}	  
+	x = initX;
+	y = initY;
+	w = '$O(1.2.8.2)';
+	h = '$O(1.2.8.3)';
+	BoxSetDim (0, x, y, w, h);
+	BoxSetColor (0, 'blue');
+    }
+    else {
+	var i;
+	var bound_h = 255;
+
+	if (is16by9) {
+	    bound_h = 180;
+	}
+	
+	BoxInit ('live', 'boxes', 320, bound_h, maxNumWindows+2, 1, ds_float);
+        if (isFalcon) {
+	    
+	    BoxSetGrid (12, 8, w, h);
+	}	  
+	BoxSetDim (0, 0, 0, 0, 0);
+	if (numWindows <= 2) {
+	    BoxSetDim (1, lefts[1], tops[1], widths[1], heights[1]);
+	    BoxSetColor (1, 'blue');
+	    i = 2;
+	}
+	else {
+	    
+	    for (i = 1; i <= numWindows; i++) {
+		BoxSetDim (i, lefts[i], tops[i], widths[i], heights[i]);
+		BoxSetColor (i, includes[i] ? 'blue' : 'red');
+	    }
+	}
+	if (i <= maxNumWindows) {
+	    for (; i <= maxNumWindows; i++) {
+		BoxSetDim (i, 0, 0, 0, 0);
+		BoxSetColor (i, 'red');
+	    }
+	}
+    }
+    DrawBoxes ();
+}
+
+function WriteLive ()
+{
+    document.write ('<td id="livetd"');
+    document.write (' width=330 height=330 valign="top" align="left">');
+
+    if (drawBoxes) {
+	document.write ('<div id="live"></div>');
+	document.write ('<span id="boxes">boxes</span>');
+	return;
+    }
+
+    document.write ('<div id="Applet_Div">Applet</div>');
+    var rv = 
+	'<applet code="WindowSet.class" name="spapplet" ' + imAttr + '>' 
+	+ '<param name="url1" value="1pixgray.gif">'
+	+ '<param name="offsetx" value="' 
+	+   initXcrop/dsfactor + '">'
+	+ '<param name="offsety" value="' 
+	+   initYcrop/dsfactor + '">'
+	+ '<param name="url2" value="'
+	+ 'now.jpg?snap=spush0.2';
+    
+    if (!isIQeye6) rv += '?ov=0';
+    rv += dsstring
+	+ '">'
+	+ '<param name="dsfactor" value="' + dsfactor + '">'
+	+ '<param name="xShift" value="-';
+    if (isIQeye6 && !isIQeye7 && !isIQeye5) rv += '$O(1.2.6.4)';
+    else rv += '$O(1.2.18.6)';
+    rv += '">';
+    rv += '<param name="yShift" value="-';
+    if (isIQeye6 && !isIQeye7 && !isIQeye5) rv += '$O(1.2.6.1)';
+    else rv += '$O(1.2.18.5)';
+    rv += '">';
+    $IF($V(MULTIEXP),,
+	rv += '<param name="x0" value="' + initX + '">'
+	+ '<param name="y0" value="' + initY + '">'
+	+ '<param name="selectedWindow" value="1">';
+        )    
+        $IF($V(IQEYE6),rv += '<param name="hw" value="' + mainWidth/dsfactor + '">';
+	    rv += '<param name="hh" value="' + mainHeight/dsfactor + '">';,)
+	$IF($V(MULTIEXP),
+            rv += '<param name="numWindows" value="' +  maxNumWindows + '">';
+	    ,)
+	
+	$IF($V(MULTIEXP),
+	    var out = "";
+	    var i;
+	    
+	    
+	    i = 1;
+	    out += '<param name="saveOid' +i+ '" value="OidCR1.2.8.23.2">'
+	    + '<param name="x'+i+'" value="'+ lefts[i] +'">'
+	    + '<param name="y'+i+'" value="'+ tops[i] +'">'
+	    + '<param name="w'+i+'" value="'+ widths[i] +'">'
+	    + '<param name="h'+i+'" value="'+ heights[i] +'">'
+	    + '<param name="xOid'+i+'" value="OidTR1.2.8.1">'
+	    + '<param name="yOid'+i+'" value="OidTR1.2.8.8">'
+	    + '<param name="wOid'+i+'" value="OidTR1.2.8.2">'
+	    + '<param name="hOid'+i+'" value="OidTR1.2.8.3">'
+	    + '<param name="color'+i+'" value="#0000FF">'
+	    + '<param name="selectedWindow" value="1">';
+	    i++;
+	    
+	    if (numWindows > 2) {   
+		for (i=2;i<=numWindows;i++) {
+		    out += '<param name="saveOid' +i+ '" value="OidCR1.2.8.23.2">'
+			+ '<param name="x'+i+'" value="'+ lefts[i] +'">'
+			+ '<param name="y'+i+'" value="'+ tops[i] +'">'
+			+ '<param name="w'+i+'" value="'+ widths[i] +'">'
+			+ '<param name="h'+i+'" value="'+ heights[i] +'">'
+			+ '<param name="xOid'+i+'" value="OidTR1.2.8.23.1.1.'+(i-1) +'">'
+			+ '<param name="yOid'+i+'" value="OidTR1.2.8.23.1.2.'+(i-1) +'">'
+			+ '<param name="wOid'+i+'" value="OidTR1.2.8.23.1.3.'+(i-1) +'">'
+			+ '<param name="hOid'+i+'" value="OidTR1.2.8.23.1.4.'+(i-1) +'">';
+		    if (includes[i])
+			out += '<param name="color'+i+'" value="#0000FF">';
+		    else
+			out += '<param name="color'+i+'" value="#FF0000">';
+		}
+	    }
+	    if (i <= maxNumWindows) {
+		for (;i<=maxNumWindows;i++) {
+		    out += '<param name="saveOid' +i+ '" value="OidCR1.2.8.23.2">'
+			+ '<param name="x'+i+'" value="0">'
+			+ '<param name="y'+i+'" value="0">'
+			+ '<param name="w'+i+'" value="0">'
+			+ '<param name="h'+i+'" value="0">'
+			+ '<param name="xOid'+i+'" value="OidTR1.2.8.23.1.1.'+(i-1) +'">'
+			+ '<param name="yOid'+i+'" value="OidTR1.2.8.23.1.2.'+(i-1) +'">'
+			+ '<param name="wOid'+i+'" value="OidTR1.2.8.23.1.3.'+(i-1) +'">'
+			+ '<param name="hOid'+i+'" value="OidTR1.2.8.23.1.4.'+(i-1) +'">'
+			+ '<param name="color'+i+'" value="#FF0000">';
+		}
+	    }
+	    rv += out;
+	    ,
+	    rv += '<param name="numWindows" value="1">'
+	    + '<param name="w0" value="$O(1.2.8.2)">'
+	    + '<param name="h0" value="$O(1.2.8.3)">'
+	    + '<param name="xOid0" value="OidTR1.2.8.1">'
+	    + '<param name="yOid0" value="OidTR1.2.8.8">'
+	    + '<param name="wOid0" value="OidTR1.2.8.2">'
+	    + '<param name="hOid0" value="OidTR1.2.8.3">'
+	    + '<param name="saveOid0" value="OidCR1.2.16">'
+            + '<param name="color0" value="#0000FF">'
+	    ) 
+	+ '</applet>';
+    CreateApplet ("Applet_Div", rv);
+    document.write ('</td>');
+}
+
+
+
+function resetToInitialVals() {
+    var boxnum = (HasMulti ? currBox : GAIN);
+    if (HasMulti) setBoxNum(boxnum);
+
+    var left, top, width, height;
+
+    if (HasMulti) {
+	left = lefts[boxnum];
+	top  = tops[boxnum];
+	width = widths[boxnum];
+	height = heights[boxnum];
+    }
+    else {
+	left = initX;
+	top = initY;
+	width = initW;
+	height = initH;
+    }
+    if (drawBoxes) {
+	BoxSetDim (boxnum, left, top, width, height);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (!app) {return false;}
+	
+	app.setX(boxnum,left);
+	app.setY(boxnum,top);
+	app.setW(boxnum,width);
+	app.setH(boxnum,height);
+	app.paint();
+    }
+    return false;
+}
+
+
+
+function appendElement(arr) {
+    var size = arr.length;
+    var temp = new Array(size+1);
+    for (var j=0; j<size; j++) {
+	temp[j] = arr[j];
+    }
+    temp[j] = 0;
+    return temp;
+} 
+
+
+
+
+function incrementSelectedExpOptions() {
+    if (numWindows==maxNumWindows) {
+	if (numWindows>=2) {
+	    document.myform.whichBox.options[numWindows-1] 
+		= new Option(numWindows);
+	}
+	return;
+    }
+    numWindows++;
+    document.myform.whichBox.options[numWindows-1] 
+	= new Option("$RSTR(NEW)");
+
+    if (numWindows>=2) {
+	document.myform.whichBox.options[numWindows-2] 
+	    = new Option(numWindows-1);
+    }
+    widths = appendElement(widths);
+    heights = appendElement(heights);
+    lefts = appendElement(lefts);
+    tops = appendElement(tops);
+
+    document.myform.whichBox.selectedIndex = currBox-1;
+}
+
+
+
+
+function decrementSelectedExpOptions() {
+    
+    var box = document.myform.whichBox;
+
+    numWindows--;
+    box.options[numWindows-1] = new Option("$RSTR(NEW)");
+    numExp--;
+    box.options.length--;
+    widths.length--;
+    heights.length--;
+    lefts.length--;
+    tops.length--;
+
+    box.selectedIndex = currBox-1;
+}
+
+
+
+function setBoxNum(val) {
+    if (currBox != val) { 
+	var str = beforeUnloadHandler();
+	if (str) {
+	    var reply = confirm(str); 
+	    if (!reply) {
+		document.myform.whichBox.selectedIndex=currBox-1;
+		return;
+	    } else { 
+		resetToInitialVals();
+	    }
+	}
+    }
+    currBox = val-0;
+
+    var f= document.myform;
+    if (f.boxmode) {
+        if (includes[currBox] == true) {
+	    f.boxmode.selectedIndex = 0; 
+	}
+	else {
+	    f.boxmode.selectedIndex = 1; 
+	}
+    }
+
+    currBox = val-0;
+    if (drawBoxes) {
+	BoxSetCur (currBox);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (app) {app.selectWindow(currBox);}
+    }
+}
+
+function writeBoxSelect() {
+    var outString='<select name="whichBox" ' 
+	+ 'onChange="setBoxNum(this.selectedIndex + 1)">';
+
+    if (numWindows==1) {outString += "<option selected>NEW";}
+    else { 
+	outString += "<option selected>1";
+	if (numWindows>2) {
+	    for (var i=2;i<numWindows;i++) {
+		outString += "<option>" + i;
+	    }
+	}
+	if (numWindows <= maxNumWindows) {
+	    outString += "<option>$RSTR(NEW)";
+	}
+    }
+    outString += "</select>";
+    document.write(outString);
+}
+
+
+function initExp() {
+    
+    
+    if (numExp == 1) {
+	
+	includes = new Array (0, 1, 0);
+	lefts   = new Array(0,0); 
+	tops    = new Array(0,0); 
+	widths  = new Array(0,0); 
+	heights = new Array(0,0); 
+	var str = '$O(1.2.8.1)';
+	lefts = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.8.8)';
+	tops = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.8.2)';
+	widths = eval("new Array(0," + str + ",0)"); 
+	str = '$O(1.2.8.3)';
+	heights = eval("new Array(0," + str + ",0)"); 
+    } else {
+	var str = "$O(1.2.8.1)" + "," + '$O(1.2.8.23.1.1.0,JL)';
+	
+	$IF($V(MULTIEXP),,str="";)
+	lefts = eval("new Array(0," + str + ",0)"); 
+	str = "$O(1.2.8.8)" + "," + '$O(1.2.8.23.1.2.0,JL)';
+	$IF($V(MULTIEXP),,str="";)
+	tops = eval("new Array(0," + str + ",0)"); 
+	str = "$O(1.2.8.2)" + "," + '$O(1.2.8.23.1.3.0,JL)';
+	$IF($V(MULTIEXP),,str="";)
+	widths = eval("new Array(0," + str + ",0)"); 
+	str = "$O(1.2.8.3)" + "," + '$O(1.2.8.23.1.4.0,JL)';
+	$IF($V(MULTIEXP),,str="";)
+	heights = eval("new Array(0," + str + ",0)");
+	$IF($V(MULTIEXP),str = '$O(1.2.8.23.1.5.0,JL)';,str="";)
+	includes = eval ("new Array(0,1," + str + ",0)");
+    }
+    
+    for (var i=1; i<=numWindows; i++) { 
+	widths[i] = widths[i]-0; 
+	heights[i] = heights[i]-0;
+	if (includes[i] == "on" || includes[i] == '"on"') {includes[i] = 1;}
+	if (includes[i] == "off"|| includes[i] == '"off"') {includes[i] = 0;}
+    }
+    
+}
+
+
+function gainFactory()
+{
+    var msg = "$RSTR(warngainfact)";
+    if (confirm(msg)) {
+	setEcam2("OidCB1.2.8.10", "ON"); 
+	window.onbeforeunload="";
+	reloadLater(); 
+    }
+    return false; 
+}
+
+
+function clearGain() {
+    currBox = currBox-0; 
+    if (currBox>numExp) {
+	alert("$RSTR(warnexpunc)");
+	return false;
+    }
+    var boxnum = (HasMulti ? currBox : GAIN);
+
+    if (drawBoxes) {
+	BoxSetDim (boxnum, 0, 0, 0, 0);
+	DrawBoxes ();
+    }
+    else {
+	var app = theApplet();
+	if (app) { 
+	    app.setX(boxnum,0);
+	    app.setY(boxnum,0);
+	    app.setW(boxnum,0);
+	    app.setH(boxnum,0);
+	    app.paint();
+	}
+    }
+
+    if (currBox == 1) {
+	submitNoThread(
+	    "OidCB1.2.8.13", "ON"    
+	    );
+    }
+    else {
+	setEcam2("OidCB1.2.8.23.1.7." + (currBox-1),"ON");    
+	
+	for (var i=currBox;i<numWindows;i++) {
+	    var j = i+1;
+	    lefts[i] = lefts[j];
+	    tops[i] = tops[j];
+	    widths[i] = widths[j];
+	    heights[i] = heights[j];
+	}
+    }
+    if (HasMulti) {
+	setBoxNum(currBox);
+	decrementSelectedExpOptions();  
+    }
+    window.onbeforeunload="";
+
+    reloadLater(); 
+    return false; 
+}
+
+function changeMode() {
+    var field = document.myform.boxmode;
+    var selected = field.options[field.selectedIndex].value;
+
+    if (!drawBoxes) {
+	var app = theApplet();
+	if (!app) {return;}
+    }
+
+    if (currBox == 1 && selected == "exclude") {
+	alert ("Window 1 cannot be 'exclude'");
+	document.myform.boxmode.selectedIndex = 0;
+	return;
+    }
+    if (selected == "include") {
+	if (drawBoxes) {
+	    BoxSetColor (currBox, 'blue');
+	    BoxSetVisible (currBox, true);
+	}
+	else {
+	    app.setColor(currBox,"#0000FF");
+	    app.setVisible(currBox, true);
+	}
+    } else if (selected == "exclude") {
+	if (drawBoxes) {
+	    BoxSetColor (currBox, 'red');
+	    BoxSetVisible (currBox, true);
+	}
+	else {
+	    app.setColor(currBox,"#FF0000");
+	    app.setVisible(currBox, true);
+	}
+    }
+    if (drawBoxes) DrawBoxes ();
+    else app.paint();
+}
+
+function modeChanged() {
+    var field = document.myform.boxmode;
+    if (!field) {return false;}
+    var selected = field.options[field.selectedIndex].value;
+
+    var changed = false;
+
+    if (selected == "include") {
+	if (includes[currBox] == false) {
+	    changed = true;
+	}
+    } else if (selected == "exclude") {
+	if (includes[currBox] == true) {
+	    changed = true;
+	}
+    }
+    return changed;
+}
+
+
+
+function setMode() {
+    var field = document.myform.boxmode;
+
+    var selected = field.options[field.selectedIndex].text;
+
+    if (selected == "include") {
+	includes[currBox] = true;
+    } else if (selected == "exclude") {
+	includes[currBox] = false;
+    }
+}
+
+
+
+
+function submitNoThread(n0,v0) {
+    var name = n0, val = v0;
+    if (arguments.length>2) {
+        for (var n=2;n<arguments.length; n+=2) {
+            val +=  "&" + arguments[n] + "=" + arguments[n+1];
+        }
+    }
+
+    
+    if (theSendState()) {
+	showSending();
+        status = "sending command to camera";
+	setTimeout("showWaiting()", 250);
+    }
+
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) {ind = (++ind)%commandBufferSize;}
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    sendCommand(ind);
+    return false;
+}
+
+
+
+
+
+
+
+
+
+function beforeUnloadHandler() {
+    
+
+    var boxnum = (HasMulti ? currBox : GAIN);
+
+    var left, top, width, height;
+
+    if (drawBoxes) {
+	var dim = BoxGetDim (boxnum);
+	left    = dim.left;
+	top     = dim.top;
+	width   = dim.width;
+	height  = dim.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) {return;}
+
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+
+    window.onbeforeunload=""; 
+
+    var str=null;
+    if (expChanged(boxnum, left, top, width, height)){
+	return str = "$RSTR(applywarn)";
+    }
+}
+
+function unloadHandler() {
+    
+    suspendUpdate = true;
+    unloading = true;
+
+    if (!drawBoxes) 
+	stopApplet();
+    window.status="";
+    return true;
+}
+
+function expChanged(boxnum, left, top, width, height) {
+    var lx, ly, lw, lh;
+
+    if (HasMulti) {
+	if (boxnum > numExp) { 
+	    return (width>0) ? true: false;
+	}
+	if (modeChanged()) {return true;}
+	lx = lefts[currBox];
+	ly = tops[currBox];
+	lw = widths[currBox];
+	lh = heights[currBox];
+    }
+    else {
+	lx = lastX;
+	ly = lastY;
+	lw = lastW;
+	lh = lastH;
+    }
+    if (Math.abs(left - lx)  > dsfactor) {return true;}
+    if (Math.abs(top - ly)   > dsfactor) {return true;}
+    if (Math.abs(width - lw) > dsfactor) {return true;}
+    if (Math.abs(height - lh)> dsfactor) {return true;}
+    return false;
+}
+
+function submitFunction() {
+    suspendUpdate = true;
+    var boxnum = (HasMulti ? currBox : GAIN);
+    var left, top, width, height;
+
+    if (drawBoxes) {
+	var dim = BoxGetDim (boxnum);
+	left    = dim.left;
+	top     = dim.top;
+	width   = dim.width;
+	height  = dim.height;
+    }
+    else {
+	var app = theApplet();
+	if (!app) {return;}
+	
+	left   = app.getX(boxnum);
+	top    = app.getY(boxnum);
+	width  = app.getW(boxnum);
+	height = app.getH(boxnum);
+    }
+
+    if (expChanged(boxnum, left, top, width, height)) {
+
+	lastX = left;
+	lastY = top;
+	lastW = width;
+	lastH = height;
+
+	if (HasMulti) {
+	    if (currBox > numExp) {
+		numExp++;
+		incrementSelectedExpOptions();
+	    }
+	    
+	    lefts[currBox] = left;
+	    tops[currBox] = top;
+	    widths[currBox] = width;
+	    heights[currBox] = height;
+	}
+
+	window.status="setting exposure window...";
+
+	if (currBox == 1) {
+	    if (isFalcon) {
+		submitNoThread(
+		    "OidTR1.2.8.8", top,     
+		    "OidTR1.2.8.1", left,
+		    "OidTR1.2.8.2", width,
+		    "OidTR1.2.8.3", height);
+	    }
+	    else {
+		submitNoThread(
+		    "OidTR1.2.8.8", top,     
+		    "OidTR1.2.8.1", left,
+		    "OidTR1.2.8.2", width,
+		    "OidTR1.2.8.3", height,
+		    "OidCR1.2.16",   "ON"); 
+	    }
+	}
+	else {
+	    setMode();
+	    var include = (includes[currBox]) ? "ON":"OFF";  
+	    
+	    submitNoThread(
+		"OidTR1.2.8.23.1.1."+(currBox-1), left,
+		"OidTR1.2.8.23.1.2."+(currBox-1), top,
+		"OidTR1.2.8.23.1.3."+(currBox-1), width,
+		"OidTR1.2.8.23.1.4."+(currBox-1), height,
+		"OidTR1.2.8.23.1.5."+(currBox-1), include,
+		"OidCR1.2.8.23.2", "ON"); 
+	}
+	window.status="";
+	if (HasMulti)
+	    setBoxNum(currBox);
+    }
+
+    reloadLater();
+    return false; 
+}
+
+window.onbeforeunload = beforeUnloadHandler;
+if (HasMulti) {
+    initExp();
+}
+</script>
+</head>
+
+<body onUnload="unloadHandler()">
+
+<noscript>
+  <font color="#FF0000">
+    <b>You must enable JavaScript to use this page.</b></font></noscript>
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("window"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=850>
+<tr>
+      <!-- the image area -->
+	 <script>WriteLive();</script>
+  <td rowspan=2  valign="top" align="right" style="padding-top: 18px">
+
+<form name="myform" method="post">
+<table class="input" cellspacing=0  cellpadding=0 width=420 style="margin-right: 10px;">
+<tr>
+  <td class="subtitleleft">&nbsp;</td>
+  <td height=20 class="subtitleleft">
+    <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+  <script>
+      if (!isVAV && !isFalcon)
+          document.write('<li><a href="cropset.html">$RSTR(crop)</a></li>');
+      if (hasExposureSupport)
+	  document.write('<li id="current"><a href="exposure.html">$RSTR(exposure)</a></li>');
+      if (hasAWBSupport)
+          document.write('<li><a href="awb.html">$RSTR(awb)</a></li>');
+      if (hasPrivacySupport)
+          document.write('<li><a href="privacy.html">$RSTR(privacy)</a></li></li>');
+      if (hasMotionSupport)
+	  document.write('<li><a href="motionset.html">$RSTR(motion)</a></li></li>');
+      if (hasCameo)
+	  document.write('<li><a href="vcamset.html">$RSTR(vcam)</a></li></li>');
+  </script> 
+  </ul></td>
+</tr>
+<tr>  <td class="startsubleft">&nbsp; </td>
+  <td class="startsubw">$RSTR(exptitle)<script>writeHelpIcon("GainWin");</script></a></td>
+</tr>
+$IF($V(MULTIEXP),
+<tr>  <td class="left" height=20>&nbsp; </td>
+  <td class="input">$RSTR(window) 
+    <script >writeBoxSelect()</script></td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+  <td class="input">$RSTR(mode) 
+    <!-- mode is disabled until we support multiple include windows -->
+    <select disabled name="boxmode" onChange="changeMode(this)">
+      <option selected value="include">$RSTR(include)
+      <option value="exclude">$RSTR(exclude)
+    </select></td>
+</tr>
+,
+<tr>  <td class="left" height=22>&nbsp; </td>
+  <td class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=21>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+)
+<tr> 
+   <td class="left" height=20>&nbsp; </td>
+   <td  class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+<tr> <td class="left" height=20>&nbsp; </td>
+   <td class="input">&nbsp; </td>
+</tr>
+
+<tr> <td class="left">&nbsp; </td>
+  <td class="input" align="center">
+    <ul id="buttonp">
+      <li><a href=""
+        onClick="return submitFunction()" 
+	onMouseOver="window.status='$RSTR(subcur)'; return true;" 
+        onMouseOut="window.status='';">$RSTR(apply)</a></li>
+      <li><a href=""
+        onClick="return resetToInitialVals();"
+        onMouseOver="window.status='$RSTR(resinit)'; return true;"
+        onMouseOut="window.status='';">$RSTR(cancel)</a></li>
+<script>
+if (HasMulti) {
+    document.write ('<li><a href="" onClick="return clearGain()"'
+		    + ' onMouseOver=\'window.status="$RSTR(delwin)"; return true;\''
+		    + ' onMouseOut=\'window.status=""\'>'
+		    + ' $RSTR(delete)</a></li>');
+}
+</script>
+     </ul>
+   </td>
+</tr>
+<tr><td class="endsubleft">&nbsp;</td>
+  <td class="endsub">&nbsp;</td>
+</tr>
+</table></form>
+  </td>
+</tr>
+<tr>
+  <td valign="bottom"  align="center" height=60>&nbsp; </td>
+</tr>
+</table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+
+
+<script>
+  writeFooter('myDefaults');</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td class="b" colspan=2><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif"></td>
+</tr>
+</table>
+<script>if (drawBoxes) InitBoxes ();</script>
+</body>
+</html>

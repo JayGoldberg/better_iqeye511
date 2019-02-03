@@ -1,0 +1,615 @@
+<!-- Copyright (C) 2005 - 2011 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(basicset)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+
+
+<!-- product 5a has analog out -->
+$DEF(AOUT4, )
+$IF($CMP($O(2.21),5a),,$DEF(AOUT4,true))
+$IF($V(IQ06),$DEF(AOUT4,true),)
+
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- internal styles: add a flag style, and bump up input width -->
+<style type="text/css">
+a.flag {margin: 0 2 0 2;}
+select {width: 220px;}
+input {width: 219px;}
+</style>
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="gain_gamma.js" ></script>
+<script  src="boxes.js"></script>
+<script  src="tztable.js"></script>
+<script  src="setup.js"></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+$INC(maxsize.js.dp)
+
+$DEF(LIVEDS, )
+$IF($V(IQEYE7),$DEF(LIVEDS, true),)
+
+var has264Support = "$O(2.40.7.2)";
+if (has264Support == "1") has264Support = 1;
+else has264Support = 0;
+
+var hasAnalogOut = isIQeye7 || isIQeye8 || isIQ73 || isIQ54x;
+
+var daynight = "$O(2.40.5)";
+if (daynight == "1") daynight = 1;
+else daynight = 0;
+
+var replay = '$O(1.15.1)';
+replay = replay.toLowerCase();
+if (replay == 'enabled' || replay == 'disabled') replay = true;
+else replay = false;
+
+
+replay = false;
+
+var recordingEnabled = "$O(1.13.11,R)";
+recordingEnabled = (recordingEnabled=="ENABLED") ? true:false;
+var recorderPath = "$O(1.13.4)";
+var recordingToInternal = false;
+if (recordingEnabled && (recorderPath.search("hdisk") != -1))
+    recordingToInternal = true;
+
+
+if (isIQeye6 && "$O(1.13.11)" == "ENABLED") dsstring = "";
+
+var DEBUG = false;
+
+var Speeds;
+if (isMole)
+    Speeds = new Array (1);
+else
+    Speeds = new Array($O(1.2.8.11,JL));
+
+window.scrollTo(0,0);
+
+
+var PageTitle = "$RSTR(basicset)";
+var PageHelp = "$RSTR(basicset_help)";
+
+function setDe ()
+{
+     submit ("OidSB7.8", "de-de");
+     reloadLater();
+}
+
+function setEn ()
+{
+     submit ("OidSB7.8", "en-us");
+     reloadLater();
+}
+
+function setZh ()
+{
+     submit ("OidSB7.8", "zh-chs");
+     reloadLater();
+}
+
+function writeLang ()
+{
+    var out;
+
+    
+
+    out = '<tr>'
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input" helpbold="$RSTR(lang)" myhelp="$RSTR(lang_help)"><span style="margin-right:185">$RSTR(lang) </span>'
+     	+ '<a class="flag" onClick="setEn();"><img src="en_flag.gif"></a>'
+	
+	+ '<a class="flag" onClick="setZh();"><img src="zh_flag.gif"></a>'
+	+ '</td></tr>';
+    document.write (out);
+}
+
+function writeACmode ()
+{
+     if (isIQ04x)
+	 document.write ('<tr><td class="left">&nbsp;</td><td class="input">$RSTR(acamode) $O(1.2.12.1,JSB)</td></tr>');
+}
+
+function writeFrontLED()
+{
+    if (isIQ04x) {
+	var out = '<tr><td class="left">&nbsp;</td><td class="input"';
+	out += ' helpbold="$RSTR(fled)" myhelp="$RSTR(fled_help)">$RSTR(fled) $O(1.2.17,JSB)</td></tr>';
+	document.write(out);
+    }
+}
+
+var ACFreq = '$O(1.2.12.1)';
+ACFreq = ACFreq.toLowerCase();
+var AnaOut = '$O(1.2.29.4)';
+AnaOut = AnaOut.toLowerCase();
+
+function setACAout(field)
+{
+    submit ("OidSB1.2.29.4", "disabled");
+
+    if (field.options[field.selectedIndex].value == "60") {
+	
+	submit ("OidSB1.2.12.1", "60hz");
+	if (!isIQD3)
+	    submit ("OidSB1.2.29.4", "NTSC");
+    }
+    else {
+	
+	submit ("OidSB1.2.12.1", "50hz");
+	if (!isIQD3)
+	    submit ("OidSB1.2.29.4", "PAL");
+    }
+}
+
+function writeACAout()
+{
+    var out;
+
+    if (!hasAnalogOut) return;
+
+    out = '<tr><td class="left">&nbsp;</td><td class="input" helpbold="$RSTR(acamode)" myhelp="$RSTR(acamode_help)">$RSTR(acamode) ';
+
+    out += '<select name="acaout" id="acaout" onChange="setACAout(this);">';
+    out += '<option ';
+    if (ACFreq == "60hz")
+	out += 'selected';
+    if (isIQD3)
+	out += ' value="60">60hz';
+    else
+	out += ' value="60">60hz - ntsc';
+    out += '<option ';
+    if (ACFreq == "50hz")
+	out += 'selected';
+    if (isIQD3)
+	out += ' value="50">50hz';
+    else
+	out += ' value="50">50hz - pal';
+    out += '</select></td></tr>';
+    document.write (out);
+}
+
+function setAout(field)
+{
+    if (field.options[field.selectedIndex].value == "enabled") {
+	
+	var acfield = getObject("acaout");
+	var which;
+	if (acfield.options[acfield.selectedIndex].value == "60")
+	    which = "ntsc";
+	else
+	    which = "pal";
+	submit ("OidSB1.2.29.4", which);
+    }
+    else {
+	submit ("OidSB1.2.29.4", "disabled");
+    }
+}
+
+function writeAout ()
+{
+    var out;
+    var on = true;
+
+    if (!hasAnalogOut) return;
+
+    out = '<tr><td class="left">&nbsp;</td><td class="input" helpbold="$RSTR(aout)" myhelp="$RSTR(aout_help)">$RSTR(aout) ';
+
+    out += '<select name="aout" id="aout" onChange="setAout(this);">';
+    out += '<option ';
+    if (AnaOut.toLowerCase() == "disabled") {
+	on = false;
+	out += 'selected';
+    }
+    out += ' value="disabled">$RSTR(disabled)';
+    out += '<option ';
+    if (on)
+	out += 'selected';
+    out += ' value="enabled">$RSTR(enabled)';
+    out += '</select></td></tr>';
+    document.write (out);
+}
+
+function writeReplay ()
+{
+    if (replay == false) return;
+    var out;
+    out = '<tr>'
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input">$RSTR(replayctrls) $O(1.15.1,JSB)</td></tr>';
+    document.write (out);
+}
+
+
+var isMonochrome = ('$O(1.2.13)'=='ENABLED') ? true:false;
+function preSetEcam(field) {
+    if (field.name == "OidTB1.2.21" && !isMole) { 
+	if (field.value==0.0 && !isMonochrome) { 
+	    setEcam2("OidSB1.2.13", "ENABLED");
+	    isMonochrome = true;
+	}
+	if (field.value>0.0 && isMonochrome) { 
+	    setEcam2("OidSB1.2.13", "DISABLED");
+	    isMonochrome = false;
+	}
+    }
+}
+
+
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)" onClick="return imageFactory();"'
+    + ' onMouseOver=\'window.status="restore defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resdef)</a></li>\n';
+
+function iq73Factory ()
+{
+    submit (
+	    "OidTR7.8", "default", 
+	    "OidTR2.4", "default", 
+	    "OidTR1.2.12.1", "default", 
+	    "OidTR1.2.29.4", "default", 
+	    "OidTR2.17", "default" 
+	);
+}
+
+function iqD3Factory ()
+{
+    submit (
+	    "OidTR7.8", "default", 
+	    "OidTR2.4", "default", 
+	    "OidTR1.2.12.1", "default" 
+	);
+}
+
+function iq04xFactory ()
+{
+    submit ("OidTR1.2.7", "default", 
+	    "OidTR1.2.31", "default", 
+	    "OidTR7.8", "default", 
+	    "OidTR2.4", "default", 
+	    "OidTR1.2.12.1", "default", 
+	    "OidTR1.11.1.8.1", "default", 
+	    "OidTR1.11.1.9.1", "default", 
+	    "OidTR1.2.17", "default",
+	    "OidTR2.17", "default" 
+     ) 
+}
+
+
+function iq54xFactory ()
+{
+    submit ("OidTR1.2.7", "default", 
+	    "OidTR1.2.31", "default", 
+	    "OidTR7.8", "default", 
+	    "OidTR2.4", "default", 
+	    "OidTR1.2.12.1", "default", 
+	    "OidTR1.2.29.4", "default", 
+	    "OidTR1.11.1.8.1", "default", 
+	    "OidTR1.11.1.9.1", "default", 
+	    "OidTR2.17", "default" 
+	);
+}
+
+
+
+function imageFactory() {
+    var msg = '$RSTR(promptimgfact)';
+    if (confirm(msg)) {
+	if (isIQD3) {
+	    iqD3Factory ();
+	}
+	else if (isIQ73) {
+	    iq73Factory ();
+	}
+	else if (isIQ04x) {
+	    iq04xFactory ();
+	}
+	else if (isIQ54x) {
+	    iq54xFactory ();
+	}
+	else {
+	    
+	    submit("OidCB1.2.14","ON","OidCB1.2.9.3","ON");   
+	}
+        reloadLater();
+    }
+    return false;
+}
+
+function setPage (field) {
+    setEcam2("OidTB7.2", field.options[field.selectedIndex].value);
+    return false;
+}
+
+function writePageSelect ()
+{
+    if (!isFalcon) {
+	if (!isIQeye7 || !hasCameo) return;
+    }
+    if (isFalcon) return; 
+
+    var curPage = '$O(7.2)';
+    
+    var out = "";
+    out += '<tr><td class="left">&nbsp;</td>';
+    out += '<td class="input" helpbold="$RSTR(hmpg)" myhelp="$RSTR(hmpg_help)">$RSTR(hmpg) ';
+    
+    if (isFalcon) {
+	out += '$O(17.5.2,JSB)';
+    }
+    else {
+	out += '<select id="pageSelect" onChange="setPage(this);">';
+	
+	out += '<option ';
+	if (curPage == "index.html") out += 'selected ';
+	out += 'value="index.html">$RSTR(live)</option>';
+	
+	
+	
+	out += '<option ';
+	if (curPage == "cameo.html") out += 'selected ';
+	out += 'value="cameo.html">$RSTR(cameo)</option>';
+	
+	out += '</select>';
+    }
+    out += '</td></tr>';
+    document.write (out);
+}
+
+
+var ImageCnt = 0;
+function onNewImage () 
+{
+     ImageCnt++;
+     window.status = "Images: " + ImageCnt;
+}
+
+var maxWidth = $O(1.2.18.3); 
+var maxHeight= $O(1.2.18.4); 
+var ds = $O(1.2.2);
+
+var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+			    Math.ceil(maxHeight/322));
+
+var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+
+
+
+var dsfactor = Math.max(ds,ds_necessary);
+
+
+var dsreq = ds_necessary;
+var initX = $IF($V(IQEYE6),$O(1.2.6.4),$O(1.2.18.6));
+var initY = $IF($V(IQEYE6),$O(1.2.6.1),$O(1.2.18.5));
+var imWidth =  Math.floor(maxWidth/ds_float);
+var imHeight = Math.floor(maxHeight/ds_float);
+var numWindows = 1; 
+var currBox = 1;
+var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+
+
+function unloadHandler() {
+    suspendUpdate = true;
+    unloading = true;
+
+    if (!UseActiveX()) 
+         stopApplet();
+    else {
+	var ocx = de("Iqeye1");
+	if (ocx)
+	    ocx.StopDownload();
+    }
+    window.status="";
+    return true;
+}
+
+
+function writeOverlay()
+{
+    if (isMole) return;
+    if (isIQD3) return;
+
+    var val = "$DEF(foo,$O(1.2.9.1.9.2))$RPL(",&quot;,$V(foo))"; 
+    var out = "";   
+
+    out += '<tr>' 
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input" helpbold="$RSTR(timestamp)" myhelp="$RSTR(timestamp_help)">$RSTR(timestamp) $O(1.2.9.1.8.1,JSB)</td>'
+	+ '</tr>'
+	+ '<tr> '
+	+ '<td class="left">&nbsp;</td>'
+	+ '<td class="input" helpbold="$RSTR(overtxt)" myhelp="$RSTR(overtxt_help)">$RSTR(overtxt) '
+	+ '<input type="text" name="OidTB1.2.9.1.9.2"' 
+	+ 'value="' + val + '"'
+	+ 'size="31" onChange="setEcam(this)"></td>'
+	+ '</tr>';
+    document.write (out);
+}
+
+</script>
+</head>
+
+<body onUnload="unloadHandler()"> 
+
+<noscript><font color="#ff0000">
+<b>You must enable Javascript for this page to work properly.</b></font>
+</noscript>
+
+<form name="myform" onSubmit="return false" action="">
+
+<!-- each row has 4 tds: a border on each side, and the 2 tds of content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("basic"); </script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+	  writeCroppedImage();
+       </script>
+      </td>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+           <tr>
+             <td class="subtitleleft"><img src="1pixclear.gif" width=8 height=1></td>
+             <td height=20 class="subtitleleft">
+               <span id=sendState name=sendState>&nbsp;</span></td></tr>
+             </td></tr>
+
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+  <script>
+      document.write('<li id="current"><a href="basicset.html">$RSTR(basic)</a></li>');
+      document.write('<li><a href="advimage.html">$RSTR(advanced)</a></li>');
+      if (has264Support)
+	  document.write('<li><a href="h264.html">H.264</a></li>');
+  </script> 
+  </ul></td>
+</tr>
+
+           $IF($V(IQ06),<!--,)
+           $IF($V(IQEYE4),
+           <tr>
+	     <td class="startsubleft">&nbsp;</td>
+	     <td class="startsubw">$RSTR(genset)
+                <script>
+                 writeHelpIcon("GenSet");</script>
+             </td>
+           </tr>
+           ,
+           <tr>
+             <td class="startsubleft">&nbsp;</td>
+             <td class="startsubw">$RSTR(bimgset)
+                <script>
+                 writeHelpIcon("ImageSet");</script></td></tr>
+           )
+
+           <tr>
+             <td class="left">&nbsp;</td>
+	     <td class="input" helpbold="$RSTR(quality)" myhelp="$RSTR(quality_help)">$IF($V(IQEYE4),$RSTR(imqual),$RSTR(quality)) <script>writeQuality();</script></td></tr> 
+
+           $IF($V(MAXFPS),,<!--)
+           <tr>
+             <td class="left">&nbsp;</td>
+             <td class="input" helpbold="$RSTR(maxrate)" myhelp="$RSTR(maxrate_help)">$RSTR(maxrate) $O(1.2.31,JTB)</td>
+           </tr>
+           $IF($V(MAXFPS),,-->)
+
+           $IF($V(IQ06),-->,)
+
+           $IF($V(IQEYE4),<!--,)
+
+           <tr>
+	     <td class="$IF($V(IQ06),startsubleft,left)">&nbsp;</td>
+	     <td class="$IF($V(IQ06),startsubw,midsubw)"
+helpanchor="GenSet" helpsub="$RSTR(genset)">$RSTR(genset)
+                <script>
+                 writeHelpIcon("GenSet");</script>
+             </td>
+           </tr>
+           $IF($V(IQEYE4),-->,)
+           
+
+	   <script>writeLang();</script>
+
+           <tr>
+             <td class="left">&nbsp;</td>
+             <td class="input" helpbold='$RSTR(name)' myhelp="$RSTR(name_help)">$SP $RSTR(name) $O(2.4,JTB16)</td></tr>
+
+
+	   <script>writeACAout();</script>
+
+	   $IF($V(IQD3),,<!--)
+           <tr> 
+             <td class="left">&nbsp;</td>
+             <td class="input" helpbold="$RSTR(fled)" myhelp="$RSTR(fled_help)">$RSTR(fled) $O(1.2.17,JSB)
+             </td>
+           </tr>
+	   $IF($V(IQD3),,-->)
+
+	   <script>writeAout();</script>
+
+           $IF($V(IQEYE4),
+
+           <script>
+           writeACmode();
+           writeFrontLED();
+           </script>
+           <tr> 
+             <td class="endsubleft">&nbsp;</td>
+           <script>writeTZSelect("endsub");</script>
+           </td></tr>
+           ,
+	     <script>writePageSelect();writeOverlay();</script>
+           <tr> 
+             <td class="endsubleft">&nbsp;</td>
+           <script>writeTZSelect("endsub");</script>
+             </td></tr>
+           )
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left">
+      </td></tr> <!-- end bottom left content -->
+
+         </form>
+    </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+<script> 
+  writeFooter('myDefaults');
+  var thresh = "$O(1.2.8.19.1,R)";
+  if (!daynight && (thresh.toLowerCase() == "enabled")) {
+     // cannot adjust the following if using thresholds
+     document.myform["quality"].disabled = true;
+     if (isIQeye6 && !isFalcon) {
+          document.myform["OidTB1.2.31"].disabled = true;
+     }
+     else {
+          document.myform["OidTB1.2.3"].disabled = true;
+     }
+  }
+</script>
+  <!-- commented out for non-iqeye6 and iqeye5 -->
+  $IF($V(MAXFPS),,<!--)
+<script> 
+  if (!isFalcon) document.myform["OidTB1.2.31"].value = frameRateVal("$O(1.2.31,B)");
+</script>
+  $IF($V(MAXFPS),,-->)
+   
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</body>
+</html>

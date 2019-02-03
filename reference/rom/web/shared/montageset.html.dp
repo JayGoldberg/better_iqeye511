@@ -1,0 +1,313 @@
+<!-- Copyright (C) 2006 - 2007 IQinVision -->
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1"
+http-equiv="content-type">
+<title>$SP $SN: Cameo View</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- style sheet overrides -->
+<!-- redefine the input width smaller -->
+<style type="text/css">
+input {font-size: 12px; width: 100px;
+    background-color: white;
+    margin: 0px 2px 0px 3px; padding-right: 0px;
+    border: solid 1px black;}
+</style>
+
+<script src="lib.js"></script>
+<script src="gui.js" ></script>
+<script src="vid.js" ></script>
+<script src="boxes.js"></script> 
+<script src="montage.js"></script>
+<script>
+
+
+var CfgPage = true;
+
+var myDefaultsHref = 
+    '<li><a href="javascript:void(0)" onClick="return SetDflts();"'
+    + ' onMouseOver=\'window.status="restore defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'restore factory defaults</a></li>\n';
+
+var FramesLastPeriod = 0;
+var FpsPeriod = 3000;
+var FpsSecs = 3;
+var LastFps = 0;
+
+
+function updateFPS() 
+{
+    var frames = theOCX_m().FramesDisplayed();
+    var fps = Math.ceil((frames-FramesLastPeriod) / FpsSecs);
+    LastFps = fps;
+    FramesLastPeriod = frames;
+    setTimeout ("updateFPS()", FpsPeriod);
+    for (i = 0; i < Regions.length; i++) {
+	UpdateLabel (i);
+    }
+}
+
+
+
+
+function submitNoThread(n0,v0) {
+    var name = n0, val = v0;
+    if (arguments.length>2) {
+        for (var n=2;n<arguments.length; n+=2) {
+            val +=  "&" + arguments[n] + "=" + arguments[n+1];
+        }
+    }
+    
+    
+    var ind = 0;
+    while (commandBuffer[ind].name != null) ind = (++ind)%commandBufferSize;
+
+    commandBuffer[ind].name = name;
+    commandBuffer[ind].val  = val;
+    sendCommand(ind);
+    return false;
+}
+
+
+function SetDflts ()
+{
+    var x, y;
+    
+    x = 0;
+    y = 0;
+    for (i = 0; i < Regions.length; i++) {
+	with (Regions[i]) {
+	    source_left = x;
+	    source_top = y;
+	    if (i == 0) {
+		
+		source_width = camera_width;
+		source_height = camera_height;
+		fps = 1;
+		label = '$O(2.4)';
+	    }
+	    else {
+		source_width = grid_width;
+		source_height = grid_height;
+		fps = 0;
+		label = 'view ' + i;
+		
+		x += source_width + 10;
+	    }
+	    CameoSave (i);
+	}
+    }
+    reloadLater ();
+    return false;
+}
+
+
+function DrawLabel (idx, x, y)
+{
+    var out;
+    
+    out = '<span id="gridlabel' + idx + '" style="position: absolute; left: ' + x + 'px; top: ' + y + 'px; z-index: 3"></span>';
+    out += '<span style="position: absolute; left: ' + x + 'px; top: ' + (y+20) + 'px; z-index: 1">Label:<input onchange="return SetLabel('+idx+', this)" value="' + Regions[idx].label + '" /></span>';
+    return out;
+}
+
+
+function SetFps (idx, field)
+{
+    Regions[idx].fps = field.value;
+    theOCX_m().MontageSetFPS (idx, field.value);
+    MontageSaveFPS (idx);
+    return true;
+}
+
+
+function SetLabel (idx, field)
+{
+    Regions[idx].label = field.value;
+    CameoSaveLabel (idx);
+    return true;
+}
+
+
+function UpdateLabel (idx)
+{
+    var label = "gridlabel"+idx;
+    var factor = Regions[0].source_width / Regions[idx].source_width;
+    
+    factor = Math.round(factor * 100)/100;
+    var fps = Regions[idx].fps;
+    if (fps == 0) fps = LastFps;
+    var out = "zoom: " + factor + "x&nbsp&nbsp" + "fps: ";
+    out += fps;
+    
+    
+    document.getElementById (label).innerHTML = out;
+}
+
+function theOCX_m() {
+    if (!isIE) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1_m");
+}
+
+
+function InitBoxes ()
+{
+    BoxInit ('CtlDiv', 'boxes', FULL_WIDTH, FULL_HEIGHT,
+	     Regions.length, 1, DSfactor);
+
+    BoxSetDim (0, 0, 0, 0, 0);
+    BoxSetBROnly (true);
+    BoxSetMulti (true);
+
+    
+    for (i = 1; i < Regions.length; i++) {
+	with (Regions[i]) {
+	    BoxSetDim (i, 
+		       source_left,
+		       source_top,
+		       source_width,
+		       source_height);
+	    BoxSetColor (i, color);
+	    BoxSetVisible (i, true);
+	}
+    }
+    
+    DrawBoxes ();
+}
+
+
+function BoxUpdated (box)
+{
+    var dim = BoxGetDim (box);
+
+    
+    var source_ratio = dim.width / dim.height;
+    var grid_ratio = Regions[box].grid_width / Regions[box].grid_height;
+    if (source_ratio < (grid_ratio - 0.01) ||
+	source_ratio > (grid_ratio + 0.01)) {
+	
+	dim.width = Math.round(dim.height * grid_ratio);
+	BoxSetDim (box, dim.left, dim.top, dim.width, dim.height);
+	DrawBoxes ();
+	dim = BoxGetDim (box);
+    }
+
+    Regions[box].source_left   = dim.left;
+    Regions[box].source_top    = dim.top;
+    Regions[box].source_width  = dim.width;
+    Regions[box].source_height = dim.height;
+    ScaleRegion (box);
+    CameoAdd (box);
+    CameoSave (box);
+    UpdateLabel (box);
+}
+
+
+function BoxMouseReleasedAtFoo (event, pos)
+{
+    
+
+    for (i = 1; i < Regions.length; i++) {
+	if (pos.x >= Regions[i].grid_left &&
+	    pos.y >= Regions[i].grid_top &&
+	    pos.x <= (Regions[i].grid_left + Regions[i].grid_width) &&
+	    pos.y <= (Regions[i].grid_top + Regions[i].grid_height)) {
+	    
+	    BoxSetCur (i);
+	    
+	    DrawBoxes ();
+	    DrawFrames ();
+	    break;
+	}
+    }
+}
+
+
+function CameoSave (index)
+{
+    with (Regions[index]) {
+	submitNoThread (
+	    'OidTB17.6.1.1.1.' + index,
+	    source_left,
+	    'OidTB17.6.1.1.2.' + index,
+	    source_top,
+	    'OidTB17.6.1.1.3.' + index,
+	    source_width,
+	    'OidTB17.6.1.1.4.' + index,
+	    source_height,
+	    'OidTB17.6.1.3.' + index,
+	    label,
+	    'OidTB17.6.1.2.' + index,
+	    fps);
+    }
+}
+
+
+function CameoSaveFPS (index)
+{
+    with (Regions[index]) {
+	submitNoThread ('OidTB17.6.1.2.' + index, fps);
+    }
+}
+
+
+function CameoSaveLabel (index)
+{
+    with (Regions[index]) {
+	submitNoThread ('OidTB17.6.1.3.' + index, label);
+    }
+}
+
+
+function LoadHandler()
+{
+    var livepos = GetElementPosition ("CtlDiv");
+    MainwinLeft = livepos.x;
+    MainwinTop  = livepos.y;
+    InitBoxes();
+    DrawFrames();
+    setTimeout ("updateFPS()", FpsPeriod);
+}
+
+</script>
+</head>
+
+<body onload="LoadHandler();">
+<form name="myform" onSubmit="return false" action="">
+  <table class="main" cellspacing=0 cellpadding=0 width=820>
+    <script>writeMontageHeader("montage config"); </script>
+    <tr>
+      <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+      <td colspan=2 valign="center" align="center">
+          <img src="1pixclear.gif" width=1 height=15>
+        <table cellspacing=0 cellpadding=0
+          style="margin-top: 0; margin-left: 0;
+          border-top: solid 0 #DDD; border-right: solid 0 #BBB;
+          border-bottom: solid 0 #BBB; border-left: solid 0 #DDD;
+          background: #ffffff;">
+
+          <script language="JScript"> 
+            CreateCameo ();
+            document.write('<span id="boxes"></span>');
+	    document.write('<span id="grids"></span>');
+          </script>
+          <img src="1pixclear.gif" width=1 height=25>
+
+        </table>
+      </td>
+      <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+    </tr>
+
+    <script>writeFooter('myDefaults');</script>
+    <tr>
+      <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+      <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+      <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

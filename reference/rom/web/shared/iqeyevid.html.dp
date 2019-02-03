@@ -1,0 +1,1289 @@
+<!-- Copyright (C) 2006 - 2014 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(titlelive)
+</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta name="author" content="Brian Lau, IQinVision">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+<link rel="stylesheet" type="text/css" href="style.css" />
+<style type="text/css">
+
+<!-- style sheet overrides -->
+
+html, body {
+  color: #333;
+  font-style: bold;}
+
+#mousecontrols {position: absolute; top: 96px; left: 117px; visibility: hidden;}
+
+#main {background: white;
+  margin: 0; padding: 0; margin-left: 12px; 
+  top: 76px;  left: 0;}
+
+li.menu  {background: #399 url(buttonm.gif) 0 0 no-repeat;}
+a.menu  {background: #399 url(buttonm.gif) 100% 0 no-repeat;}
+
+
+table.content {
+  clear: left;
+  }
+
+
+table.dptz a {padding: 0px 8px 1px 6px; margin-left: 0px;
+  text-decoration: none;  font-weight: 600; font-size: 16px; line-height: 18px;
+  color: white;
+  width:  .1em;}
+html>body a.dptz {width: auto;}    
+
+a.dptz {float: none;}            
+
+td.dptz {background: #EEE url(rose.gif) 0 100% no-repeat; padding: 1px 0 0 2px;}
+
+td.help a {padding: 0px 3px 0px 2px;
+  font-weight: 600; font-size: 10px; line-height: 12px;
+  background: #EEE url(helpt.gif) 100% 0 no-repeat;}
+html>body #help a {width: auto;}    
+
+td.subtitle a {float: none;}            
+td.subtitle a:hover {color: #FC6;}
+
+</style>
+
+<script  src="lib.js" ></script> 
+<script  src="gui.js" ></script>
+<script  src="vid.js" ></script>
+<script  src="plugin_detect.js" ></script>
+<script>
+
+$DEF(SIMPLE1, )
+$DEF(SIMPLE2, )
+
+    $IF($V(IQEYE4),$DEF(SIMPLE1, true),)
+    $IF($V(IQ06),$DEF(SIMPLE1, true),)
+    $IF($V(IQ06),$DEF(SIMPLE2, true),)
+
+  
+
+var FPS = false;
+var streamDptzParam = '<param name="StreamDptz" value="1"><param name="InternalDptz" value="1">\n';
+var logging = '<param name="Logging" value="0">\n';
+
+if (isIQeye6) {
+    
+    streamDptzParam = '<param name="StreamDptz" value="0">\n';
+}
+
+
+streamDptzParam += '<param name="Smoothing" value="1">\n';
+
+var FirstZoom = false;  
+var zoomFactor = 1.18920711500272106671; 
+var CurZoom = 1.0;  
+var panFactor = 50; 
+
+var sizeFactor = 2;
+var startedZooming = false; 
+var zooming = true;         
+var startedPanning = false; 
+var panning = true;         
+var streaming = true;       
+var recording = false;      
+var record_seconds = 0;     
+var record_stoptime = 0;    
+var BlinkIsOn = false;
+var BtnIsStart = false;     
+var SimpleIface = (isMole || isFalcon); 
+
+var Res264Low    = false;   
+var Res264Width  = 0;       
+var Res264Height = 0;
+
+function theOCX() {
+    if (!isIE && !useFlash) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1");
+}
+
+
+function showError(string) {
+    window.status = string;
+    setTimeout('window.status=""',1000);
+}
+
+
+function handleError(errorText) {
+    if (errorText=="center") showError("already centered");
+    else if (errorText=="maxsize") {
+	if (SimpleIface) {
+	    
+	    sizeDown (4);
+	}
+	else {
+	    showError("already at maximum size");
+	}
+    }
+    else if (errorText=="minsize") {
+	if (SimpleIface) {
+	    
+	    sizeUp (4);
+	}
+	else {
+	    showError("at end of range");
+	}
+    }
+    else if (errorText=="maxzoom") showError("at maximum zoom");
+    else if (errorText=="minzoom") showError("at minimum zoom");
+    else if (errorText=="maxdownsample") showError("at maximum downsample");
+    else if (errorText=="maxFOV") showError("at maximum field of view");
+    else if (errorText=="topboundary") showError("at top edge");
+    else if (errorText=="bottomboundary") showError("at bottom edge");
+    else if (errorText=="leftboundary") showError("at left edge");
+    else if (errorText=="rightboundary") showError("at right edge");
+}
+
+function launchHelpPage() {
+    window.open("iqeyevidhelp."+Culture+".html","dptzhelp",
+		"height=600,width=640,scrollbars");
+    return false;
+}
+
+function zoomIn(factor) {
+    CurZoom *= factor;
+    if (theOCX()) theOCX().ZoomIn(factor);
+    return false;
+}
+function zoomOut(factor) {
+    CurZoom /= factor;
+    if (CurZoom <= 1.0) {
+	
+	CurZoom = 1.0;
+	zoomOutMax();
+    }
+    else {
+	if (theOCX()) theOCX().ZoomOut(factor);
+    }
+    return false;
+}
+function moveUp(factor) {
+    if (theOCX()) theOCX().TiltUp(factor);
+    return false;
+}
+function moveDown(factor) {
+    if (theOCX()) theOCX().TiltDown(factor);
+    return false;
+}
+function moveLeft(factor) {
+    if (theOCX()) theOCX().PanLeft(factor);
+    return false;
+}
+function moveRight(factor) {
+    if (theOCX()) theOCX().PanRight(factor);
+    return false;
+}
+
+function panLeftThread() {
+    if (!panning) return;
+    startedPanning = true;
+    moveLeft(1);
+    setTimeout("panLeftThread()", 25);
+}
+function panRightThread() {
+    if (!panning) return;
+    startedPanning = true;
+    moveRight(1);
+    setTimeout("panRightThread()", 25);
+}
+function panUpThread() {
+    if (!panning) return;
+    startedPanning = true;
+    moveUp(1);
+    setTimeout("panUpThread()", 25);
+}
+function panDownThread() {
+    if (!panning) return;
+    startedPanning = true;
+    moveDown(1);
+    setTimeout("panDownThread()", 25);
+}
+function zoomInThread() {
+    if (!zooming) return;
+    startedZooming = true;
+    zoomIn(1.01);
+    setTimeout("zoomInThread()", 25);
+}
+function zoomOutThread() {
+    if (! zooming) return;
+    startedZooming = true;
+    zoomOut(1.01);
+    setTimeout("zoomOutThread()", 25);
+}
+
+function startPanLeft() {
+    document.alinkColor=$V(COLOR);
+    panning = true;
+    setTimeout("panLeftThread()", 250);
+    return false;
+}
+function startPanRight() {
+    document.alinkColor=$V(COLOR);
+    panning = true;
+    setTimeout("panRightThread()", 250);
+    return false;
+}
+function startPanUp() {
+    document.alinkColor=$V(COLOR);
+    panning = true;
+    setTimeout("panUpThread()", 250);
+    return false;
+}
+function startPanDown() {
+    document.alinkColor=$V(COLOR);
+    panning = true;
+    setTimeout("panDownThread()", 250);
+    return false;
+}
+function startZoomIn() {
+    document.alinkColor=$V(COLOR);
+    zooming = true;
+    if (FirstZoom == false) doFirstZoom (true);
+    setTimeout("zoomInThread()", 250);
+    return false;
+}
+function startZoomOut() {
+    zooming = true;
+    setTimeout("zoomOutThread()", 250);
+    return false;
+}
+
+
+function doFirstZoom (first) {
+    
+    if (!streaming || recording) return;
+    FirstZoom = first;
+
+    if (isIQeye7 && haveVsmac != "1") {
+	stopDownload();
+	startDownload();
+    }
+
+}
+
+function stopPan() {
+    panning = false;
+    startedPanning = false;
+    return false;
+}
+function stopPanLeft() {
+    if (! startedPanning) moveLeft(panFactor);
+    return stopPan();
+}
+function stopPanRight() {
+    if (! startedPanning) moveRight(panFactor);
+    return stopPan();
+}
+function stopPanUp() {
+    if (! startedPanning) moveUp(panFactor);
+    return stopPan();
+}
+function stopPanDown() {
+    if (! startedPanning) moveDown(panFactor);
+    return stopPan();
+}
+function stopZoom() {
+    zooming = false;
+    startedZooming = false;
+    return false;
+}
+function stopZoomOut() {
+    if (! startedZooming) zoomOut(zoomFactor);
+    return stopZoom();
+}
+function stopZoomIn() {
+    if (! startedZooming) zoomIn(zoomFactor);
+    return stopZoom();
+}
+function stopThreads() {
+    stopZoom();
+    stopPan();
+    return false;
+}
+
+
+function zoomOutMax() {
+    doFirstZoom (false);
+    if (theOCX()) theOCX().ZoomTo(1.0);
+    return false;
+}
+
+function saveAs() {
+    var streamingTemp = streaming;
+    if (streaming) stopDownload(); 
+    if (isIQeye7) {
+	
+	theOCX().URL = "/now.jpg?snap=pre?ds=1";
+    }
+    if (theOCX()) theOCX().SaveAs();
+    if (streamingTemp) startDownload();  
+    return false;
+}
+
+var Record264CtlCreated = false;
+
+function startRecord () 
+{
+    if (Doing264) {
+	if (Record264CtlCreated == false) {
+	    
+	    
+	    Create264RecordControl ("RecordingCtl", 
+				    Res264Low ? "rtsp/now.mp4?res=low" : "rtsp/now.mp4?mm=v",
+				    "Iqeye1", 1);
+	    Record264CtlCreated = true;
+	}
+	else theOCX().URL = Res264Low ? "/rtsp/now.mp4?res=low" : "/rtsp/now.mp4?mm=v";
+    }
+    if (theOCX()) {
+        var rv;
+        var args = new Array;
+        var record_string;
+
+        
+        zoomOutMax ();
+
+        
+      
+	if (Doing264) {
+	    args[0] = Res264Width;
+	    args[1] = Res264Height;
+	    rv = window.showModalDialog ("record_dlg264.html", args,
+					 "status:false;dialogWidth:300px;dialogHeight:200px;unadorned:1;help:0;");
+	    if (rv == 0) {
+		theOCX().StopDownload ();
+		Destroy264RecordControl ("RecordingCtl");
+		return false; 
+	    }
+	    if (isNaN(args[1])) {
+		theOCX().StopDownload ();
+		Destroy264RecordControl ("RecordingCtl");
+		alert ("Invalid duration " + args[1]);
+		return false;
+	    }
+	}
+	else {
+	    theOCX().StopDownload ();
+
+	    
+	    rv = window.showModalDialog ("record_dlg.html", args,
+					 "status:false;dialogWidth:300px;dialogHeight:200px;unadorned:1;help:0;");
+	    
+	    if (rv == 0) {
+		theOCX().StartDownload ();
+		return false; 
+	    }
+	    
+	    if (isNaN(args[0])) {
+		alert ("Invalid framerate " + args[0]);
+		theOCX().StartDownload ();
+		return false;
+	    }
+	    
+	    if (isNaN(args[1])) {
+		alert ("Invalid duration " + args[1]);
+		theOCX().StartDownload ();
+		return false;
+	    }
+	    
+	    record_string = "/now.jpg?snap=spush";
+	    if (args[0] != 0) {
+		var delay = 1.0/args[0];
+		record_string += delay;
+	    }
+	}
+
+        document.alinkColor=$V(COLOR);
+        getObject("stopstart").innerHTML = 
+           '<ul id="buttonm"><li class="menu">'
+             + '<a id="btn_stoprec" href="" class="menu" onClick="return stopRecord();"'
+	     + 'onMouseOver="window.status=\'$RSTR(stoprec)\'; return true;" '
+	     + 'onMouseOut="window.status=\'\'">&nbspSTOP&nbsp</a></li></ul>';
+        getObject("controls").style.visibility="hidden";
+        getObject("stopstart").style.visibility="visible";
+	HideSnapshot();
+
+	if (!isFalcon) {
+	    
+	    getObject("sizeUpGif").style.visibility="hidden";
+	    if (!SimpleIface) {
+		getObject("sizeDownGif").style.visibility="hidden";
+		getObject("sizeMaxGif").style.visibility="hidden";
+	    }
+	}
+     	getObject("vidclip").style.visibility="hidden";
+
+	if (!Doing264) {
+	    theOCX().URL = record_string;
+	}
+        var rv = theOCX().StartRecording('', 0);
+        if (rv != 0) {
+          var err_str = 'unknown error';
+	  if (rv == -1) err_str = 'already recording';
+	  else if (rv == -2) err_str = 'unable to create temp file';
+	  else if (rv == -3) err_str = 'unable to open file for writing';
+	  else if (rv == -4) err_str = 'unable to create the avi stream in the file';
+	  else if (rv == -5) err_str = 'unable to set the MJPEG stream format in the file';
+	  alert ("Recording error: " + err_str);
+          if (rv != -1) stopRecord ();
+        }
+        else {
+	    window.status = "Recording started...";
+	   recording = true;
+	   record_seconds = 0;
+	   if (args[1]) record_stoptime = args[1];
+           else record_stoptime = 0;
+	   setTimeout ("recordStats()", 1000);
+	   blinkerThread ();
+        }
+     }
+     return false;
+}
+
+function stopRecord () {
+
+     recording = false;
+     getObject("exp_blink").style.visibility="hidden";
+     BlinkIsOn = false;
+
+     
+     theOCX().StopDownload();
+     var rv = theOCX().StopRecording();
+     if (rv != 0) {
+	 var err_str = 'unknown';
+	 if (rv == -1) err_str = 'not recording';
+	 else err_str = 'rename error ' + rv;
+	 alert ("File error: " + err_str);
+     }
+
+     if (Doing264) {
+	 Destroy264RecordControl ("RecordingCtl");
+     }
+
+     window.status = "";
+     getObject("controls").style.visibility="visible";
+     ShowSnapshot();
+     startDownload ();
+
+     return false;
+}
+
+function recordStats() {
+     if (!recording) return;
+     record_seconds++;
+     if ((theOCX().Recording() == 0) || 
+         ((record_stoptime > 0) &&
+         (record_seconds > record_stoptime))) {
+        stopRecord ();
+	return;
+     }
+     var frames = theOCX().FramesRecorded();
+     var bytes = theOCX().BytesRecorded();
+     var free_left = theOCX().AvailableRecordingSpace();
+     var fps = frames / record_seconds;
+     fps = Math.floor (fps);
+     bytes = Math.ceil (bytes/1000000);
+     free_left = Math.ceil (free_left/1000000);
+     window.status = "Recorded " + Math.ceil(frames) + " Frames, " + bytes +
+" Megs at " + fps + " fps (" + free_left + " Megs Free)";
+     setTimeout ("recordStats()", 1000);
+}
+
+function blinkerThread ()
+{
+   if (!recording) {
+       getObject("exp_blink").style.visibility="hidden";
+       BlinkIsOn = false;
+       return;
+   }
+   if (BlinkIsOn) {
+      getObject("exp_blink").style.visibility="hidden";
+      setTimeout ("blinkerThread()", 500);
+      BlinkIsOn = false;
+   }
+   else {
+      getObject("exp_blink").style.visibility="visible";
+      setTimeout ("blinkerThread()", 1000);
+      BlinkIsOn = true;
+   }
+}
+
+var Talking = false;
+var TalkBlinkIsOn = false;
+
+function talkBlinkerThread ()
+{
+   if (!Talking) {
+       getObject("talkicon").style.visibility="hidden";
+       TalkBlinkIsOn = false;
+       return;
+   }
+   if (TalkBlinkIsOn) {
+       getObject("talkicon").style.visibility="hidden";
+       setTimeout ("talkBlinkerThread()", 500);
+       TalkBlinkIsOn = false;
+   }
+   else {
+       getObject("talkicon").style.visibility="visible";
+       setTimeout ("talkBlinkerThread()", 1000);
+       TalkBlinkIsOn = true;
+   }
+}
+
+function stopStart() {
+    if (isFalcon) {
+	stopDownload ();
+	
+	self.location = "still.html" + imageArgs() 
+	    + "?width=" + image.width + "?height=" +image.height
+	    + "?from=iqeyevid.html";
+	return false;
+    }
+    else {
+	if (BtnIsStart) {
+	    return startDownload();
+	}
+	else return stopDownload();
+    }
+}
+
+
+function stopDownload() {
+    BtnIsStart = true;
+    streaming = false;
+    document.alinkColor=$V(COLOR);
+    getObject("stopstart").innerHTML = 
+       '<ul id="buttonm"><li class="menu">'
+	+ '<a id="btn_start" href="" class="menu" onClick="return stopStart();"'
+	+ 'onMouseOver="window.status=\'$RSTR(startimstr)\'; return true;" '
+	+ 'onMouseOut="window.status=\'\'">$RSTR(START)</a></li></ul>';
+
+    if (!isFalcon) {
+	getObject("sizeUpGif").style.visibility="hidden";
+	if (!SimpleIface) {
+	    getObject("sizeDownGif").style.visibility="hidden";
+	    getObject("sizeMaxGif").style.visibility="hidden";
+	}
+	$IF($O(17.3.1),
+	    getObject("relay").style.visibility="hidden";
+	    ,)
+    }
+    getObject("vidclip").style.visibility="hidden";
+
+    if (Doing264) {
+	if (UseQT) de("264ctrl").Stop();
+	else de("264ctrl").playlist.stop();
+    }
+    else {
+	var flashObj = theOCX();
+	if (flashObj != null)
+	    {
+		flashObj.StopDownload();
+	    }
+    }
+    return false;
+}
+
+function startDownload() {
+    var fullspeed;
+
+    BtnIsStart = false;
+    streaming = true;
+    document.alinkColor=$V(COLOR);
+    getObject("stopstart").innerHTML = 
+       '<ul id="buttonm"><li class="menu">'
+	+ '<a id="btn_stop" href="" class="menu" onClick="return stopStart();"'
+	+ 'onMouseOver="window.status=\'$RSTR(ststim)\'; return true;" '
+	+ 'onMouseOut="window.status=\'\'">&nbsp$RSTR(STOP)&nbsp</a></li></ul>';
+    if (!isFalcon) {
+	getObject("sizeUpGif").style.visibility="visible";
+	if (!SimpleIface) {
+	    getObject("sizeDownGif").style.visibility="visible";
+	    getObject("sizeMaxGif").style.visibility="visible";
+	    $IF($O(17.3.1),
+		getObject("relay").style.visibility="visible";
+		,)
+	}
+    }
+    getObject("vidclip").style.visibility="visible";
+
+
+    if (Doing264) {
+	if (UseQT) de("264ctrl").Play();
+	else de("264ctrl").playlist.play();
+    }
+    else {
+	var flashObj = theOCX();
+	
+	if(flashObj != null) 
+	    {
+		
+		if (isIQeye7) 
+		    {
+			
+			if (FirstZoom) fullspeed = "/now.jpg?snap=spush?ds=1";
+			else fullspeed = "/" + imageString();
+		    }
+		else if (isIQeye6) 
+		    fullspeed = "/now.jpg?snap=spush";
+		else fullspeed = "/" + imageString();
+		
+		if (useFlash)
+		    {
+			
+			flashObj.SetURL(fullspeed);
+		    }
+		else
+		    {
+			theOCX().URL = fullspeed;
+		    }
+	    }
+    }
+    return false;
+}
+
+function recBlinkOn ()
+{
+    setVisibility ("rec_blink", "visible");
+    setTimeout ("recBlinkOff()", 1500);
+}
+
+function recBlinkOff ()
+{
+    setVisibility ("rec_blink", "hidden");
+    setTimeout ("recBlinkOn()", 500);
+}
+
+
+function setVisibility(objectID,state) {
+    var object = document.getElementById (objectID);
+    object.style.visibility = state;
+}
+
+var defaultStream = '$O(17.5.2)'.toLowerCase();
+
+function setStream (field)
+{
+    var val = field.options[field.selectedIndex].value;
+
+    if (Doing264) {
+	if (UseQT) de("264ctrl").Stop();
+	else de("264ctrl").playlist.stop();
+    }
+    setTimeout ('switchStream("'+val+'")', 500);
+}
+
+function switchStream(val)
+{
+    if (val == "MJPEG") {
+	CreateControl ("CtlDiv", imAttr, logging, streamDptzParam,
+		       isIQeye6, isIQeye7, imageString());
+	Doing264 = false;
+	HideMute ();
+	ShowSnapshot ();
+    }
+    else {
+	if (!Doing264) {
+	    if (theOCX()) theOCX().StopDownload();
+	}
+     	if (UseQT)
+	    CreateQT264Control ("CtlDiv", "264ctrl", val);
+	else
+	    CreateVLC264Control ("CtlDiv", "264ctrl", val);
+	Doing264 = true;
+	ShowMute ();
+	HideSnapshot ();
+	if (val == "low") {
+	    Res264Low = true;
+	    Res264Width  = '$O(1.17.9.1)';
+	    Res264Height = '$O(1.17.9.2)';
+	}
+	else {
+	    Res264Low = false;
+	    Res264Width  = '$O(1.17.8.1)';
+	    Res264Height = '$O(1.17.8.2)';
+	}
+    }
+}
+
+function writeStreamSelect ()
+{
+    if (!isFalcon) return;
+
+    var vlc = PluginDetect.getVersion ("VLC");
+    var qt = PluginDetect.getVersion ("QuickTime");
+    
+    
+    
+    if (vlc) HaveVLC = true;
+    if (qt) HaveQT = true;
+    Check264();
+    
+    
+    if (!CanDo264) return;
+    if (PrimaryH264Width <= 1) return; 
+    var out;
+    
+    out = '<select style="margin-left: 20px" onChange="setStream(this);">';
+    out += '<option ';
+    if (defaultStream == 'mjpeg') 
+	out += 'selected ';
+    out += 'value="MJPEG">MJPEG';
+    out += '<option ';
+    if (defaultStream == 'h264') 
+	out += 'selected ';
+    out += 'value="hi">H.264';
+    if (SecondaryH264Width > 1) 
+	out += '<option value="low">H.264 low res';
+    out += '</select>';
+    document.write (out);
+}
+
+
+var FramesLastPeriod = 0;
+var FpsPeriod = 3000;
+var FpsSecs = 3;
+function updateFPS() {
+     if (FPS && !recording && theOCX()) {
+	  var frames = theOCX().FramesDisplayed();
+	  var fps = Math.ceil((frames-FramesLastPeriod) / FpsSecs);
+	  window.status = "Displaying " + fps + " fps";
+	  FramesLastPeriod = frames;
+          setTimeout ("updateFPS()", FpsPeriod);
+     }
+}
+
+getArgs();			
+
+
+function workaround()
+{
+    
+    if (!Doing264) {
+	window.document.all.item("Iqeye1").style.display = "none";
+	window.document.all.item("Iqeye1").style.display = "";
+    }
+}
+
+function loadHandler ()
+{
+    setVisibility('mousecontrols','hidden');
+    if (isIQ04x) {
+	
+	de ("tdbg").style.background= "url('iqsign.gif') no-repeat bottom right";
+    }
+    if (SimpleIface) {
+	
+	de ("exp_blink").style.top = "-25";
+    }
+    if ("$O(1.13.11, R)"=="ENABLED" &&
+	"$O(1.13.20, R)"=="TRUE") {
+	if ("$O(18.1)"=="DEMO") {
+	    var str = '$RSTR(DemoRecording)';
+	    var hours_left_str = '$O(18.7,R)';
+	    var hours_left = parseInt(hours_left_str);
+	    
+	    if (!isNaN(hours_left) && hours_left > 0) {
+		if (hours_left < 24) {
+		    str += ' - ' + hours_left + ' ' + '$RSTR(hrrem)';
+		}
+		else {
+		    var days_left = Math.round(hours_left / 24);
+		    str += ' - ' + days_left + ' ' + '$RSTR(dayrem)';
+		}
+	    }
+	    
+	    de ("rec_blink").innerHTML = str;
+	}
+	recBlinkOn ();
+    }
+}
+
+function startTalking ()
+{
+     var ocx = theOCX();
+     if (!ocx) {
+	 CreateAudioControl ("AudioCtl", "Iqeye1", 1);
+	 ocx = theOCX();
+     }
+     ocx.AudioSendStart ("/audiorx.cgi");
+     Talking = true;
+     talkBlinkerThread ();
+     return false;
+}
+
+function stopTalking ()
+{
+     var ocx = theOCX();
+     if (ocx) {
+	 theOCX().AudioSendStop ();
+     }
+     Talking = false;
+     return false;
+}
+
+var AudioOut = '$O(1.9.6,R)'.toLowerCase();
+
+function WriteTalk()
+{
+    var outstring = "";
+
+    if (!isFalcon || AudioOut != "enabled") {
+	return;
+    }
+
+    outstring += '<td style="offset-top:-5px; padding-right:20px; padding-left:20px;">'
+	+ '<ul id="buttonm"><li class="menu">'
+	+ '<a id="btn_talk" id="btn_talk" href="" class="menu"'
+	+ ' onClick="return false"'
+	+ ' onMouseDown="return startTalking();"'
+	+ ' onMouseUp="return stopTalking();"'
+	+ ' onMouseOver=\'window.status="$RSTR(pushtalk)"; return true;\'' 
+	+ ' onMouseOut=\'window.status=""\'>$RSTR(TALK)</a></li></ul></td>';
+    outstring += '<td id="talkicon" style="visibility: hidden"><img src="mic.gif"></td>'
+    document.write (outstring);
+}
+
+var AudioIn = '$O(1.9.5,R)'.toLowerCase();
+var HasMute = false;
+var Muting = false;
+
+function HideMute ()
+{
+    if (HasMute) {
+	de("btn_mute").style.visibility = "hidden";
+	de("muteicon").style.visibility = "hidden";
+    }
+}
+
+function ShowMute ()
+{
+    if (HasMute) de("btn_mute").style.visibility = "visible";
+}
+
+function ShowSnapshot ()
+{
+    var btn = de("save_button2");
+    if (btn)
+	btn.style.visibility = "visible";
+}
+
+function HideSnapshot ()
+{
+    var btn = de("save_button2");
+    if (btn)
+	btn.style.visibility = "hidden";
+}
+
+
+function WriteMute()
+{
+    var outstring = "";
+
+    if (!isFalcon || AudioIn == "disabled") {
+	return;
+    }
+
+    HasMute = true;
+    Muting = false;
+
+    outstring += '<td>&nbsp</td><td id="btn_mute" style="visibility: hidden; padding-right:0px; padding-left:20px;">'
+	+ '<ul id="buttonm"><li class="menu">'
+	+ '<a href="" class="menu"'
+	+ ' onClick="return false"'
+	+ ' onMouseDown="return toggleMute();"'
+	+ ' onMouseOver=\'window.status="toggle mute"; return true;\'' 
+	+ ' onMouseOut=\'window.status=""\'>MUTE</a></li></ul></td>';
+    outstring += '<td id="muteicon" style="visibility: hidden"><img src="mute.gif"></td></tr>'
+    document.write (outstring);
+}
+
+function toggleMute()
+{
+    if (Doing264) {
+	Muting = !Muting;
+	de("muteicon").style.visibility = Muting ? "visible" : "hidden";
+	if (UseQT) {
+	    de("264ctrl").SetMute(Muting);
+	}
+	else {
+	    
+	    de("264ctrl").audio.mute = Muting;
+	}
+    }
+}
+
+</script>
+</head>
+
+<body onload="loadHandler();" onscroll="workaround();">
+
+<div id="plugindetect"></div>
+
+<!--   first one is oldest
+<div id="Image" 
+  style="position:absolute; left:12px; top:45px;">
+
+<div id="Image" 
+  style="position:absolute; left:12px; top:100px;">   
+-->
+
+<form name="myform" action="">
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+  <script>
+  writeViewingHeader("live"); 
+  
+  function textTab(name, desc, link, onoff) {
+       var outString = (onoff) ? '<li id="current">' : '<li>';
+       return outString 
+	+ '<a id="btn_'+name+'" href="' + linkAction(link) + '"'
+	+ ' onClick="stopDownload();return true;" '
+        + ' onMouseOver=\'window.status="' + desc + '"; return true;\''
+	+ ' onMouseOut=\'window.status=""\'>'
+	+ name + '</a></li>';
+  }
+  </script> 
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=566></td>
+  <td id="tdbg" colspan=2 valign="top" align="left">
+
+<table id="controls" cellspacing=0 cellpadding=0 class="content">
+<tr valign="left"> 
+  <td>
+
+$IF($V(SIMPLE1),<!--,)
+<table class="dptz" style="float: left">
+<tr>
+  <td id="left_button" rowspan=3 align="right">
+    <a id="btn_left" class="left" href=""
+      onClick="return false"
+      onMouseDown="return startPanLeft();"
+      onMouseUp="return stopPanLeft();"
+      onMouseOver="window.status='$RSTR(mleft)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></td>
+  <td id="up_button" align="center">
+    <a id="btn_up" class="up" href=""
+      onClick="return false"
+      onMouseDown="return startPanUp();"
+      onMouseUp="return stopPanUp();"
+      onMouseOver="window.status='$RSTR(mup)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></td>
+  <td id="right_button" rowspan=3 align="left">
+    <a id="btn_right" class="right" href=""
+      onClick="return false"
+      onMouseDown="return startPanRight();"
+      onMouseUp="return stopPanRight();"
+      onMouseOver="window.status='$RSTR(mright)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></td>
+</tr>
+<tr>
+  <td class="dptz" width=24 align="center">&nbsp;</td>
+</tr>
+<tr>
+<td id="down_button" align="left">
+  <a id="btn_down" class="down" href=""
+      onClick="return false"
+      onMouseDown="return startPanDown();"
+      onMouseUp="return stopPanDown();"
+      onMouseOver="window.status='$RSTR(mdown)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></td>
+</tr>
+</table>
+$IF($V(SIMPLE1),-->,)
+
+
+<table class="menu" style="margin-top: 11px">
+<tr>
+$IF($V(SIMPLE1),<!--,)
+  <td id="zoomin_button" style="padding-bottom: 2px; padding-left: 20px">
+    <ul id="buttonh"><li class="zoomin"><a id="btn_zin" href="" class="zoomin"
+      onClick="return false"
+      onMouseDown="return startZoomIn();"
+      onMouseUp="return stopZoomIn();"
+      onMouseOver="window.status='$RSTR(zoomin)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></li></ul></td>
+  <td id="nozoom_button" rowspan=2 style="padding-right: 20px">
+    <ul id="buttonm"><li class="menu"><a id="btn_zomax" href="" class="menu"
+      onClick="return zoomOutMax();"
+      onMouseOver="window.status='$RSTR(zoomno)'; return true;" 
+      onMouseOut="window.status=''">$RSTR(NOZOOM)</a></li></ul></td>
+    $IF($V(SIMPLE1),-->,)
+
+
+
+$IF($V(SIMPLE2),<!--,)
+  <td $IF($V(SIMPLE1),,style="padding-bottom: 2px")  name="sizeUpGif" id="sizeUpGif">
+      <ul id="buttonh">
+      <li class="sizep">
+      <a id="btn_sizeup" href="" class="sizep"
+       onClick="return sizeUp(sizeFactor);"
+       onMouseOver="window.status='$RSTR(sizeup)'; return true;" 
+       onMouseOut="window.status=''">&nbsp;</a></li></ul></td>
+$IF($V(SIMPLE2),-->,)
+
+$IF($V(SIMPLE1),<!--,)
+  <td rowspan=2 style="padding-right:20px" name="sizeMaxGif" id="sizeMaxGif">
+    <ul id="buttonm"><li class="menu">
+      <a id="btn_sizemax" href="" class="menu"
+      onClick="return sizeMax();"
+      onMouseOver="window.status='$RSTR(showmax)'; return true;" 
+      onMouseOut="window.status=''">$RSTR(MAXSIZE)</a></li></ul></td>
+
+$IF($V(SIMPLE1),-->,)
+
+$IF($V(SIMPLE2),<!--,)
+  <td style="padding-bottom: $IF($V(SIMPLE1),0,2)px" id="save_button">
+    <ul id="buttonh"><li class="menu">
+      <a id="btn_save" style="padding-left: 5px; padding-right: 10px" href="" class="menu"
+      onClick='return saveAs();'
+      onMouseOver='window.status="$RSTR(im2file)"; return true;' 
+      onMouseOut='window.status="";'>$RSTR(SSHOT)</a></li></ul></td>
+
+  <td rowspan=2 style="padding-right:20px" id=stopstart name=stopstart>
+    <ul id="buttonm"><li class="menu">
+      <a id="btn_stop" id="btn_stop" href="" class="menu" onClick="return stopStart();"
+      onMouseOver="window.status='$RSTR(stopstm)'; return true;" 
+      onMouseOut="window.status=''">$RSTR(STOP)</a></li></ul></td>
+$IF($V(SIMPLE2),-->,)
+
+<!-- NOT IMPLEMENTABLE at this moment -->
+<!--
+  <td rowspan=2>
+    <ul id="buttonm"><li class="menu">
+      <a id="btn_print" href="nozoom" class="menu">PRINT</a></li></ul></td>
+-->
+
+<script>
+
+var out;
+var multi = '$O(17.1.1.1.1)';
+if (0) {
+    if (multi != '') {
+	out = 
+	    '<td style="padding-bottom: 2px">'
+	    + '<ul id="buttonh">';
+    }
+    else {
+	out = 
+	    '<td rowspan=2>' +
+	    '<ul id="buttonm">';
+    }
+    out += '<li class="menu">' +
+    '<a id="btn_montage" style="padding-left: 5px; padding-right: 15px" href="montage.html" class="menu"' +
+    'onMouseOver=\'window.status="view montage of multiple zoom regions"; return true;\'' +
+    'onMouseOut=\'window.status=""\'>MONTAGE</a></li></ul></td>';
+    document.write(out);
+}
+else if (!isMole && !isFalcon) {
+$IF($O(17.1.1.1.1)$O(17.1.1.1.2)$O(17.1.1.1.3)$O(17.1.1.1.4),
+    out = 
+    '<td rowspan=2>' +
+    '<ul id="buttonm"><li class="menu">' +
+    '<a id="btn_mview" href="multiview.html" class="menu"' +
+    'onMouseOver=\'window.status="$RSTR(viewmany)"; return true;\'' +
+    'onMouseOut=\'window.status=""\'>MULTIVIEW</a></li></ul></td>';
+    document.write(out);
+,)
+}
+</script>
+
+
+$IF($O(17.3.1),
+    <script>if (isFalcon) document.write ('<td id="relay">');
+    else document.write ('<td rowspan=2 id="relay">');</script>
+    <ul id="buttonm"><li class="menu">
+    <a id="btn_relay" href="" class="menu" onClick="return activate()">
+      $IF($O(17.3.2),$O(17.3.2),relay)</li></ul></td>
+,)
+
+<td><script>writeStreamSelect();</script></td>
+
+$IF($V(SIMPLE2),,<!--)
+  <td style="padding-bottom: $IF($V(SIMPLE1),0,2)px" id="save_button2">
+    <ul id="buttonh"><li class="menu">
+      <a id="btn_save" style="padding-left: 5px; padding-right: 10px" href="" class="menu"
+      onClick='return saveAs();'
+      onMouseOver='window.status="$RSTR(im2file)"; return true;' 
+      onMouseOut='window.status="";'>$RSTR(SSHOT)</a></li></ul></td>
+
+  <td rowspan=2 style="padding-right:20px; padding-top:0px;" id=stopstart name=stopstart>
+    <ul id="buttonm"><li class="menu">
+      <a id="btn_stop" id="btn_stop" href="" class="menu" onClick="return stopStart();"
+      onMouseOver="window.status='$RSTR(stopstm)'; return true;" 
+      onMouseOut="window.status=''">$RSTR(STOP)</a></li></ul></td>
+$IF($V(SIMPLE2),,-->)
+
+$IF($V(SIMPLE1),<!--,)
+  <td rowspan=2 class="help" style="padding-right: 6px"><a id="btn_help" href="" onClick='return launchHelpPage();'
+      onMouseOver="window.status='$RSTR(openhlp)'; return true;" 
+      onMouseOut="window.status=''">?</a></td>
+</tr>
+<tr>
+$IF($V(SIMPLE1),-->,)
+$IF($V(SIMPLE1),<!--,)
+  <td id="zoomout_button" valign="top" style="padding-top: 2px; padding-left: 20px">
+    <ul id="buttonh"><li class="zoomout"><a id="btn_zout" href="" class="zoomout"
+      onClick="return false"
+      onMouseDown="return startZoomOut();"
+      onMouseUp="return stopZoomOut();"
+      onMouseOver="window.status='$RSTR(zoomout)'; return true;" 
+      onMouseOut="window.status=''; stopThreads()">&nbsp;</a></li></ul></td>
+  <td valign="top" style="padding-top:2px" name="sizeDownGif" id="sizeDownGif">
+    <ul id="buttonh"><li class="sizem"><a id="btn_sizedown" id="btn_" href="" class="sizem"
+      onClick="return sizeDown(sizeFactor);"
+      onMouseOver="window.status='$RSTR(sizedown)'; return true;" 
+      onMouseOut="window.status=''">&nbsp;</a></li></ul></td>
+
+$IF($V(SIMPLE1),-->,)
+
+  <script>
+      if (isFalcon && AudioOut == "enabled") {
+	  document.write ('<td valign="top" style="padding-top: 6px" id=vidclip rowspan=2>');
+      }
+      else {
+	  document.write ('<td valign="top" style="padding-top:$IF($V(SIMPLE1),1,2)px" id=vidclip rowspan=2>');
+      }
+  </script>
+    <ul id="buttonh"><li class="menu">
+      <a id="btn_vclip" style="padding-right: 8px" href="" class="menu"
+      onClick='return startRecord();'
+      onMouseOver='window.status="$RSTR(recstart)"; return true;' 
+      onMouseOut='window.status="";'>$RSTR(VIDCLIP)</a></li></ul></td>
+
+  <script>WriteTalk();</script>
+  <script>WriteMute();</script>
+
+
+$IF($V(SIMPLE2),<!--,)
+$IF($V(SIMPLE1),,<!--)
+  <td rowspan=2 class="help" style="padding-right: 6px"><a id="btn_help" href="" onClick='return launchHelpPage();'
+      onMouseOver="window.status='$RSTR(openhlp)'; return true;" 
+      onMouseOut="window.status=''">?</a></td>
+$IF($V(SIMPLE2),-->,)
+$IF($V(SIMPLE1),,-->)
+
+<script>
+      if (0) {
+	  $IF($O(17.1.1.1.1)$O(17.1.1.1.2)$O(17.1.1.1.3)$O(17.1.1.1.4),
+	      out = 
+	      '<td valign="top" style="padding-top:2px" rowspan=2>' +
+	      '<ul id="buttonh"><li class="menu">' +
+	      '<a id="btn_mview" style="padding-left: 1px; padding-right: 8px" href="multiview.html" class="menu"' +
+	      'onMouseOver=\'window.status="view several cameras at once"; return true;\'' +
+	      'onMouseOut=\'window.status=""\'>MULTIVIEW</a></li></ul></td>';
+	      document.write(out);
+	      ,)
+      }
+</script>
+</tr>
+</table>
+  </td></tr>
+	  
+</table>
+
+<!-- Blinking recording message here.  This causes space between
+     controls and image.  How do I get rid of this? -->
+<span id="exp_blink" style="position:relative; color:red; visibility:hidden;
+z-index:2;font-size:24px;left:10;top:-50;">$RSTR(Exporting)</span>
+
+<span id="rec_blink" style="position:relative; color:red; visibility:hidden;
+z-index:2;font-size:24px;left:10;top:-5;">$RSTR(Recording)</span>
+
+<table border="0" width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td> 
+      <noscript><font color="#FF0000">
+        <b>You must enable Javascript to see an image.</b></font></noscript>
+     <script>
+     if (!useFlash && !isIE) {
+       document.write('<comment><font color="#FF0000">You must use Internet Explorer to view this page</font></comment>');
+     }
+     </script>
+    </td>
+  <tr><td style="padding-left: 4px; padding-bottom: 4px">
+	 <div id="CtlDiv">ActiveX Control</div>
+    <script>
+
+     if (isFalcon && CanDo264 && (defaultStream == "h264") &&
+	 (PrimaryH264Width > 1))
+	 switchStream ("low");
+     else
+	 CreateControl ("CtlDiv", imAttr, logging, streamDptzParam,
+			isIQeye6, isIQeye7, imageString());
+
+    </script>
+    <!-- wacky IE extension for ActiveX events -->
+    <script language=JScript for=Iqeye1 event="click">
+    if (FirstZoom == false)
+	doFirstZoom(true)
+    </script>
+<!--
+    <script language=JScript for=Iqeye1 event="ErrorMessage(message)">
+	function Iqeye1::ErrorMessage(message)
+        {
+     	    alert ("Error from ActiveX control: " + message);
+	}
+    </script>
+-->
+   </td>
+  </tr>
+</table>
+
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+
+
+</form>
+
+
+
+<!--    </div>   -->
+
+<div id="mousecontrols">
+          <font face="Arial, Helvetica, sans-serif" size="-2" color="#999999">
+          left click: zoom in
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          right click: zoom out
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          middle click: recenter
+          <img src="1pixclear.gif" width=8 height=1 alt="">
+          click and drag: pan tilt</font>
+  </div>
+
+<script> 
+  if (isFalcon) {
+      document.write ('<div id="RecordingCtl" style="visibility: hidden; width: 0; height: 0"></div>');
+      document.write ('<div id="AudioCtl" style="visibility: hidden; width: 0; height: 0"></div>');
+  }
+  document.write(sendCommandAppletString());
+  if (FPS) setTimeout ("updateFPS()", FpsPeriod);
+
+
+</script>
+</body>
+</html>
+

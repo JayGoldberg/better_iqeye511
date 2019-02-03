@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SN: 
+$IF($CMP($O(2.21),2d), $IF($CMP($O(2.21),2c), Hilfe Digital Pan Tilt Zoom ,) ,)
+
+</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+</head>
+<body bgcolor="#FFFFFF" text="#808080"> 
+
+<table width="100%" border=0 cellpadding=0 cellspacing=0 bgcolor=$V(COLOR)>
+<tr><td><img src="1pixclear.gif" width=1 height=10 alt=""></td></tr>
+<tr><td bgcolor=$V(COLOR) align="center">
+  <h2><font color=$V(HEADLINKCOLOR)>
+
+$IF($V(IQEYE6),<!--,)
+Digital Pan Tilt Zoom 
+$IF($V(IQEYE6),-->,)
+Help</font></h2>
+</td></tr>
+</table>
+
+<font face="Arial, Helvetica, sans-serif">
+$IF($V(IQEYE6),<!--,)
+<br>
+"Digital Pan Tilt Zoom" ermöglicht dem Betrachter ein digitales Bearbeiten
+      des Live-Bildes. Die dazugehörigen Kontrollen befinden sich in der Titelleiste.
+<br>
+<br>
+Klicken Sie mit der Mauscursor in einen beliebigen Punkt im Bild, um das Bild 
+um diesen Punkt zu zentrieren.  
+
+<br>
+<br>
+    Klicken Sie auf die Pfeiltasten um das Bild in die
+      gewünschte Rochtung zu bewegen.
+<br>
+<br>
+    Klicken Sie auf Zoom "+" um in das Bild zu zoomen.
+<br>
+<br>
+    Klicken Sie auf Zoom "-" um aus dem Bild zu zoomen.
+<br>
+$IF($V(IQEYE6),-->,)
+<br>
+    Klicken Sie auf Vergrösserung "+" um das Bild zu vergrössern.
+<br>
+<br>
+    Klicken Sie auf Vergrösserung "-" um das Bild zu verkleinern.
+<br>
+<br>
+    Klicken Sie auf  'max. Größe' um das Bild in maximaler Grösse zu sehen.
+<br>
+<br>
+    Klicken Sie auf "Stop" um ein einziges Bild anstatt einem Stream zu sehen.
+
+<br><br>
+Wenn ein "MULTI VIEW" sichtbar ist, können Sie mit diesem direkt auf die MultiView Seite 
+gelange, um die bis zu 9 Kameras in einem Browserfenster zu sehen. 
+
+</font>
+
+<table border=0 width="100%" cellpadding="1">
+  <tr><td height="35">&nbsp;</td></tr>
+  <tr><td height="22" bgcolor=$V(COLOR)>&nbsp;</td></tr>
+  <tr><td align="right">
+    <font face="Arial, Helvetica, sans-serif"><b>$SN</b><br></font></td></tr>
+</table>
+</body></html>

@@ -1,0 +1,89 @@
+<!-- Copyright (C) 2006 - 2009 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Virtual Camera</title>
+$INC(oemvars.dp)
+$INC(camvars.dp)
+
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script  src="vid.js" ></script>
+<script>
+
+var streamDptzParam = '<param name="StreamDptz" value="0"><param name="InternalDptz" value="0">\n';
+var logging = '<param name="Logging" value="0">\n';
+var imAttr = 'width="320" height="240" border=0';
+
+window.scrollTo(0,0);
+enableJavaAlert();
+
+var image = new Object ();
+image.width = 0;
+image.height = 0;
+
+function getDestRes() {
+    var args = new Object();
+    var query = location.search.substring(1);
+    query = query.replace(/\?/g,"&"); 
+    var pairs = query.split("&"); 
+    for (var i=0; i<pairs.length; i++) {
+        var pos = pairs[i].indexOf('=');
+        if (pos==-1) continue;
+        var argname = pairs[i].substring(0,pos);
+        var value = pairs[i].substring(pos+1);
+        args[argname] = unescape(value);
+    }
+    if (args.width  != null) image.width  = parseInt(args.width);
+    if (args.height != null) image.height = parseInt(args.height);
+
+    if (image.width != 0 &&
+	image.height != 0) {
+	imAttr = ' width="' + image.width
+	    + '" height="' + image.height + '" border=0 ';
+    }
+
+    if (args.vcam != null) {
+	document.title = "Virtual Camera " + args.vcam;
+    }
+}
+
+getDestRes ();
+
+function writeImageDivs() {
+    var imageString = "now.jpg?snap=spush";
+
+    if (!needsApplet) {
+	document.write('<img src=' + imageString + imAttr + '>');
+    } else {
+	var outString = '<applet code="ShowServerPush.class" name="spapplet" '
+	    + imAttr + '>\n'
+	    + '<param name="url" value=' + imageString + '>\n';
+	if (DEBUG) outString += '<param name="DEBUG" value="true">\n';
+	outString += '</applet>\n';
+	document.write(outString);
+    }
+}
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+  link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)>
+    <script> 
+if (UseActiveX() || canSpush) {
+    document.write ('<div id="CtlDiv">ActiveX Control</div>');
+    CreateControl ("CtlDiv", imAttr, logging, streamDptzParam,
+		   isIQeye6, isIQeye7, "now.jpg?snap=spush");
+}
+else {
+    writeImageDivs ();
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(AdvSecSet)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta name="Copyright" value="Copyright &copy; 2006 - 2010 IQinVision">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+<script>
+
+$INC(vars_nocache.js.dp)
+
+
+$IF($V(IQEYE7),$DEF(IQEYE5, ),)
+
+$DEF(HTTPS, )
+$IF($V(IQ06),$DEF(HTTPS, true),)
+
+enableJavaAlert();
+
+var PageTitle = "$RSTR(AdvSecSet)";
+var PageHelp = "";
+
+function formatIsValid(field) {
+    if (field.name == "OidTB3.12.3.3") { 
+	if (field.value.length != 2 ||
+	    !isAlpha(field.value) ) {
+	    alert("Please enter a 2-letter country code");
+	    return false;
+	}
+	return true;
+    }
+    return true;
+}
+
+var HttpsPort = '$O(3.12.2)';
+var HttpPort = '$O(7.1)';
+
+var new_page;
+
+function preSetEcam(field)
+{
+    if (field.name == "OidTB3.12.3.3") { 
+	field.value = field.value.toUpperCase();
+    }
+    else if (field.name == "OidSB7.10") { 
+	
+	if (field.value == "https" &&
+	    document.location.protocol == 'http:') {
+	    new_page = 'https://' + document.location.hostname;
+	    if (HttpsPort != '443') {
+		new_page += ':' + HttpsPort;
+	    }
+	    new_page += document.location.pathname;
+	    window.setTimeout("reloadPage()", 3500);
+	}
+	else if (field.value == "http" &&
+	    document.location.protocol == 'https:') {
+	    new_page = 'http://' + document.location.hostname;
+	    if (HttpPort != '80') {
+		new_page += ':' + HttpPort;
+	    }
+	    new_page += document.location.pathname;
+	    window.setTimeout("reloadPage()", 3500);
+	}
+    }
+}
+
+function reloadPage ()
+{
+    window.location.href = new_page;
+}
+
+
+function CertGen()
+{
+     var msg = "$RSTR(warncertgen)";
+     
+     if (confirm(msg)) {
+	 setEcam2 ("OidTR3.12.3.1", "1");
+	 setTimeout ("reloadLater();", 500);
+     }
+     return false;
+}
+
+
+function CertDel()
+{
+     var msg = "$RSTR(warncertdel)";
+     if (confirm(msg)) {
+	 setEcam2 ("OidTR3.12.3.2", "1");
+	 setTimeout ("reloadLater();", 500);
+     }
+     return false;
+}
+
+
+function CertDetails()
+{
+    window.open ('certprint.cgi', 'details',
+		 'height=600,width=800,scrollbars=1,resizable=1');
+    return false;
+}
+
+var Subject = '$O(3.12.3.10)';
+function writeSubjectPieces()
+{
+    var pieces = Subject.split(",");
+    for (var i = 0; i < pieces.length; i++) {
+	document.write ('<tr><td class="leftg">&nbsp;</td><td class="inputg">'+pieces[i]+'</td></tr>');
+    }
+}
+
+function writeSubject()
+{
+    if (Subject.length == 0) {
+	document.write ('No valid certificate');
+    }
+}
+
+function checkState()
+{
+    if (Subject.length == 0) {
+     	
+	de("webacc_pol").disabled = true;
+    }
+}
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#808080" 
+ link=$V(LINKCOLOR) vlink=$V(LINKCOLOR) alink=$V(LINKCOLOR)> 
+
+<noscript><font color="#FF0000">
+<b>You must enable Javascript for this page to work properly.</b></font>
+</noscript>
+
+<form name="myform" method="post">
+
+<!-- each row has 3 tds: a border on each side, and the content
+     the overall table has three rows: header, content, footer 
+       header and footer are written with javascript in gui.js
+     content contains a table with 2 rows and 2 cols
+     content topleft has the image
+     content bottomleft is typically empty
+     content right has input fields spanning 2 rows
+-->  
+
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("access");</script>
+
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0 width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+          writeCroppedImage();
+        </script>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+        <tr>		    
+          <td class="subtitleleft"><img src="1pixclear.gif" width=8 height=1></td>
+          <td height=20 class="subtitleleft">
+            <span id=sendState name=sendState>&nbsp;</span></td></tr>
+
+
+$IF($V(HTTPS),,<!--)
+<tr>
+  <td class="subtitleleft" colspan=2>
+  <ul id="win">
+  <script>
+      document.write('<li><a href="accessset.html">$RSTR(basic)</a></li>');
+      document.write('<li id="current"><a href="advsec.html">$RSTR(advanced)</a></li>');
+  </script> 
+  </ul></td>
+</tr>
+$IF($V(HTTPS),,-->)
+
+        <tr>
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsubw") helpanchor="https" helpsub="HTTPS" myhelp="$RSTR(HTTPS_help)">HTTPS
+             <script>
+              writeHelpIcon("https");</script></td></tr>
+
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(webacpol)" myhelp="$RSTR(webacpol_help)" id="webacc_pol">$RSTR(webacpol)
+            $O(7.10,JSB)</td></tr>
+<!--
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="HTTPS" myhelp="$RSTR(https_state_help)" id="https_state">HTTPS $O(3.12.1,JSB)</td></tr>
+-->
+
+          <td class="left">&nbsp;</td>
+          <td class="midsubw") helpanchor="$RSTR(Cert)" helpsub="$RSTR(Cert)" myhelp="$RSTR(cert_help)">$RSTR(Cert)
+             <script>
+              writeHelpIcon("Cert");</script></td></tr>
+
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(country)" myhelp="$RSTR(certC_help)">$RSTR(country)
+            $O(3.12.3.3,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(state)" myhelp="$RSTR(certS_help)">$RSTR(state)
+            $O(3.12.3.4,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(locality)" myhelp="$RSTR(certL_help)">$RSTR(locality)
+            $O(3.12.3.5,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(org)" myhelp="$RSTR(certO_help)">$RSTR(org)
+            $O(3.12.3.6,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(org_unit)" myhelp="$RSTR(certOU_help)">$RSTR(org_unit)
+            $O(3.12.3.7,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(common_name)" myhelp="$RSTR(certCN_help)">$RSTR(common_name)
+            $O(3.12.3.8,JTB)</td></tr>
+         <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(valid_period)" myhelp="$RSTR(certP_help)">$RSTR(valid_period)
+            $O(3.12.3.9,JTB)</td></tr>
+
+         <tr> <td class="left" height=20>&nbsp; </td>
+            <td class="input">&nbsp; </td>
+         </tr>
+
+<tr> <td class="left">&nbsp; </td>
+  <td class="input" align="center">
+    <ul id="buttonp">
+      <li><a href=""
+        onClick="return CertGen()" 
+	onMouseOver="window.status='$RSTR(generate)'; return true;" 
+        onMouseOut="window.status='';">$RSTR(generate)</a></li>
+      <li><a href=""
+        onClick="return CertDel();"
+        onMouseOver="window.status='$RSTR(delete)'; return true;"
+        onMouseOut="window.status='';">$RSTR(delete)</a></li>
+      <li><a href=""
+        onClick="return CertDetails();"
+        onMouseOver="window.status='details'; return true;"
+        onMouseOut="window.status='';">details</a></li>
+     </ul>
+   </td>
+</tr>
+
+       <tr>
+	  <td class="endsubleft">&nbsp;</td>
+	      <td class="endsub">     
+              </td>
+        </tr>
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left" width=320>
+        <table class="input" cellspacing=0  cellpadding=0  width=335 style="margin: 0 0 8px 32px;">
+        <tr>
+          <td class="subtitleleft">&nbsp
+            <img src="1pixclear.gif" width=8 height=1></td>
+          <td class="subtitle">$RSTR(Cert)
+        <tr>
+          <td class="startsubleftg">&nbsp;</td>
+          <td class="startsubg"><script>writeSubject();</script></td></tr>
+	  <script>writeSubjectPieces();</script>
+        <tr>
+          <td class="endsubleftg">&nbsp;</td>
+          <td class="endsubg"></td></tr>
+      </td></tr></table> <!-- end bottom left content -->
+
+
+    </tr> 
+    </table>
+
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+    
+<script>
+  checkState();
+  writeFooter('logout','reboot');</script>
+
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</form>
+</body>
+</html>

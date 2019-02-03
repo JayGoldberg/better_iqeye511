@@ -1,0 +1,602 @@
+
+
+
+
+
+var Montage = false; 
+
+var CameoIndex = 10; 
+
+var logging = '<param name="Logging" value="0">\n';
+
+var streamDptzParam = '<param name="StreamDptz" value="0"><param name="InternalDptz" value="0">';
+
+var camera_width  = '$O(1.2.6.2)';
+var camera_height = '$O(1.2.6.3)';
+
+var MainwinLeft;   
+var MainwinTop;    
+
+
+var FRAME_THICK = 3;
+
+var HORIZ_GAP = 15; 
+
+var VERT_GAP = 20;  
+
+
+
+
+var FULL_WIDTH = 416;
+var FULL_HEIGHT = 312;
+
+
+
+
+
+var GRID_WIDTH = 294;
+var GRID_HEIGHT = 220;
+var GRID_WIDTH_WIDE = FULL_WIDTH;
+
+
+var DSfactor;
+
+
+var GridRatio = GRID_WIDTH / GRID_HEIGHT;
+
+var MAX_REGIONS = 4; 
+ 
+var Regions = new Array(MAX_REGIONS);
+
+var FullImstr; 
+var SwapIndex; 
+
+
+var pre1 = new Image(1,1);
+pre1.src = "1pixgreen.gif";
+
+var pre2 = new Image(1,1);
+pre2.src = "1pixblue.gif";
+
+var pre3 = new Image(1,1);
+pre3.src = "1pixred.gif";
+
+
+function CreateCameo()
+{
+    var out = '<div id="CtlDiv0" style="z-index:2 background-color: black; position: relative; left:20;">ActiveX Control</div>';
+    var imattr, imstr;
+
+    
+    var ctl_width  = FULL_WIDTH;
+    var ctl_height = FULL_HEIGHT;
+    var scaled_height, scaled_width;
+
+    document.write (out);
+
+    scaled_height = Math.ceil((camera_height * ctl_width) / camera_width);
+    scaled_width  = Math.ceil((camera_width * ctl_height) / camera_height);
+
+    imstr = 'now.jpg?snap=spush1.0';
+    
+    
+    if (scaled_height > ctl_height) {
+	
+	imstr += '?wdh='+ctl_height;
+	imattr = ' width="' + scaled_width
+	    + '" height="' + ctl_height
+	    + '" border=0';
+	DSfactor = camera_height / ctl_height;
+    }
+    else {
+	
+	imstr += '?wdw='+ctl_width;
+	imattr = ' width="' + ctl_width
+	    + '" height="' + scaled_height
+	    + '" border=0';
+	DSfactor = camera_width / ctl_width;
+    }
+
+    FullImstr = imstr;
+    SwapIndex = 0;
+
+    
+    CreateCameoControl ("CtlDiv0", imattr, imstr,
+			"Iqeye1_m0", (CfgPage ? "1" : "0"));
+
+    for (i = 0; i < MAX_REGIONS; i++) {
+	Regions[i] = new Object ();
+	Regions[i].frames_last_period = 0;
+	Regions[i].actual_fps = 0;
+    }
+
+    
+    Regions[0].grid_left   = 0;
+    Regions[0].grid_top    = 0;
+    Regions[0].grid_width  = FULL_WIDTH;
+    Regions[0].grid_height = FULL_HEIGHT;
+
+    Regions[0].source_left   = 0;
+    Regions[0].source_top    = 0;
+    Regions[0].source_width  = camera_width;
+    Regions[0].source_height = camera_height;
+    Regions[0].user_fps = 1;
+    if (Montage) {
+	Regions[0].label         = "$O(17.6.1.3.0)";
+    }
+    else {
+	Regions[0].label         = "$O(1.16.1.1.10)";
+    }
+    Regions[0].color = 'gray';
+
+    
+    Regions[1].grid_left = FULL_WIDTH + HORIZ_GAP*3;
+    Regions[1].grid_top = 0;
+
+    
+    
+    
+
+    
+    
+    
+
+    Regions[1].grid_width = GRID_WIDTH;
+    
+    Regions[1].grid_height = FULL_HEIGHT;
+
+    if (Montage) {
+	Regions[1].source_left   = '$O(17.6.1.1.1.1)';
+	Regions[1].source_top    = '$O(17.6.1.1.2.1)';
+	Regions[1].source_width  = '$O(17.6.1.1.3.1)';
+	Regions[1].source_height = '$O(17.6.1.1.4.1)';
+	Regions[1].user_fps           = 0;
+	Regions[1].label         = "$O(17.6.1.3.1)";
+    }
+    else {
+	Regions[1].source_left   = '$O(1.16.1.3.11)';
+	Regions[1].source_top    = '$O(1.16.1.4.11)';
+	Regions[1].source_width  = '$O(1.16.1.5.11)';
+	Regions[1].source_height = '$O(1.16.1.6.11)';
+	Regions[1].user_fps           = 0;
+	Regions[1].label         = "$O(1.16.1.1.11)";
+    }
+    Regions[1].color = 'red';
+
+
+    
+    
+    
+
+    
+    
+    
+
+    
+    Regions[2].grid_left   = 0;
+    Regions[2].grid_top    = FULL_HEIGHT + VERT_GAP*2;
+
+    
+    Regions[2].grid_width  = FULL_WIDTH;
+    Regions[2].grid_height = GRID_HEIGHT;
+
+    if (Montage) {
+	Regions[2].source_left   = '$O(17.6.1.1.1.2)';
+	Regions[2].source_top    = '$O(17.6.1.1.2.2)';
+	Regions[2].source_width  = '$O(17.6.1.1.3.2)';
+	Regions[2].source_height = '$O(17.6.1.1.4.2)';
+	Regions[2].user_fps           = 0;
+	Regions[2].label         = "$O(17.6.1.3.2)";
+    }
+    else {
+	Regions[2].source_left   = '$O(1.16.1.3.12)';
+	Regions[2].source_top    = '$O(1.16.1.4.12)';
+	Regions[2].source_width  = '$O(1.16.1.5.12)';
+	Regions[2].source_height = '$O(1.16.1.6.12)';
+	Regions[2].user_fps           = 0;
+	Regions[2].label         = "$O(1.16.1.1.12)";
+    }
+    Regions[2].color = 'blue';
+
+    
+    
+    Regions[3].grid_left   = FULL_WIDTH + HORIZ_GAP*3;
+    Regions[3].grid_top    = FULL_HEIGHT + (VERT_GAP*2); 
+
+    
+	
+    
+
+    
+    Regions[3].grid_width  = GRID_WIDTH;
+    Regions[3].grid_height = GRID_HEIGHT;
+
+    if (Montage) {
+	Regions[3].source_left   = '$O(17.6.1.1.1.3)';
+	Regions[3].source_top    = '$O(17.6.1.1.2.3)';
+	Regions[3].source_width  = '$O(17.6.1.1.3.3)';
+	Regions[3].source_height = '$O(17.6.1.1.4.3)';
+	Regions[3].user_fps           = 0;
+	Regions[3].label         = "$O(17.6.1.3.3)";
+    }
+    else {
+	Regions[3].source_left   = '$O(1.16.1.3.13)';
+	Regions[3].source_top    = '$O(1.16.1.4.13)';
+	Regions[3].source_width  = '$O(1.16.1.5.13)';
+	Regions[3].source_height = '$O(1.16.1.6.13)';
+	Regions[3].user_fps           = 0;
+	Regions[3].label         = "$O(1.16.1.1.13)";
+    }
+    Regions[3].color = 'green';
+  
+    
+
+
+    
+
+
+
+    var need_fact = 0;
+    for (i = 1; i < Regions.length; i++) {
+	need_fact += SanityCheck (i);
+    }
+    
+    if (CfgPage && need_fact) {
+	SetDflts ();
+	return;
+    }
+
+    for (i = 0; i < Regions.length; i++) {
+	ScaleRegion (i);
+	
+	
+    }
+    
+    Regions[0].grid_width  = Regions[0].dest_width;
+    Regions[0].grid_height = Regions[0].dest_height;
+
+    theOCX_m(0).Display = 1;
+}
+
+
+function ScaleRegion_NoLetterBox (index)
+{
+    with (Regions[index]) {
+	
+	var x_scale = grid_width / source_width;
+	var y_scale = grid_height / source_height;
+	
+	var scale = x_scale;
+	if (y_scale < scale) scale = y_scale;
+	Regions[index].dest_width  = Math.floor ((source_width * scale) + 0.5);
+	Regions[index].dest_height = Math.floor ((source_height * scale) + 0.5);
+	Regions[index].dest_left = Math.floor(grid_left);
+	Regions[index].dest_top  = Math.floor(grid_top);
+    }
+}
+
+function ScaleRegion (index)
+{
+    
+    with (Regions[index]) {
+	Regions[index].dest_width = grid_width;
+	Regions[index].dest_height = grid_height;
+	Regions[index].dest_left = grid_left;
+	Regions[index].dest_top = grid_top;
+    }
+}
+
+
+function SanityCheck (index)
+{
+    var need_fact = 0;
+
+    with (Regions[index]) {
+	
+	if (source_left == "" ||
+	    source_top == "" ||
+	    source_width == "" ||
+	    source_height == "") {
+	    need_fact = 1;
+	    source_left = 0;
+	    source_top = 0;
+	    source_width = grid_width;
+	    source_height = grid_height;
+	}
+	if (user_fps == "") user_fps = 0;
+    }
+    return need_fact;
+}
+
+
+
+function DrawStaticRect (color, 
+			 x,     
+			 y,     
+			 width, 
+			 height 
+    )
+{
+    var color_gif = '1pix' + color + '.gif';
+    var out = '<img src="' + color_gif + '" width=' + width + 
+	' height=' + height + ' style="position: absolute; left: ' + x + 
+	'px; top: ' + y + 'px; z-index: 3">';
+    return out;
+}
+
+
+function DrawOneFrame (idx, color, thick, shadow, x, y, width, height)
+{
+    var tx, ty;
+    var out = "";
+    var label_top = y + height + FRAME_THICK;
+
+    tx = x;
+    ty = y;
+
+
+    out += '<img src="' + color + 'frame.gif" width=' + (width+10) +
+	' height=' + (height+10) + ' style="position: absolute; left: ' + (x-5) + 
+	'px; top: ' + (y-5) + 'px; z-index: 1">';
+    return out;
+
+    if (shadow == false) {
+	
+	out += DrawStaticRect (color, tx-thick, ty-thick, 
+			       width+(2*thick), thick);
+	
+	out += DrawStaticRect (color, tx-thick, ty-thick, thick, height+(2*thick));
+    }
+    ty = ty + height;
+    
+    out += DrawStaticRect (color, 
+			   shadow ? tx+thick : tx-thick, 
+			   ty, 
+			   shadow ? width : width+(2*thick), 
+			   thick);
+    ty = y;
+    tx = x + width;
+    
+    out += DrawStaticRect (color, 
+			   tx, 
+			   shadow ? ty+thick : ty-thick, 
+			   thick, 
+			   shadow ? height : height+(2*thick));
+    return out;
+}
+
+
+
+function DrawFrames (black)
+{
+    var out = "";
+    var thick = FRAME_THICK;
+    var shadow = false;
+
+    for (i = 0; i < Regions.length; i++) {
+	with (Regions[i]) {
+	    out += DrawOneFrame (i,
+				 
+				 black ? 'gray' : color,
+				 thick, 
+				 shadow,
+				 grid_left + MainwinLeft,
+				 grid_top + MainwinTop,
+				 grid_width,
+				 grid_height);
+	    out += DrawLabel (i, grid_left + MainwinLeft,
+			      grid_top + MainwinTop + grid_height +
+			      FRAME_THICK);
+	}
+    }
+    document.getElementById ("grids").innerHTML = out;
+    if (CfgPage == true) {
+	for (i = 0; i < Regions.length; i++) {
+	    UpdateLabel (i);
+	}
+    }
+}
+
+
+function UpdateCameo (index)
+{
+    var real_left, real_top;
+    var fps;
+    with (Regions[index]) {
+	if (user_fps == 0) fps = "";
+	else fps = "" + (1.0/user_fps);
+	real_left = parseInt(source_left);
+	real_top  = parseInt(source_top);
+	Regions[index].imStr = 'now.jpg?snap=spush'+fps+'?ov=0?wl='+real_left+
+	    '?wt='+real_top+'?wrw='+source_width+
+	    '?wrh='+source_height+'?wdw='+grid_width+
+	    '?wdh='+grid_height;
+    }
+    
+    theOCX_m(index).StopDownload ();
+    window.status = "stopped download";
+    setTimeout ('RestartCameo ('+index+')', 50);
+}
+
+function RestoreFull ()
+{
+    Regions[0].imStr = FullImstr;
+    
+    theOCX_m(0).StopDownload ();
+    setTimeout ('RestartCameo (0)', 50);
+}
+
+function RestartCameo (idx)
+{
+    window.status = "restart " + idx;
+    theOCX_m(idx).URL = '/' + Regions[idx].imStr;
+}
+
+
+function FullSwappedOut () {}
+
+function FullRestored () {}
+
+
+function CameoClick (index)
+{
+    
+    if (CfgPage) return false;
+    var double = 0;
+
+    
+
+    if (SwapIndex && (SwapIndex != index)) {
+	
+	double = 1;
+    }
+
+    source_left   = Regions[0].source_left;
+    source_top    = Regions[0].source_top;
+    source_width  = Regions[0].source_width;
+    source_height = Regions[0].source_height;
+    label         = Regions[0].label;
+    user_fps      = Regions[0].user_fps;
+    color         = Regions[0].color;
+
+    Regions[0].source_left   = Regions[index].source_left;
+    Regions[0].source_top    = Regions[index].source_top;
+    Regions[0].source_width  = Regions[index].source_width;
+    Regions[0].source_height = Regions[index].source_height;
+    Regions[0].label         = Regions[index].label;
+    Regions[0].user_fps      = Regions[index].user_fps;
+    Regions[0].color         = Regions[index].color;
+
+    if (double) {
+	Regions[index].source_left   = Regions[SwapIndex].source_left;
+	Regions[index].source_top    = Regions[SwapIndex].source_top;
+	Regions[index].source_width  = Regions[SwapIndex].source_width;
+	Regions[index].source_height = Regions[SwapIndex].source_height;
+	Regions[index].label         = Regions[SwapIndex].label;
+	Regions[index].user_fps      = Regions[SwapIndex].user_fps;
+	Regions[index].color         = Regions[SwapIndex].color;
+	dst_index = SwapIndex;
+    }
+    else dst_index = index;
+
+    Regions[dst_index].source_left   = source_left;
+    Regions[dst_index].source_top    = source_top;
+    Regions[dst_index].source_width  = source_width;
+    Regions[dst_index].source_height = source_height;
+    Regions[dst_index].label         = label;
+    Regions[dst_index].user_fps      = user_fps;
+    Regions[dst_index].color         = color;
+
+    ScaleRegion (0);
+    ScaleRegion (index);
+    if (double) ScaleRegion (dst_index);
+
+    
+    Regions[0].grid_width  = Regions[0].dest_width;
+    Regions[0].grid_height = Regions[0].dest_height;
+
+    UpdateCameo (index);
+    if (double) UpdateCameo (dst_index);
+
+    if (!SwapIndex)
+	SwapIndex = index;
+    else if (index == SwapIndex)
+	SwapIndex = 0;
+    else
+	SwapIndex = index;
+
+
+    UpdateLabelName (0);
+    UpdateLabelName (index);
+    if (double) UpdateLabelName (dst_index);
+
+    if (SwapIndex) {
+	UpdateCameo (0);
+	FullSwappedOut ();
+    }
+    else {
+	RestoreFull ();
+	FullRestored ();
+    }
+}
+
+
+function UpdateLabelName (idx) {}
+
+
+function DrawOneCameo (index)
+{
+    var out;
+    var real_left, real_top, real_width;
+
+    with (Regions[index]) {
+	out = '<div onclick="CameoClick('+index+')" id="CtlDiv'+index+
+	    '" style="z-index:1 background-color: black; position: absolute; left:'+(dest_left+MainwinLeft)+'px; top:'+(dest_top+MainwinTop)+
+	    'px">ActiveX Control'+index+'</div>';
+	Regions[index].imAttr = ' width="' + grid_width
+	+ '" height="' + grid_height
+	+ '" border=0';
+	
+	real_left = parseInt(source_left);
+	real_top  = parseInt(source_top);
+	
+	real_left &= ~1;
+	real_top  &= ~1;
+	real_width = source_width & ~1;
+	Regions[index].imStr = 'now.jpg?snap=spush?ov=0?wl='+real_left+
+	    '?wt='+real_top+'?wrw='+real_width+
+	    '?wrh='+source_height+'?wdw='+grid_width+
+	    '?wdh='+grid_height;
+    }
+    return out;
+}
+
+function DrawCameos ()
+{
+    var out = "";
+
+    for (i = 1; i < Regions.length; i++) {
+	out += DrawOneCameo (i);
+    }
+    getObject ("cameos").innerHTML = out;
+    
+    for (i = 1; i < Regions.length; i++) {
+	CreateCameoControl ("CtlDiv"+i, 
+			    Regions[i].imAttr, 
+			    Regions[i].imStr, 
+			    'Iqeye1_m'+i, "0");
+	theOCX_m(i).Display = 1;
+    }
+}
+
+function theOCX_m(index) {
+    if (!isIE) return null;
+    if (! document.getElementById) return null;
+    return document.getElementById("Iqeye1_m"+index);
+}
+
+function StopAllCameos ()
+{
+    for (i = 0; i < Regions.length; i++) {
+	var ocx = theOCX_m(i);
+	if (ocx) {
+	    ocx.StopDownload ();
+	}
+    }
+}
+
+function StopCameo (index)
+{
+    var ocx = theOCX_m(index);
+    if (ocx) {
+	ocx.StopDownload ();
+    }
+}
+
+function StartCameo (index)
+{
+    var ocx = theOCX_m(index);
+    if (ocx) {
+	ocx.StartDownload ();
+    }
+}

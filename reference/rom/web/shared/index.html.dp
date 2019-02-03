@@ -1,0 +1,51 @@
+<!-- Copyright (C) 2007 - 2009 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: Live Images</title>
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta name="author" content="Brian Lau, IQinVision">
+<script src="lib.js"></script>
+<script language="JavaScript" type="text/javascript">
+
+var loc = "appletvid.html";
+
+if (UseActiveX()) {
+    loc = "iqeyevid.html";
+}
+
+self.location = loc;
+
+</script>
+</head>
+<body>
+
+If you are not redirected immediately, then you do not
+have scripting enabled in your browser.
+To see images from this camera, you must enable scripting.
+
+<p>
+For Firefox,  this is under "Options" item 
+of the "Tools" dropdown menu. 
+Click on the "Web Features" icon on the left, 
+then check the box labeled "Enable JavaScript", 
+then click on the "OK" button.
+</p>
+
+<p>
+For Netscape and Mozilla, this is under the "Preferences" item
+of the "Edit" dropdown menu.  On the "Advanced" item, go to "Scripts & Plugins"
+then click the checkbox for "Navigator" under "Enable JavaScript for".
+Also click all the boxes under "Allow scripts to:".
+</p>
+
+<p>
+For Internet Explorer, this is under "Internet Options" item 
+of the "Tools" dropdown menu. Click on the "Security Settings" tab, then the
+"Custom Level" button.
+Choose "Enable" in all the boxes under the scripting heading.
+</p>
+
+</body>
+</html>
+

@@ -1,0 +1,332 @@
+<!-- Copyright (C) 2005 - 2011 IQinVision -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>$SP $SN: $RSTR(iqaccset)</title>
+$INC(camvars.dp)
+$INC(oemvars.dp)
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Type" content="text/html; charset=$RCSET">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+
+<link rel="stylesheet" href="style.css">
+<script  src="lib.js" ></script>
+<script  src="gui.js" ></script>
+
+<script>
+var PageTitle = "$RSTR(IQaccSet)";
+var PageHelp = "$RSTR(IQaccSet_help)";
+
+if (!hasAccessSupport) self.location = "/";
+
+var Idents = new Array (0, 
+			"$O(1.18.4.1.4.1)",
+			"$O(1.18.4.1.4.2)",
+			"$O(1.18.4.1.4.3)",
+			"$O(1.18.4.1.4.4)",
+			"$O(1.18.4.1.4.5)",
+			"$O(1.18.4.1.4.6)",
+			"$O(1.18.4.1.4.7)",
+			"$O(1.18.4.1.4.8)",
+			"$O(1.18.4.1.4.9)"
+    );
+
+var IPs = new Array (0, 
+		     "$O(1.18.4.1.1.1)",
+		     "$O(1.18.4.1.1.2)",
+		     "$O(1.18.4.1.1.3)",
+		     "$O(1.18.4.1.1.4)",
+		     "$O(1.18.4.1.1.5)",
+		     "$O(1.18.4.1.1.6)",
+		     "$O(1.18.4.1.1.7)",
+		     "$O(1.18.4.1.1.8)",
+		     "$O(1.18.4.1.1.9)"
+    );
+
+var Ports = new Array (0, 
+		       "$O(1.18.4.1.2.1)",
+		       "$O(1.18.4.1.2.2)",
+		       "$O(1.18.4.1.2.3)",
+		       "$O(1.18.4.1.2.4)",
+		       "$O(1.18.4.1.2.5)",
+		       "$O(1.18.4.1.2.6)",
+		       "$O(1.18.4.1.2.7)",
+		       "$O(1.18.4.1.2.8)",
+		       "$O(1.18.4.1.2.9)"
+    );
+
+var Backups = new Array (0, 
+			 "$O(1.18.4.1.3.1)",
+			 "$O(1.18.4.1.3.2)",
+			 "$O(1.18.4.1.3.3)",
+			 "$O(1.18.4.1.3.4)",
+			 "$O(1.18.4.1.3.5)",
+			 "$O(1.18.4.1.3.6)",
+			 "$O(1.18.4.1.3.7)",
+			 "$O(1.18.4.1.3.8)",
+			 "$O(1.18.4.1.3.9)"
+    );
+
+var Active = 0;
+for (i = 1; i < Ports.length; i++) {
+    if (IPs[i] != "0.0.0.0" &&
+	Ports[i] != "0") Active++;
+}
+var myDefaultsHref =
+    '<li><a href="javascript:void(0)"'
+    + ' onClick=\'doTestTrigger()\''
+    + ' onMouseOver="window.status=\'trigger camera event now\'; return true;"'
+    + ' onMouseOut="window.status=\'\';">'
+    + '$RSTR(ttrig)</a></li>\n' 
+    + '<li><a href="javascript:void(0)" onClick="return accessFactory();"'
+    + ' onMouseOver=\'window.status="restore defaults"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(resdef)</a></li>\n';
+
+function setPassword(field) {
+    var val = field.value;
+    if (! isAPassword(field)) {
+	
+	alert("Please enter 1 to 32 characters.\n" +
+		"Do not include white space characters.\n\n" +
+		"Password not changed.");
+	select(field);
+	return false;
+    }
+
+    if(isPunix)
+	setEcam2("OidTB1.18.1", escape('"' + val + '"'));
+    else 
+	setEcam2("OidTB1.18.1", escape(val));
+
+        
+    reloadLater();
+
+    return false;
+}
+
+function formatIsValid (field) {
+    return true;
+}
+
+function doTestTrigger() {
+     setEcam2("OidCB1.3.10", "ON");
+}
+
+function accessFactory () {
+    var msg = '$RSTR(promptaccfact)';
+    if (confirm(msg)) {
+	submit("OidSB1.18.5","ON");
+        reloadLater();
+    }
+    return false;
+}
+
+var TrigRelay = '$O(1.18.3.1,R)';
+var TrigMotion = '$O(1.18.3.2,R)';
+if (TrigRelay == 0) TrigRelay = false;
+else TrigRelay = true;
+if (TrigMotion == 0) TrigMotion = false;
+else TrigMotion = true;
+
+function setTrig (field) {
+     var val = field.options[field.selectedIndex].value;
+     var motion;
+     var relay;
+     if (val == "both") {
+	 relay = "1";
+	 motion = "1";
+     }
+     else if (val == "none") {
+	 relay = "0";
+	 motion = "0";
+     }
+     else if (val == "relay") {
+	 relay = "1";
+	 motion = "0";
+     }
+     else if (val == "motion") {
+	 motion = "1";
+	 relay = "0";
+     }
+     submit ("OidSB1.18.3.1", relay, "OidSB1.18.3.2", motion);
+}
+
+function writeTrigSelect () {
+     var outstring;
+     var both = TrigMotion && TrigRelay;
+     var none = !TrigMotion && !TrigRelay;
+
+     outstring = '<select id="trigact" onchange="setTrig(this);"><option value="relay"';
+     outstring += (TrigRelay && !both) ? ' selected>' : '>';
+     outstring += '$RSTR(relayin)<option value="motion"';
+     outstring += (TrigMotion && !both) ? ' selected>' : '>';
+     outstring += '$RSTR(motion)<option value="both"';
+     outstring += both ? ' selected>' : '>';
+     outstring += '$RSTR(both)<option value="none"';
+     outstring += none ? ' selected>' : '>';
+     outstring += '$RSTR(none)</select>';
+     document.write(outstring);
+}
+
+function writeClients () {
+    var outstring;
+    var i;
+    var first = 0;
+
+    outstring = '<select id="clients" style="width: 250px">';
+    for (i = 1; i < IPs.length; i++) {
+	if (IPs[i] != "0.0.0.0") {
+	    outstring += '<option value="'+i+'"';
+	    if (!first) {
+		outstring += ' selected';
+		first = 1;
+	    }
+	    outstring += '>'+Idents[i].substr(0,20)+' '+IPs[i]+':'+Ports[i]+'</option>' ;
+	}
+    }
+    outstring += '</select>';
+    document.write(outstring);
+}
+
+function disconnectClient ()
+{
+    var idx;
+    var field;
+
+    field = de("clients");
+    idx = field.selectedIndex;
+    if (idx >= 0) {
+	submit('OidSR1.18.4.1.5.'+field.options[idx].value,"1");
+        setTimeout ("reloadLater()", 2000);	
+    }
+    return false;
+}
+
+
+
+
+
+
+function setAccessButtonText(field) {
+	
+
+	var foo=field.value; 
+
+	
+	
+	
+
+	field.value=Encoder.htmlEncode(field.value, true);
+	setEcam(field);  
+	field.value=foo; 
+}
+
+function postSetEcam(field) {
+         
+
+}
+</script>
+
+
+</head>
+<body>
+<form name="myform" onSubmit="return false" action="">
+<table class="main" cellspacing=0 cellpadding=0 width=850>
+<script>
+  writeSettingsHeader("iqaccess"); </script>
+<tr>
+  <td class="l"><img src="1pixclear.gif" width=1 height=520></td>
+  <td colspan=2 valign="top" align="left">
+    <table class="content" cellspacing=0 cellpadding=0  width=850>
+    <tr>
+      <!-- the image area -->
+        <script>
+          writeCroppedImage();
+       </script>
+      <td rowspan=2 valign="top" align="right">
+        <table class="input" cellspacing=0  cellpadding=0 width=380 style="margin-right: 10px;">
+           <tr>
+             <td class="subtitleleft"><img src="1pixclear.gif" width=8 height=1></td>
+             <td height=20 class="subtitleleft">
+               <span id=sendState name=sendState>&nbsp;</span></td></tr>
+             </td></tr>
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle" helpanchor="iqaccset" helpsub="$RSTR(IQaccSet)">$RSTR(IQaccSet)
+             <script>
+              writeHelpIcon("iqaccset");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+          <td class="startsub" helpbold="$RSTR(password)" myhelp="$RSTR(iqaccpw_help)">$RSTR(password) 
+		<input type="password" name="password" id="password" 
+                value="******" size="32" 
+                onChange="return setPassword(this)"></td></tr>
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(offstart)" myhelp="$RSTR(iqaccstart_help)">$RSTR(offstart) $O(1.18.2.1,JTB)</td></tr> 
+        <tr> 
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(offend)" myhelp="$RSTR(iqaccend_help)">$RSTR(offend) $O(1.18.2.2,JTB)</td></tr> 
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(buttxt)" myhelp="$RSTR(iqaccbuttxt_help)">$RSTR(buttxt) 
+		<input name="OidTB17.3.2"
+	            value="$O(17.3.2)"
+        	    onChange="setAccessButtonText(this);">
+	   </td></tr>
+        <tr>
+          <td class="left">&nbsp;</td>
+          <td class="input" helpbold="$RSTR(extinp)" myhelp="$RSTR(iqaccextinp_help)">$RSTR(extinp) $O(1.3.4,JSB)</td></tr> 
+        <tr> 
+          <td class="endsubleft">&nbsp;</td>
+	      <td class="endsub">$RSTR(trigger)
+	      <script>writeTrigSelect();</script></td></tr> 
+
+
+        <tr>
+          <td class="subtitleleft">&nbsp</td>
+          <td class="subtitle" helpanchor="iqaccrc" helpsub="$RSTR(IQaccCC)" myhelp="$RSTR(IQaccCC_help)">$RSTR(IQaccCC)
+             <script>
+              writeHelpIcon("iqaccrc");</script></td></tr>
+        <tr> 
+          <td class="startsubleft">&nbsp;</td>
+	  <td class="startsub">$RSTR(clients)
+	      <script>writeClients();</script></td></tr>
+	<tr>
+	  <td class="left">&nbsp; </td>
+	  <td class="input" align="center">
+	    <ul id="buttonp">
+	      <li><a href=""
+	      onClick="return disconnectClient()">$RSTR(disco)</a></li>
+	    </ul>
+	  </td>
+	</tr>
+
+        <tr>
+          <td class="endsubleft">&nbsp;</td>
+	  <td class="endsub">&nbsp</script></td></tr> 
+
+        </table> <!-- end description of right column -->
+      </td>
+    </tr>
+    <tr> <!-- start bottom left content (below image)  -->
+      <td valign="bottom"  align="left">
+      </td></tr> <!-- end bottom left content -->
+
+         </form>
+    </table>
+  </td>
+  <td class="r"><img src="1pixclear.gif" height=1 width=11></td>
+</tr>
+<script> 
+  writeFooter('myDefaults');
+</script>
+<tr>
+  <td class="bl"><img src="1pixclear.gif"  height=1 width=11></td>
+  <td colspan=2 class="b"><img src="1pixclear.gif"  height=11 width=1></td>
+  <td class="br"><img src="1pixclear.gif" width=1 height=1></td>
+</tr>
+</table>
+</body>
+</html>
+

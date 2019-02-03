@@ -1,0 +1,934 @@
+
+
+
+
+
+$DEF(VAV, )
+
+$INC(oemvars.dp)
+var oemcolor = '$V(COLOR)';
+var headlinkcolor = '$V(HEADLINKCOLOR)';
+
+$IF($V(VAV),var isVAV = true;,var isVAV = false;)
+
+
+
+$INC(oeminfo.js.dp)
+
+var isPTZ =  "$O(1.4.7,B)"; 
+isPTZ =  (isPTZ == "YES" || isPTZ == "yes" || isPTZ == "Yes") ? true:false;
+
+var prodID = "$O(2.21)";
+var prodName = "$O(2.8)";
+
+var isIQeye2 = prodID.match("1"); 
+
+var isIQeye3 = (prodID == "2a") || (prodID == "2f") || (prodID == "29");
+var isIQevent = (prodID == "2f");
+
+
+
+var isIQeye8 = (prodID=="4d");
+
+var isIQeye7 = (prodID=="3b") || (prodID=="4d");
+var isIQeye5 = (prodID=="3c") || (prodID=="3b");
+var isIQeye500 = (prodID=="3c");
+
+var isIQeye6 = (prodID=="2d") || (prodID=="3c") || (prodID=="3b") ||
+(prodID=="5a") || (prodID=="5b") || (prodID=="4d") || (prodID=="6a")
+|| (prodID=="6b");
+
+var isPunix = (prodID=="2d") || (prodID=="3c") || (prodID=="3b") ||
+(prodID=="4d");
+var isIQ54x = (prodID=="5a"); 
+var isIQ04x = (prodID=="5b"); 
+var isMole = isIQ54x || isIQ04x;
+var isIQ73 = (prodID=="6a");  
+var isIQD3 = (prodID=="6b");  
+var isFalcon = isIQ73 || isIQD3;
+var isIQ832 = (prodName=="IQ832N" || prodName=="IQ832S"); 
+
+var is16by9 = ("$O(1.2.38)" == "16:9");
+
+
+
+var hasCameo = isIQeye7;
+var hasNightModeSupport = !isIQeye2;
+var hasHotSpotSupport = isIQeye2; 
+var hasPCCardSupport = $O(2.40.1); 
+hasPCCardSupport = (hasPCCardSupport > 0) ? true:false;
+var hasAudioSupport = "$O(2.40.2)"; 
+hasAudioSupport = (hasAudioSupport>0) ? true:false;
+var hasIrisConnector = "$O(2.40.3)"; 
+hasIrisConnector = (hasIrisConnector > 0) ? true:false;
+var hasMotionSupport = "$O(1.11.5)"; 
+hasMotionSupport = (! hasMotionSupport.match("Err::Unknown OID"));
+var hasColorSupport = "$O(1.2.20.2)"; 
+hasColorSupport = (hasColorSupport!=0) ? true:false;
+var hasPrivacySupport = (isIQeye5 || isIQeye7 || !isIQeye6) ? true:false;
+var hasExposureSupport = (isIQeye5 || isIQeye7 || !isIQeye6) ? true:false;
+var hasAWBSupport = (isIQeye5 || isIQeye7 || !isIQeye6) ? true:false;
+var Culture = '$O(7.8,R)';
+var imagerName = "$O(1.2.20.1)";
+
+if (imagerName == "IQ003") {
+     
+     hasCameo = false;
+}
+
+if (isMole) {
+     hasPrivacySupport = false;
+     hasExposureSupport = false;
+}
+
+var hasRecorderSupport;
+if (isVAV) {
+     hasRecorderSupport = false;
+}
+else if (!isIQeye5 && !isMole && !isIQeye8) {
+     hasRecorderSupport = true;
+}
+else {
+     hasRecorderSupport = "$O(18.1)".toLowerCase();
+     if (hasRecorderSupport == "true" ||
+	 hasRecorderSupport == "demo") {
+	  hasRecorderSupport = true;
+     }
+     else {
+	  hasRecorderSupport = false;
+     }
+}
+
+var hasAccessSupport;
+if (isVAV) {
+     hasAccessSupport = false;
+}
+else {
+     hasAccessSupport = "$O(18.6)".toLowerCase();
+     if (hasAccessSupport == "true" ||
+	 hasAccessSupport == "demo") {
+	  hasAccessSupport = true;
+     }
+     else {
+	  hasAccessSupport = false;
+     }
+}
+
+if (isFalcon) {
+     hasRecorderSupport = false;
+     hasPrivacySupport = false;
+     hasExposureSupport = true;
+     hasMotionSupport = true;
+     hasCameo = false;
+}
+
+var authMode = "$O(7.6)"; 
+authMode = authMode.toLowerCase();
+
+
+
+
+
+
+var serverNameString = "$SN";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var settings = new Object();	 
+var viewing = new Object();      
+
+
+
+
+function linkAction(link) {
+    if (document.images) 
+	return "javascript:self.location.replace('" + link + "')";
+    else return link;
+}
+
+var livevidhref = '<a href="' + linkAction("/") 
+                + '"><font color=#FFFFCC><b>LIVE</b></font></a>';
+
+var playbackhref = '<a href="' + linkAction("playback.html") 
+                 + '"><font color=#FFFFCC><b>PLAYBACK</b></font></a>';
+
+if (isVAV) {
+   livevidhref = '<a href="' + linkAction("/") 
+                + '"><font color=#FFFFCC><b>ALARM</b></font></a>';
+   playbackhref="";
+}
+
+function initSettingsNavBar() {
+    var i = 0;
+    var navbar = settings;
+    var livetext;
+    var livetext_name;
+
+    if (isVAV) {
+	livetext = "alarm";
+	livetext_name = "alarm";
+    }
+    else {
+	livetext = "$RSTR(live)";
+	livetext_name = "live";
+    }
+
+    navbar.columns = 0; 
+    navbar.tabwidth = 50;
+    navbar.names = new Array();
+    navbar.title = "settings"
+    navbar.text = new Array();
+    navbar.tabtext = new Array(); 
+    navbar.values = new Array();
+    navbar.tabheight = 13;
+
+    navbar.columns += 4;
+    navbar.names[i] = livetext_name;
+    navbar.values[i] = "dptzvid.html";
+    navbar.tabtext[i] = livetext;    
+    navbar.text[i++] = livetext;
+
+    if (hasRecorderSupport) {
+       navbar.columns += 4;
+       navbar.names[i] = "playback";
+       navbar.tabtext[i] = "$RSTR(playback)";    
+       navbar.values[i] = "playback.html";
+       navbar.text[i++] = "$RSTR(playback)";
+    }
+
+    if (hasCameo) {
+	navbar.columns += 4;
+	navbar.names[i] = "cameo";
+	navbar.values[i] = "cameo.html";
+	navbar.tabtext[i] = "$RSTR(cameo)";    
+	navbar.text[i++] = "$RSTR(cameo)";
+    }
+
+    navbar.columns += 4;
+    navbar.names[i] = "basic";
+    navbar.values[i] = "basicset.html";
+    navbar.tabtext[i] = "$RSTR(setup)";    
+    navbar.text[i++] = "$RSTR(setup)";
+
+    navbar.columns += 4;
+    navbar.names[i] = "window";
+    if (isVAV) {   
+        navbar.values[i] = "exposure.html";
+    }
+    else if (isFalcon) {
+	navbar.values[i] = "exposure.html";
+    }
+    else {
+        navbar.values[i] = "cropset.html";
+    }
+    navbar.tabtext[i] = "$RSTR(window)";    
+    navbar.text[i++] = "$RSTR(winset)";
+
+    navbar.columns += 4;
+    navbar.names[i] = "server"; 
+    if (isFalcon)   
+	navbar.values[i] = "basicnet.html";
+    else
+	navbar.values[i] = "serverset.html";
+    navbar.tabtext[i] = "$RSTR(network)";    
+    navbar.text[i++] = "$RSTR(netset)";
+
+    navbar.columns += 4;
+    navbar.names[i] = "access";   
+    navbar.values[i] = "accessset.html";
+    navbar.tabtext[i] = "$RSTR(security)";    
+    navbar.text[i++] = "$RSTR(secset)";
+
+    if (!isMole && !isIQevent && !isVAV && !isFalcon) {
+      navbar.columns += 4;
+      navbar.names[i] = "trigger";  
+      navbar.values[i] = "triggerset.html";
+      navbar.tabtext[i] = "$RSTR(trigger)";    
+      navbar.text[i++] = "$RSTR(trigset)";
+    }
+
+    if (!isMole && (isIQeye7 || !isIQeye5) && !isIQD3) {
+      navbar.columns += 4;
+      navbar.names[i] = "io";
+      navbar.values[i] = "ioset.html";
+      navbar.tabtext[i] = "$RSTR(io)";    
+      navbar.text[i++] = "$RSTR(ioset)";
+    }
+
+    if (!isVAV && !isIQevent && hasPCCardSupport && isIQeye3) {
+        navbar.columns += 4;
+        navbar.names[i] = "pccard";    
+        navbar.values[i] = "pccardset.html";
+        navbar.tabtext[i] = "wi-fi";    
+        navbar.text[i++] = "wi-fi settings";
+    } 
+    
+    if (!isMole && !isVAV && !isFalcon) {
+        navbar.columns += 4;
+        navbar.names[i] = "recorder";  
+        navbar.tabtext[i] = "$RSTR(iqrec)";    
+        if (hasRecorderSupport) {
+           navbar.values[i] = "recorderset.html";
+        }
+        else { 
+	    navbar.values[i] = "nolicense."+Culture+".html";
+        }
+        navbar.text[i++] = "$RSTR(iqrecset)";
+    }
+
+    if (!isMole && !isVAV && hasAccessSupport) {
+        navbar.columns += 4;
+        navbar.names[i] = "iqaccess";  
+        navbar.tabtext[i] = "$RSTR(iqacc)";    
+	navbar.values[i] = "iqaccess.html";
+        navbar.text[i++] = "$RSTR(iqaccset)";
+    }
+
+    if (!isVAV && !isMole && !isFalcon) {
+        navbar.columns += 4;
+        navbar.names[i] = "multiview";
+        navbar.values[i] = "multiviewset.html";
+        navbar.tabtext[i] = "$RSTR(multiview)";    
+        navbar.text[i++] = "$RSTR(multset)";
+    }
+
+$INC(oemmenu.js.dp)
+}
+
+
+function initViewingNavBar() {
+    var i = 0;
+    var navbar = viewing;
+    var livetext;
+    var livetext_name;
+
+    if (isVAV) {
+	livetext = "alarm";
+	livetext_name = "alarm";
+    }
+    else {
+	livetext = "$RSTR(live)";
+	livetext_name = "live";
+    }
+
+    navbar.columns = 0; 
+    navbar.tabwidth = 50;
+    navbar.names = new Array();
+    navbar.title = "viewing"
+    navbar.text = new Array();
+    navbar.tabtext = new Array(); 
+    navbar.values = new Array();
+    navbar.tabheight = 13;
+
+    navbar.columns += 4;
+    navbar.names[i] = livetext_name;
+    navbar.values[i] = "dptzvid.html";
+    navbar.tabtext[i] = livetext;    
+    navbar.text[i++] = livetext;
+
+    if (hasRecorderSupport) {
+      navbar.columns += 4;
+      navbar.names[i] = "playback";
+      navbar.values[i] = "playback.html";
+      navbar.tabtext[i] = "$RSTR(playback)";    
+      navbar.text[i++] = "$RSTR(playback)";
+    }
+
+    if (hasCameo) {
+	navbar.columns += 4;
+	navbar.names[i] = "cameo";
+	navbar.values[i] = "cameo.html";
+	navbar.tabtext[i] = "$RSTR(cameo)";    
+	navbar.text[i++] = "$RSTR(cameo)";
+    }
+
+    var cur = currPage();
+    if (hasCameo &&
+	((cur == "cameo.html") ||
+	 (cur == "cameoset.html") ||
+	 
+	 (cur == "" && ("$O(7.2)" == "cameo.html")))) {
+	navbar.columns += 4;
+	navbar.names[i] = "cameo set";
+	navbar.values[i] = "cameoset.html";
+	navbar.tabtext[i] = "$RSTR(cameoset)";    
+	navbar.text[i++] = "$RSTR(cameoset)";
+    }
+
+    navbar.columns += 4;
+    navbar.names[i] = "basic";
+    navbar.values[i] = "basicset.html";
+    navbar.tabtext[i] = "$RSTR(setup)";    
+    navbar.text[i++] = "$RSTR(setup)";
+
+$INC(oemmenu.js.dp)
+}
+
+
+
+function initNavbar(navbar) {
+   if (navbar==settings) initSettingsNavBar();
+   else if (navbar==viewing) initViewingNavBar();
+   else initOemNavBar();
+
+}
+
+
+function initOemNavBar() {
+}
+
+
+
+
+
+function writeCroppedImage() 
+{
+    
+    var mainWidth = "$O(1.17.8.1)";
+    var mainHeight = "$O(1.17.8.2)";
+
+    
+
+    
+    
+    
+    var ds = $O(1.2.2);
+    var maxWidth = "$O(1.2.20.5)"; 
+    var maxHeight= "$O(1.2.20.6)";
+    
+    if (isIQeye6) {
+	maxWidth = "$O(1.2.18.3)"; 
+	maxHeight= "$O(1.2.18.4)";
+    }
+
+    if (isFalcon) {
+	if (mainWidth <= 1 ||
+	    mainHeight <= 1) { 
+	    mainWidth = maxWidth;
+	    mainHeight = maxHeight;
+	}
+	maxWidth = mainWidth;
+	maxHeight = mainHeight;
+    }
+
+    
+    var ds_necessary = Math.max(Math.ceil(maxWidth/322),
+				Math.ceil(maxHeight/322));
+
+    
+    var ds_float = Math.max (maxWidth/322, maxHeight/322);
+
+    var dsfactor = Math.max(ds,ds_necessary);
+
+    
+    var dsreq = ds_necessary;
+    
+    
+    if (isIQeye6) {
+	if (dsreq == 3) dsreq = 4;
+    }
+    if (isIQeye6 || isIQeye7) {
+	
+	
+	if (dsreq > 4) dsreq = 4;
+    }
+    if (isIQeye500) {
+	
+	if (dsreq > 2) dsreq = 2;
+    }
+    
+    var dsstring = "?ds=" + dsreq;
+    
+    var imWidth =  Math.floor(maxWidth/dsfactor);
+    var imHeight = Math.floor(maxHeight/dsfactor);
+    
+    
+    if (isIQeye6 && !isIQeye5) dsstring = "";
+    
+    
+    var orient = "$O(1.2.4)";
+    orient = (orient.match("90") || orient.match("270") ||
+	      orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
+    
+    if (orient=="portrait") { 
+	var tmp;
+	tmp = imWidth; imWidth = imHeight; imHeight = tmp;
+	tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
+    }
+
+    document.write ('<td id="livetd" width=330 height=330 valign="top" align="left">');
+
+    if (UseActiveX() || canSpush) {
+
+	
+	
+	
+	if (isFalcon) {
+	    imWidth = Math.floor(mainWidth/ds_float);
+	    imHeight = Math.floor(mainHeight/ds_float);
+	}
+	else {
+	    imWidth = Math.floor($O(1.2.6.2)/ds_float);
+	    imHeight = Math.floor($O(1.2.6.3)/ds_float);
+	}
+	var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+	
+	
+	
+	
+	off_x = (isIQeye6) ? $O(1.2.6.4)/ds_float:$O(1.2.18.6)/ds_float;
+	off_y = (isIQeye6) ? $O(1.2.6.1)/ds_float:$O(1.2.18.5)/ds_float;
+	off_x = Math.floor (off_x);
+	off_y = Math.floor (off_y);
+	
+	var divstr = '<div id="mainfeed" style="padding-left: ' +
+	off_x + 'px; padding-top: ' + off_y + 'px">ActiveX Control</div>';
+
+	var url = 'now.jpg?snap=spush0.2' + dsstring;
+	if (!isIQeye6) url += '?ov=0';
+
+	
+	
+	
+	
+
+	rv += '<param name="InternalDptz" value="0">';
+	rv += '<param name="StreamDptz" value="0">';
+	document.write (divstr);
+	CreateControl ("mainfeed", imAttr, "", rv, 
+		       isIQeye6, isIQeye7 || isIQeye5, url);	
+	
+	
+	
+    }
+    else {
+	var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
+	
+	var rv = '<div id="mainfeed">'
+	    +'<applet code="WindowSet.class" name="spapplet" ' 
+	    + imAttr + '>'
+	    + '<param name="url1" value="1pixgray.gif">'
+	    + '<param name="offsetx" value="';
+	if (isFalcon) {
+	    rv       += mainWidth/dsfactor;
+	    rv       +=  '">' + '<param name="offsety" value="';
+	    rv       += mainHeight/dsfactor;
+	}
+	else {
+	    rv       +=  (isIQeye6) ? $O(1.2.6.4)/dsfactor:$O(1.2.18.6)/dsfactor;
+	    rv       +=  '">' + '<param name="offsety" value="';
+	    rv       += (isIQeye6) ? $O(1.2.6.1)/dsfactor:$O(1.2.18.5)/dsfactor;
+	}
+	rv       += '">' + '<param name="url2" value="';
+	rv       += 'now.jpg?snap=spush0.2';
+	
+	if (!isIQeye6) rv += '?ov=0';
+	rv       += dsstring;
+	rv       += '">'
+	    
+	    + '<param name="dsfactor" value="' + dsfactor + '">'
+	    + '<param name="numWindows" value="0">';
+	if (isFalcon) {
+	    rv += '<param name="hw" value="' + mainWidth/dsfactor + '">';
+	    rv += '<param name="hh" value="' + mainHeight/dsfactor + '">';
+	}
+	else if (isIQeye6) {
+	    rv += '<param name="hw" value="' + $O(1.2.6.2)/dsfactor + '">';
+	    rv += '<param name="hh" value="' + $O(1.2.6.3)/dsfactor + '">';
+	}
+	rv  += '</applet></div>';
+	document.write(rv);
+    }
+    document.write ('</td>');
+}
+
+
+function spAppletDivs(source, imAttr) {
+    var outString = '<div id="mainfeed">'; 
+    if (!needsApplet) {
+	outString  += "<img src='" + source + "' name='now' " + imAttr + ">\n";
+    }
+    
+    outString += "</div>\n";
+    
+    if (needsApplet) {
+	outString += 
+	    '<div id=spushDiv>\n'
+	    
+	    + '<applet code="ShowServerPush.class" name="spapplet" ' 
+	    + imAttr + '>\n'
+	    + '<param name="url" value="' + source + '">\n'
+	    + '</applet>'
+	    
+	    
+	    + '</div>';
+    }
+    
+    return outString;
+}
+
+function theApplet() {
+    return document.applets["spapplet"]; 
+
+
+
+
+}
+
+function stopApplet() {
+    if (theApplet()) theApplet().stop();
+    return false;
+}
+
+function helpIconString(loc) {
+    return '<font size="-6">'
+	 + '<a href="javascript:void(0)" tabindex="-1" '
+	 + 'onClick="return helpMe(\'' + loc + '\')" '
+         + 'onMouseOver="window.status=\'$RSTR(onhelp)\'; return true;" '
+         + 'onMouseOut="window.status=\'\';">?</a></font>';
+}
+
+function helpIconStringAuto(loc) {
+    return '<font size="-6">'
+	 + '<a href="javascript:void(0)" tabindex="-1" '
+	 + 'onClick="return helpMeAuto(\'' + loc + '\')" '
+         + 'onMouseOver="window.status=\'$RSTR(onhelp)\'; return true;" '
+         + 'onMouseOut="window.status=\'\';">?</a></font>';
+}
+
+function writeStopAppletButton() {
+    if (needsApplet && !isVAV) {
+      document.write
+	  ('<table width="100\%" border=0 cellpadding=0 cellspacing=0 '
+	      + 'vspace=0 hspace=0>'
+	      + '<tr><td align="right">\n'
+	      + '<input type="button" value="stop loading" '
+	      + 'onClick="return stopApplet()">\n'
+	      + '</td></tr></table>\n');
+    }
+}
+
+
+var WroteHelpIcon = false;
+
+function writeHelpIcon(loc) {
+    if (!WroteHelpIcon) {
+	document.write (helpIconStringAuto(loc));
+	
+	if (isFirefox) WroteHelpIcon = true;
+    }
+}
+
+function writeHelpIcon2(loc) {
+    document.write (helpIconString2(loc));
+}
+
+function writeTrickIcon(loc) {
+    document.write 
+	('<font size="-6">'
+	 + '<a href="javascript:void(0)" '
+	 + 'onClick="return helpMe(\'' + loc + '\')"'
+         + 'onMouseOver="window.status=\'browser help\'; return true;" '
+         + 'onMouseOut="window.status=\'\';">'
+	 + 'browser management tricks</a></font>');
+}
+
+function errorGifTD() {
+  return '<td><img name="errorgif" id="errorgif" src="1pixclear.gif" '
+      + 'width=300 height=24 border=0></td>';
+}
+
+function setupViewingTabs() {
+    initNavbar(viewing);
+}
+
+
+
+
+
+
+function jumpMenu2String() {
+    initNavbar(settings);	
+
+    var i, targ, text;
+
+    var onChangeStr = 
+	'onChange="self.location=this.options[this.selectedIndex].value"';
+        
+    var outString = '<td align=right>\n'
+        + '<form name="goto"><select class="formselect" name="whereto"' 
+        + onChangeStr + '>\n'
+	+ '<option value="javascript:void(0)">Quick Jump To ...</option>\n';
+
+    if ((authMode == "error403") &&
+        (document.cookie.length==0 
+        || document.cookie.indexOf("SrvrCreds") == -1)) { 
+  	targ = settings.values[0];
+	outString += '<option value="' + targ + '">log in</option>\n';
+    } else {
+        for (i=0; i < settings.names.length; i++) {
+    	    targ = settings.values[i];
+  	    text = settings.text[i];
+	    outString += '<option value="'+ targ +'">' + text + '</option>\n';
+          }
+    }
+    outString += 
+	'<option value="javascript:void(0)">-----------</option>\n'
+	+ WEBSITE_OPTION
+	+ '</select></form></td>\n';
+    return outString;	
+}
+
+function writeJumpMenu2Table() {
+    document.write("<table width=\"100%\"><tr>"
+	+ errorGifTD()
+        + jumpMenu2String() 
+        + "</tr></table>");	
+}
+
+
+
+function writeViewHeader() {
+    document.write
+	("<table border=0 cellpadding=0 cellspacing=0 "
+ 	 + 'width="100%">\n'
+
+         + '<tr><td colspan=2 bgcolor=' + oemcolor + '>\n'
+         + '<image src="1pixclear.gif" height=4 width=1></td></tr>\n'
+
+	 + '<tr><td colspan=2 bgcolor=' + oemcolor + ' width="100%">\n'
+	 + '<font color=' + headlinkcolor + 'size="+2">'
+	 + '<nobr>&nbsp; live</nobr></font></td></tr>\n'
+
+         + '<tr><td colspan=2 bgcolor=' + oemcolor + '>\n'
+         + '<image src="1pixclear.gif" height=4 width=1></td></tr>\n'
+
+	 + '<tr><td colspan=2 height=4></td></tr>\n'
+
+	 + '<tr>' +  errorGifTD() + jumpMenu2String() + '</tr></table>'
+	 );
+}
+
+
+
+function writeTitleBar() {
+    document.write
+	('<table width=\"100%\" border=0 cellpadding=0 cellspacing=0><tr>\n'
+	 + '<td bgcolor=' + oemcolor + '>\n'
+	 + '<img src="1pixclear.gif" width=154 height=22 border=0></td>\n'
+         + '<td bgcolor=' + oemcolor + ' align=right>' 
+         + livevidhref 
+         + '<image src="1pixclear.gif" width=10 alt="">'
+         + '</td></tr></table>\n');
+}
+
+function textTab(name, desc, link, onoff) {
+    var outString = (onoff) ? '<li id="current">' : '<li>';
+    return outString 
+	+ '<a href="' + linkAction(link) + '"'
+        + ' onMouseOver=\'window.status="' + desc + '"; return true;\''
+	+ ' onMouseOut=\'window.status=""\'>'
+	+ name + '</a></li>';
+}
+
+
+
+
+function writeSettingsHeader(onItem) {
+    writeHeader(settings, onItem);
+}
+
+
+
+
+function writeViewingHeader(onItem) {
+    writeHeader(viewing, onItem);
+}
+
+
+
+
+
+function writeInstallHeader(onItem) {
+    writeHeader(install, onItem);
+}
+
+function writeHeader(navbar, onItem) {
+    var i, itemNo=0;
+
+    initNavbar(navbar);
+ 
+    for (i=0; i<navbar.names.length; i++) {
+	if (navbar.names[i]==onItem) itemNo=i;
+    }
+
+    var out = 
+	'<tr><td class="tl"><img src="1pixclear.gif" width=11 height=42></td>'
+
+	if(navbar == viewing) {
+            out += '<td class="topmenu" width=662>'
+	}
+        else {
+            out += '<td class="topmenu" colspan=2 width=830>';
+	}
+    
+	out += '<h1><font color="666666"><img src="1pixclear.gif" width=4 height=1>$SP </font>' 
+        + '$SN ' + '<font style="color: #bbb;font-size:10px;">$O(2.5)</font></h1>'
+	+'<img src="1pixclear.gif" width=4 height=1>' + '<ul id="nav">';
+
+    for (i=0; i<navbar.names.length; i++) {
+	out += textTab(navbar.tabtext[i], navbar.text[i], navbar.values[i], 
+		  (navbar.names[i]==onItem));
+    }
+
+    if(navbar==viewing) {
+        out += '</ul></td>'
+	    +'<td class="topmenu" width=130><img src="logosm.gif" width=124 height=21></td>'
+	    + '<td class="tr"><img src="1pixclear.gif" width=1 height=1></td>'
+	    + '</tr>';
+    }
+    else {
+        out += '</ul></td>'
+	    + '<td class="tr"><img src="1pixclear.gif" height=1></td>'
+	    + '</tr>';
+    }
+    document.write(out);
+}
+
+var logoutHref =
+    '<li><a href="javascript:void(0)" onClick="logout(); return false"' 
+    + ' onMouseOver=\'window.status="Logout of session"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + 'logout session</a></li>\n';
+
+var rebootHref =
+    '<li><a href="javascript:void(0)" onClick="return reboot()"'
+    + ' onMouseOver=\'window.status="$RSTR(reboot)"; return true;\''
+    + ' onMouseOut=\'window.status=""\'>'
+    + '$RSTR(reboot)</a></li>\n';
+
+
+function sendCommandAppletString() {
+    var outString ="";
+
+    if (needsIframe) {
+        outString +=
+            '<iframe name="commandIframe" id="commandIframe" '
+            + 'frameborder=0 scrolling=no '
+	    
+	    
+	    + 'width=1 height=1 marginwidth=0 marginheight=0 align=top '
+
+	    
+	    
+	    
+	    + 'src=get.oid?2.27></iframe>';
+    } else { 
+    
+    }
+    return outString;  
+}
+
+
+
+
+
+
+function writeFooter() {
+    var logoutOK = (authMode == "basic") ? false:true;
+    
+
+    var outString = '<tr>'
+	+ '<td class="l"><img src="1pixclear.gif" width=1 height=1></td>'
+	+ '<td class="buttonbar" align="left"  style="padding-left: 24px">'
+	+ '<ul id="button">';
+
+    for (var n=0;n<arguments.length; n++) {
+        var arg = arguments[n];
+	if (arg == "logout" && logoutOK)   outString += logoutHref;
+	else if (arg == "reboot")          outString += rebootHref;
+	else if (arg == "myDefaults")      outString += myDefaultsHref;
+    }
+    outString += '</ul>&nbsp; </td>'
+	+ '<td class="logo" align="right">'
+	+ '<img src="logo.gif" height="24" width="156">'
+	+ sendCommandAppletString() + '</td>'
+        + '<td class="r"><img src="1pixclear.gif" height=1 width=11></td>'
+	+ '</tr>';
+    document.write(outString);
+}
+
+
+
+function writeBareFooter() {
+    var outString = 
+	'<table width="100%"><tr>'
+	+ '<td align="right">'
+	+ '<font face="Arial, Helvetica, sans-serif"><b>' 
+	+ '$SN' + '</b><br></font></td></tr>\n'
+	+ '<tr><td align=center height=2 bgcolor=' + oemcolor + '>'
+	+ '<img src="1pixclear.gif" height=3 border=0></td></tr></table>\n';
+    document.write(outString);
+}
+
+
+function currPage ()
+{
+    var sPath = window.location.pathname;
+    var sPage = sPath.substring(sPath.lastIndexOf('/') + 1);
+    return sPage;
+}
+
+
+function getCSSRule(ruleName, deleteFlag) {               
+   ruleName=ruleName.toLowerCase();                       
+   if (document.styleSheets) {                            
+      for (var i=0; i<document.styleSheets.length; i++) { 
+         var styleSheet=document.styleSheets[i];          
+         var ii=0;                                        
+         var cssRule=false;                               
+          do {                                             
+            if (styleSheet.cssRules) {                    
+               cssRule = styleSheet.cssRules[ii];         
+            } else {                                      
+               cssRule = styleSheet.rules[ii];            
+             }                                             
+            if (cssRule)  {                               
+               if (cssRule.selectorText.toLowerCase()==ruleName) { 
+                  if (deleteFlag=='delete') {             
+                     if (styleSheet.cssRules) {           
+                        styleSheet.deleteRule(ii);        
+                     } else {                             
+                        styleSheet.removeRule(ii);        
+                     }                                    
+                     return true;                         
+                  } else {                                
+                     return cssRule;                      
+                  }                                       
+               }                                          
+            }                                             
+            ii++;                                         
+         } while (cssRule)                                
+      }                                                   
+   }                                                      
+   return false;                                          
+}                                                         
+
+
+if (is16by9) {
+    var liverule = getCSSRule ("#livetd");
+    if (liverule) {
+	liverule.style.backgroundImage = 'url(gray_16by9.gif)';
+    }
+}
