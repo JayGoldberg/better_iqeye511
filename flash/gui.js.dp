@@ -316,47 +316,33 @@ function initNavbar(navbar) {
 
 
 
-
 function writeCroppedImage() {
-
-
-
-
-
-
-    var ds = $O(1.2.2);
-    var maxWidth = "$O(1.2.20.5)";
-    var maxHeight= "$O(1.2.20.6)";
+    var ds = 1;
+    var maxWidth = "1280";
+    var maxHeight= "1024";
 
     if (isIQeye6) {
-    maxWidth = "$O(1.2.18.3)";
-    maxHeight= "$O(1.2.18.4)";
+        maxWidth = "1280";
+        maxHeight= "1024";
     }
-
 
     var ds_necessary = Math.max(Math.ceil(maxWidth/322),
                 Math.ceil(maxHeight/322));
 
-
-    var ds_float = Math.max (maxWidth/322, maxHeight/322);
+    var ds_float = Math.max(maxWidth/322, maxHeight/322);
 
     var dsfactor = Math.max(ds,ds_necessary);
 
-
     var dsreq = ds_necessary;
 
+    if (isIQeye6 && dsreq == 3) { dsreq = 4; }
 
-    if (isIQeye6) {
-    if (dsreq == 3) dsreq = 4;
-    }
     if (isIQeye6 || isIQeye7) {
-
-
-    if (dsreq > 4) dsreq = 4;
+        if (dsreq > 4) { dsreq = 4; }
     }
-    if (isIQeye500) {
 
-    if (dsreq > 2) dsreq = 2;
+    if (isIQeye500) {
+        if (dsreq > 2) { dsreq = 2; }
     }
 
     var dsstring = "?ds=" + dsreq;
@@ -364,87 +350,77 @@ function writeCroppedImage() {
     var imWidth =  Math.floor(maxWidth/dsfactor);
     var imHeight = Math.floor(maxHeight/dsfactor);
 
+    if (isIQeye6 && !isIQeye5) { dsstring = ""; }
 
-    if (isIQeye6 && !isIQeye5) dsstring = "";
 
-
-    var orient = "$O(1.2.4)";
+    var orient = "NONE";
     orient = (orient.match("90") || orient.match("270") ||
           orient.match("BLTR") || orient.match("TLBR")) ? "portrait":"landscape";
 
-    if (orient=="portrait") {
-    var tmp;
-    tmp = imWidth; imWidth = imHeight; imHeight = tmp;
-    tmp = maxWidth; maxWidth = maxHeight; maxHeight = tmp;
+    if (orient == "portrait") {
+        var tmp;
+        tmp = imWidth;
+        imWidth = imHeight;
+        imHeight = tmp;
+        tmp = maxWidth;
+        maxWidth = maxHeight;
+        maxHeight = tmp;
     }
 
+    if ( UseActiveX() || canSpush ) {
+        console.log('spush');
+        imWidth = Math.floor(1280/ds_float);
+        imHeight = Math.floor(1024/ds_float);
+        var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
 
-    if (UseActiveX()) {
+        off_x = (isIQeye6) ? 0/ds_float:0/ds_float;
+        off_y = (isIQeye6) ? 0/ds_float:0/ds_float;
+        off_x = Math.floor (off_x);
+        off_y = Math.floor (off_y);
 
+        var divstr = '<div id="mainfeed" style="padding-left: ' +
+        off_x + 'px; padding-top: ' + off_y + 'px">ActiveX Control</div>';
 
+        var url = 'now.jpg?snap=spush0.2' + dsstring;
 
+        if (!isIQeye6) { url += '?ov=0' };
 
-    imWidth = Math.floor($O(1.2.6.2)/ds_float);
-    imHeight = Math.floor($O(1.2.6.3)/ds_float);
-    var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
-
-
-
-
-    off_x = (isIQeye6) ? $O(1.2.6.4)/ds_float:$O(1.2.18.6)/ds_float;
-    off_y = (isIQeye6) ? $O(1.2.6.1)/ds_float:$O(1.2.18.5)/ds_float;
-    off_x = Math.floor (off_x);
-    off_y = Math.floor (off_y);
-
-    var divstr = '<div id="mainfeed" style="padding-left: ' +
-    off_x + 'px; padding-top: ' + off_y + 'px">ActiveX Control</div>';
-
-    var url = 'now.jpg?snap=spush0.2' + dsstring;
-    if (!isIQeye6) url += '?ov=0';
-
-
-
-
-
-
-    rv += '<param name="InternalDptz" value="0">';
-    rv += '<param name="StreamDptz" value="0">';
-    document.write (divstr);
-    CreateControl ("mainfeed", imAttr, "", rv,
+        rv += '<param name="InternalDptz" value="0">';
+        rv += '<param name="StreamDptz" value="0">';
+        document.write (divstr);
+        CreateControl ("mainfeed", imAttr, "", rv,
                isIQeye6, isIQeye7 || isIQeye5, url);
+    } else {
+        var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
 
+        var rv = '<div id="mainfeed">'
+            +'<applet code="WindowSet.class" name="spapplet" '
+            + imAttr + '>'
+            + '<param name="url1" value="1pixgray.gif">'
+            + '<param name="offsetx" value="';
+        rv +=  (isIQeye6) ? 0/dsfactor:0/dsfactor;
+        rv +=  '">' + '<param name="offsety" value="';
+        rv += (isIQeye6) ? 0/dsfactor:0/dsfactor;
+        rv += '">' + '<param name="url2" value="';
+        rv += 'now.jpg?snap=spush0.2';
 
+        if (!isIQeye6) { rv += '?ov=0' };
 
-    }
-    else {
-    var imAttr = ' width="' + imWidth + '" height="' + imHeight + '" border=0 ';
-
-    var rv = '<div id="mainfeed">'
-        +'<applet code="WindowSet.class" name="spapplet" '
-        + imAttr + '>'
-        + '<param name="url1" value="1pixgray.gif">'
-        + '<param name="offsetx" value="';
-    rv       +=  (isIQeye6) ? $O(1.2.6.4)/dsfactor:$O(1.2.18.6)/dsfactor;
-    rv       +=  '">' + '<param name="offsety" value="';
-    rv       += (isIQeye6) ? $O(1.2.6.1)/dsfactor:$O(1.2.18.5)/dsfactor;
-    rv       += '">' + '<param name="url2" value="';
-    rv       += 'now.jpg?snap=spush0.2';
-
-    if (!isIQeye6) rv += '?ov=0';
-    rv       += dsstring;
-    rv       += '">'
+        rv       += dsstring;
+        rv       += '">'
 
         + '<param name="dsfactor" value="' + dsfactor + '">'
         + '<param name="numWindows" value="0">';
-    if (isIQeye6) {
-        rv += '<param name="hw" value="' + $O(1.2.6.2)/dsfactor + '">';
-        rv += '<param name="hh" value="' + $O(1.2.6.3)/dsfactor + '">';
-    }
-    rv  += '</applet></div>';
-    document.write(rv);
+
+        if (isIQeye6) {
+            rv += '<param name="hw" value="' + 1280/dsfactor + '">';
+            rv += '<param name="hh" value="' + 1024/dsfactor + '">';
+        }
+
+        rv  += '</applet></div>';
+        document.write(rv);
     }
 }
-
 
 function spAppletDivs(source, imAttr) {
     var outString = '<div id="mainfeed">';

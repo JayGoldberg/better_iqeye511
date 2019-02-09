@@ -16,15 +16,23 @@ isPTZ =  (isPTZ == "YES" || isPTZ == "yes" || isPTZ == "Yes") ? true:false;
 
 var isNav = (navigator.appName == "Netscape");
 var isNav6 = (isNav && (parseFloat(navigator.appVersion) >= 5.0));
-var isIE = (!isNav && (navigator.appVersion.indexOf("MSIE") != -1));
+var isIE = ((navigator.appVersion.indexOf("MSIE") != -1) || (navigator.appVersion.indexOf("Trident") != -1));
 var isWin = (navigator.appVersion.indexOf("Win") != -1);
 var isMac = (navigator.appVersion.indexOf("Mac") != -1);
 var isNT = (navigator.appVersion.indexOf("Windows NT") != -1);
 var isOpera = (navigator.userAgent.indexOf("Opera") != -1);
 if (isOpera) isIE = false;
 var isMacIE = (isMac && isIE);
+var isIpod = (navigator.userAgent.indexOf("iPod") != -1);
+var isIphone = (navigator.userAgent.indexOf("iPhone") != -1);
+var isIpad = (navigator.userAgent.indexOf("iPad") != -1);
+var isSafari = (navigator.userAgent.indexOf("Safari") != -1);
 var NavVers = 0.0;
 var isW3C = (document.getElementById) ? true:false;
+var isFirefox = (navigator.userAgent.indexOf("Firefox") != -1);
+var isOpera = (navigator.userAgent.indexOf("Opera") != -1);
+var isAndroid = (navigator.userAgent.indexOf("Android") != -1);
+var isMobile = (isIpod || isIphone);
 
 var IEVers = 0.0;
 if (isIE) {
@@ -65,11 +73,16 @@ if (isIE) {
 
 
 
-
+// if true, needs serverpush applet because browser unable to display
+// serverpush
+// var needsApplet =  (isIE && !isMac) || isNav6 || isOpera;
 var needsApplet =  isIE || isNav6 || isOpera;
 
+var canSpush = false;
 
+if (isIpod || isIphone || isFirefox || isSafari || isOpera) { canSpush = true};
 
+if (canSpush) needsApplet = false;
 
 
 
@@ -679,14 +692,11 @@ function submit(n0,v0) {
 }
 
 function enableJavaAlert() {
-    /*
-    if(!isIE) {
-
-    if (!navigator.javaEnabled()) {
-        alert("You must enable java for this page to work correctly.");
+    if(!isIE) { 
+        if (!canSpush && !navigator.javaEnabled()) {
+            alert("You must enable java for this page to work correctly.");
+        }
     }
-    }
-    */
 }
 
 function spushImgString(args) {
@@ -975,33 +985,76 @@ function CreateApplet (DivID, app_string) {
 }
 
 
-function CreateControl (DivID, imAttr, logging, streamDptzParam,
-            isIQeye6, isIQeye7, imageString) {
+function CreateControl(DivID, imAttr, logging, streamDptzParam,
+    isIQeye6, isIQeye7, imageString) {
+    CreateActiveXControl(DivID, imAttr, logging, streamDptzParam,
+        isIQeye6, isIQeye7, imageString, "Iqeye1", 1);
+}
 
+function CreateActiveXControl(DivID, imAttr, logging, streamDptzParam,
+    isIQeye6, isIQeye7, imageString, id, noport) {
+
+    if (canSpush) {
+        var now = new Date();
+
+        var outString = '<img ' + imAttr + ' onmousedown="return false;" src="';
+
+        if (isIQeye6 && !isIQeye7 && !isMole) {
+            outString += 'now.jpg?snap=spush?dummy=' + now.getTime() + '">';
+        } else {
+            outString += imageString + '?dummy=' + now.getTime() + '">';
+        }
+
+        var d = document.getElementById(DivID);
+
+        if (d) {
+            d.innerHTML = outString;
+        }
+    } else {
+        if (IE64) {
+            var d = document.getElementById(DivID);
+            if (d) {
+                d.innerHTML = "Streaming with 64-bit IE not supported.  Use 32-bit.";
+            } else {
+                CreateActiveX(DivID, imAttr, logging, streamDptzParam,
+                isIQeye6, isIQeye7, imageString, id, noport);
+            }
+        }
+    }
+}
+
+function CreateActiveX(DivID, imAttr, logging, streamDptzParam,
+			       isIQeye6, isIQeye7, imageString, id, noport) 
+{	
+	
+    
+    
     var outString
-    = '<object id="Iqeye1" ' + imAttr
-    + ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
-        + ' CODEBASE="iqweb.ocx#Version=1,0,3,7"'
+	= '<object id="'+id+'" ' + imAttr 
+	+ ' CLASSID="CLSID:EF991872-9158-4570-A7FF-E7DBB6A4B8E9"'
+        + ' CODEBASE="'+location.protocol+'//'+location.host+'/iqweb.ocx#Version=1,0,7,1"'
         + ' standby="ActiveX control is loading">\n'
-    + '<param name="_Version" value="65536">\n'
-    + '<param name="_ExtentX" value="11289">\n'
-    + '<param name="_ExtentY" value="8467">\n'
-    + '<param name="_StockProps" value="0">\n'
-    + logging
-    + streamDptzParam;
-    outString += (isIQeye6 && !isIQeye7) ?
-    '<param name="URL" value="/now.jpg?snap=spush">\n' :
-    '<param name="URL" value="/' + imageString + '">\n';
+	+ '<param name="_Version" value="65536">\n'
+	+ '<param name="_ExtentX" value="11289">\n'
+	+ '<param name="_ExtentY" value="8467">\n'
+	+ '<param name="_StockProps" value="0">\n';
+    if (!noport) {
+        outString += '<param name="Port" value="$O(7.1,R)">\n';
+    }
+    outString += logging
+	+ streamDptzParam;
+    outString += '<param name="URL" value="/' + imageString + '">\n';
     outString += '<br><b>ActiveX Camera Control</b>'
         + '<font color="#FF5555">'
-    + '<br><b>Error</b>'
-    + '<br>The ActiveX Control did not load'
+	+ '<br><b>Error</b>'
+	+ '<br>The ActiveX Control did not load'
         + '<br><a href=appletvid.html>Click here</a>'
-    + ' to display with a Java Applet instead.'
+	+ ' to display with a Java Applet instead.'
         + '</font></object>\n';
     var d = document.getElementById(DivID);
+    
     if (d)
-    d.innerHTML = outString;
+	d.innerHTML = outString; 
 }
 
 function CreateCameoControl (DivID, imAttr) {
